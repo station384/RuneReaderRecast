@@ -1,0 +1,10 @@
+## Interface: 110100
+## Title: RuneReaderRecast
+## Notes: Recasts Hekili info for evaluation from video
+## Version: 1.0.0
+## Globe-Main: Hekili
+## Dependencies: Hekili
+RuneReaderRecast.lua
+RuneReaderRecast.xml
+
+
