@@ -192,7 +192,7 @@ function UpdateRuneReader()
         --local hook = dataPac.hook
         --local action = dataPac.action
         --local display = dataPac.display
-        --local delay = dataPac.delay
+        local delay = dataPac.delay
         --local since = dataPac.since
         if RuneReaderEnv.lastSpell ~= dataPac.actionID then RuneReaderEnv.lastSpell = dataPac.actionID end
     --    local spellCooldownInfo  = C_Spell.GetSpellCooldown(RuneReaderEnv.lastSpell)
@@ -210,13 +210,13 @@ function UpdateRuneReader()
             RuneReaderEnv.haveUnitTargetAttackable = false
         end
 
-         local exact_time = dataPac.exact_time
+         local exact_time = dataPac.exact_time +delay
        
         -- if exact_time < (spellCooldownInfo.startTime+spellCooldownInfo.duration) and spellCooldownInfo.isEnabled then
         --     exact_time = spellCooldownInfo.startTime+spellCooldownInfo.duration
         -- end
         local prePressDelay = RuneReaderEnv.config.PrePressDelay
-         local countDown = (dataPac.exact_time - curTime - prePressDelay + (latencyWorld / 1000))
+         local countDown = (exact_time - curTime - (prePressDelay) + (latencyWorld / 1000))
         -- if spellCooldownInfo.isEnabled == false then
         --     spellCooldownInfo.startTime = curTime
         --     spellCooldownInfo.duration = 1
