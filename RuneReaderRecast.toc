@@ -4,6 +4,7 @@
 ## Version: 1.0.0
 ## Globe-Main: Hekili
 ## Dependencies: Hekili
+## SavedVariablesPerAccount: RuneReaderRecastDB
 RuneReaderRecast.lua
 RuneReaderRecast.xml
 
