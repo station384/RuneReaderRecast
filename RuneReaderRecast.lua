@@ -234,7 +234,11 @@ function UpdateRuneReader()
             bitvalue = RuneReaderEnv_set_bit(bitvalue, 1)
         end
 
-        RuneReaderEnv.lastResult = "*" .. RuneReaderEnv_translateKey(dataPac.keybind, countDown) .. bitvalue .. "*"
+        local keytranslate = RuneReaderEnv_translateKey(dataPac.keybind, countDown)
+        if AuraUtil.FindAuraByName("G-99 Breakneck", "player","HELPFUL") then
+            keytranslate = "000000"
+        end
+        RuneReaderEnv.lastResult = "*" .. keytranslate .. bitvalue .. "*"
 
    -- end
     RuneReaderRecastFrameText:SetText(RuneReaderEnv.lastResult)
