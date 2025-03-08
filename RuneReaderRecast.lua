@@ -152,13 +152,13 @@ local function UpdateRuneReader()
         return
     end
 
-    if not dataPac then
-        return
-    end
+
     local curTime = GetTime()
     local _, _, _, latencyWorld = GetNetStats()
     local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
-
+    if not dataPac then
+        return
+    end
     --Always select the priority spells first.
     local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
     if dataPacNext and RuneReaderEnv_hasSpell(RuneReaderEnv.PrioritySpells, dataPacNext.actionID) then
