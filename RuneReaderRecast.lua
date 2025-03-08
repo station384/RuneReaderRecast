@@ -293,7 +293,7 @@ function RuneReaderRecast_OnLoad()
         print("Hekili is not loaded. HekiliRunreader is disabled.")
         return -- Stop execution of your addon code
     end
-    GlobalframeName = _G["RuneReaderRecastFrame"]
+  
 
     -- Ensure the saved variables exist
     if not RuneReaderRecastDB then
@@ -328,6 +328,7 @@ end
 
 -- Check if Hekili is loaded; if not, delay initialization
 function DelayLoadRuneReaderRecast()
+    GlobalframeName = _G["RuneReaderRecastFrame"]
     if not C_AddOns.IsAddOnLoaded("Hekili") then
         local waitFrame = CreateFrame("Frame")
         waitFrame:RegisterEvent("ADDON_LOADED")
@@ -342,12 +343,12 @@ function DelayLoadRuneReaderRecast()
         RuneReaderRecast_OnLoad()
     end
 
-    if RuneReaderRecastFrame then
+    if GlobalframeName then
         -- Apply the backdrop mixin manually
-        Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
+        Mixin(GlobalframeName, BackdropTemplateMixin)
 
         -- Now set the backdrop and its colors
-        RuneReaderRecastFrame:SetBackdrop({
+        GlobalframeName:SetBackdrop({
             bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
             edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
             tile = true,
@@ -355,19 +356,25 @@ function DelayLoadRuneReaderRecast()
             edgeSize = 16,
             insets = { left = 8, right = 8, top = 8, bottom = 8 }
         })
-        RuneReaderRecastFrame:SetBackdropColor(0.2, 0.2, 0.2, 1)
-        RuneReaderRecastFrame:SetBackdropBorderColor(0, 0, 0, 1)
+        GlobalframeName:SetBackdropColor(0.2, 0.2, 0.2, 1)
+        GlobalframeName:SetBackdropBorderColor(0, 0, 0, 1)
         RuneReaderRecastFrameText:SetShadowOffset(0, 0)
-        RuneReaderRecastFrame:SetResizable(true)
+        GlobalframeName:SetResizable(true)
         local minWidth, minHeight = 200, 50
-        RuneReaderRecastFrame:SetScript("OnSizeChanged", function(self, width, height)
+        GlobalframeName:SetScript("OnSizeChanged", function(self, width, height)
             if width < minWidth or height < minHeight then
                 local newWidth = math.max(width, minWidth)
                 local newHeight = math.max(height, minHeight)
                 self:SetSize(newWidth, newHeight)
             end
         end)
-        RuneReaderRecastFrame:SetScript("OnDragStop", function(self)
+        -- GlobalframeName:SetScript("OnDragStart", function(self)
+        --     if IsAltKeyDown() then
+        --         self:StartMoving();
+        --       end
+        -- end)
+
+        GlobalframeName:SetScript("OnDragStop", function(self)
             self:StopMovingOrSizing()
 
             -- Get the new position

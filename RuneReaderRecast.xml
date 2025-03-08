@@ -89,7 +89,7 @@
       
       
 
-      <OnDragStart>
+        <OnDragStart>
         <![CDATA[
         if IsAltKeyDown() then
           self:StartMoving();
@@ -100,7 +100,7 @@
         <![CDATA[
         self:StopMovingOrSizing();
       ]]>
-      </OnDragStop>
+      </OnDragStop>  
 
 
 
