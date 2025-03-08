@@ -12,15 +12,18 @@ RuneReaderEnv.PrioritySpells = { 47528, 2139, 30449, 147362 }
 
 -- Check for Hekili addon
 RuneReaderEnv.IsHekiliLoadedOrLoadeding, RuneReaderEnv.IsHekiliLoaded = C_AddOns.IsAddOnLoaded("Hekili")
+
 if not RuneReaderEnv.IsHekiliLoaded then
     print("The Hekili Trigger will only work if Hekili is installed. Get it at www.curseforge.com/wow/addons/hekili.")
 end
-
+local Hekili_GetRecommendedAbility = _G
+["Hekili_GetRecommendedAbility"]                                        --Bringing this in as from the global just to keep my checker from telling me it is not defined.
+local GlobalframeName = nil                                             -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
-function RuneReaderEnv_translateKey(hotKey, wait)
+local function RuneReaderEnv_translateKey(hotKey, wait)
     local encodedKey = "00"
-    local encodedWait =  "0.0"
-    if hotKey == '1' then 
+    local encodedWait = "0.0"
+    if hotKey == '1' then
         encodedKey = '01'
     elseif hotKey == "2" then
         encodedKey = '02'
@@ -43,7 +46,7 @@ function RuneReaderEnv_translateKey(hotKey, wait)
     elseif hotKey == '-' then
         encodedKey = '11'
     elseif hotKey == '=' then
-        encodedKey = '12'  
+        encodedKey = '12'
     elseif hotKey == 'CF1' then
         encodedKey = '21'
     elseif hotKey == 'CF2' then
@@ -91,7 +94,7 @@ function RuneReaderEnv_translateKey(hotKey, wait)
     elseif hotKey == 'AF11' then
         encodedKey = '51'
     elseif hotKey == 'AF12' then
-        encodedKey = '52'            
+        encodedKey = '52'
     elseif hotKey == 'F1' then
         encodedKey = '61'
     elseif hotKey == 'F2' then
@@ -115,7 +118,7 @@ function RuneReaderEnv_translateKey(hotKey, wait)
     elseif hotKey == 'F11' then
         encodedKey = '71'
     elseif hotKey == 'F12' then
-        encodedKey = '72'      
+        encodedKey = '72'
     end
 
     if wait ~= nil then encodedWait = string.format("%04.1f", wait):gsub("[.]", "") end
@@ -124,17 +127,17 @@ function RuneReaderEnv_translateKey(hotKey, wait)
 end
 
 -- Helper function: set_bit
-function RuneReaderEnv_set_bit(byte, bit_position)
+local function RuneReaderEnv_set_bit(byte, bit_position)
     local bit_mask = 2 ^ bit_position
     if byte % (bit_mask + bit_mask) >= bit_mask then
-        return byte  -- bit already set
+        return byte -- bit already set
     else
         return byte + bit_mask
     end
 end
 
 -- Helper function: hasSpell
-function RuneReaderEnv_hasSpell(tbl, x)
+local function RuneReaderEnv_hasSpell(tbl, x)
     for _, v in ipairs(tbl) do
         if v == x then
             return true
@@ -144,113 +147,153 @@ function RuneReaderEnv_hasSpell(tbl, x)
 end
 
 -- Main update function replicating the WeakAura's customText logic
-function UpdateRuneReader()
+local function UpdateRuneReader()
+    if not Hekili_GetRecommendedAbility then
+        return
+    end
+
+    if not dataPac then
+        return
+    end
     local curTime = GetTime()
-        
-    
-    -- if RuneReaderEnv.last < curTime - 0.10 then
-    --     RuneReaderEnv.last = curTime
-    -- else
-        if not Hekili_GetRecommendedAbility then
-        --    RuneReaderEnv.lastResult = "*000000*"
-        --    RuneReaderRecastFrameText:SetText(RuneReaderEnv.lastResult)
-            return
-        end
-        local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
-        if not dataPac then
-          --  RuneReaderEnv.lastResult = "*000000*"
-        --    RuneReaderRecastFrameText:SetText(RuneReaderEnv.lastResult)
-            return
-        end
-        --Always select the priority spells first.
-        local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
-        if dataPacNext and RuneReaderEnv_hasSpell(RuneReaderEnv.PrioritySpells, dataPacNext.actionID) then
-            dataPac = dataPacNext
-        end
+    local _, _, _, latencyWorld = GetNetStats()
+    local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
 
+    --Always select the priority spells first.
+    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
+    if dataPacNext and RuneReaderEnv_hasSpell(RuneReaderEnv.PrioritySpells, dataPacNext.actionID) then
+        dataPac = dataPacNext
+    end
 
-        local _, _, _, latencyWorld = GetNetStats()
-   
-        --local actionName = dataPac.actionName
-        --local index = dataPac.index
-        if not dataPac.delay then dataPac.delay = 0 end
-        if not dataPac.wait then dataPac.wait = 0 end
-        if not dataPac.exact_time then dataPac.exact_time = curTime end
-        if not dataPac.keybind then dataPac.keybind = "" end
-         --local scriptType = dataPac.scriptType
-        --local time = dataPac.time
-        --local display = dataPac.display
-        --local depth = dataPac.depth
-        --local list = dataPac.list
-        --local listName = dataPac.listName
-        --local resources = dataPac.resources --table
-        --local script = dataPac.script
-        --local pack = dataPac.pack
-        --local actionID = dataPac.actionID
-        --local wait = dataPac.wait
-        --local keybindFrom = dataPac.keybindFrom
-        --local hook = dataPac.hook
-        --local action = dataPac.action
-        --local display = dataPac.display
-        local delay = dataPac.delay
-        --local since = dataPac.since
-        if RuneReaderEnv.lastSpell ~= dataPac.actionID then RuneReaderEnv.lastSpell = dataPac.actionID end
+    --local actionName = dataPac.actionName
+    --local index = dataPac.index
+    if not dataPac.delay then dataPac.delay = 0 end
+    if not dataPac.wait then dataPac.wait = 0 end
+    if not dataPac.exact_time then dataPac.exact_time = curTime end
+    if not dataPac.keybind then dataPac.keybind = "" end
+    --local scriptType = dataPac.scriptType
+    --local time = dataPac.time
+    --local display = dataPac.display
+    --local depth = dataPac.depth
+    --local list = dataPac.list
+    --local listName = dataPac.listName
+    --local resources = dataPac.resources --table
+    --local script = dataPac.script
+    --local pack = dataPac.pack
+    --local actionID = dataPac.actionID
+    --local wait = dataPac.wait
+    --local keybindFrom = dataPac.keybindFrom
+    --local hook = dataPac.hook
+    --local action = dataPac.action
+    --local display = dataPac.display
+    local delay = dataPac.delay
+    --local since = dataPac.since
+    if RuneReaderEnv.lastSpell ~= dataPac.actionID then RuneReaderEnv.lastSpell = dataPac.actionID end
     --    local spellCooldownInfo  = C_Spell.GetSpellCooldown(RuneReaderEnv.lastSpell)
     --    if not spellCooldownInfo then  spellCooldownInfo = C_Spell.GetSpellCooldown(61304) end
     --    print(tostring( dataPac.exact_time) .. ' ' .. tostring(spellCooldownInfo.startTime)..' '..tostring(spellCooldownInfo.duration).. ' '..tostring(spellCooldownInfo.isEnabled)..' '..tostring(spellCooldownInfo.modRate));
 
-        
-        if dataPac.wait == 0 then
-            dataPac.exact_time = curTime
-        end
 
-        if UnitCanAttack("player", "target") then
-            RuneReaderEnv.haveUnitTargetAttackable = true
-        else
-            RuneReaderEnv.haveUnitTargetAttackable = false
-        end
+    if dataPac.wait == 0 then
+        dataPac.exact_time = curTime
+    end
 
-         local exact_time = dataPac.exact_time +delay
-       
-        -- if exact_time < (spellCooldownInfo.startTime+spellCooldownInfo.duration) and spellCooldownInfo.isEnabled then
-        --     exact_time = spellCooldownInfo.startTime+spellCooldownInfo.duration
-        -- end
-        local prePressDelay = RuneReaderEnv.config.PrePressDelay
-         local countDown = (exact_time - curTime - (prePressDelay) + (latencyWorld / 1000))
-        -- if spellCooldownInfo.isEnabled == false then
-        --     spellCooldownInfo.startTime = curTime
-        --     spellCooldownInfo.duration = 1
-        -- end
+    if UnitCanAttack("player", "target") then
+        RuneReaderEnv.haveUnitTargetAttackable = true
+    else
+        RuneReaderEnv.haveUnitTargetAttackable = false
+    end
 
-        --local countDown = ((spellCooldownInfo.startTime+spellCooldownInfo.duration) - curTime - prePressDelay + (latencyWorld / 1000))
+    local exact_time = dataPac.exact_time + delay
+    local prePressDelay = RuneReaderEnv.config.PrePressDelay
+    local countDown = (exact_time - curTime - prePressDelay) --+ (latencyWorld / 1000)
 
-       if countDown <= 0 then countDown = 0 end
+    if countDown <= 0 then countDown = 0 end
 
-        local bitvalue = 0
-        if RuneReaderEnv.haveUnitTargetAttackable then
-            bitvalue = RuneReaderEnv_set_bit(bitvalue, 0)
-        end
-        if RuneReaderEnv.incombat then
-            bitvalue = RuneReaderEnv_set_bit(bitvalue, 1)
-        end
+    local bitvalue = 0
+    if RuneReaderEnv.haveUnitTargetAttackable then
+        bitvalue = RuneReaderEnv_set_bit(bitvalue, 0)
+    end
+    if RuneReaderEnv.incombat then
+        bitvalue = RuneReaderEnv_set_bit(bitvalue, 1)
+    end
 
-        local keytranslate = RuneReaderEnv_translateKey(dataPac.keybind, countDown)
-        if AuraUtil.FindAuraByName("G-99 Breakneck", "player","HELPFUL") then
-            keytranslate = "000000"
-        end
-        RuneReaderEnv.lastResult = "*" .. keytranslate .. bitvalue .. "*"
+    local keytranslate = RuneReaderEnv_translateKey(dataPac.keybind, countDown)
+    if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
+        keytranslate = "000000"
+    end
+    if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
+        keytranslate = "000000"
+    end
+    RuneReaderEnv.lastResult = "*" .. keytranslate .. bitvalue .. "*"
 
-   -- end
+    -- end
     RuneReaderRecastFrameText:SetText(RuneReaderEnv.lastResult)
+end
+
+local function HandleWindowEvents(self, event)
+    print("Event received: " .. event) -- Debugging message
+    if GlobalframeName then
+        if event == "PET_BATTLE_OPENING_START" then
+            --  print("Hiding RuneReaderRecastFrame for pet battle.")
+            self:Hide()
+        elseif event == "PET_BATTLE_CLOSE" then
+            --  print("Showing RuneReaderRecastFrame after pet battle.")
+            self:Show()
+        end
+    else
+        print("RuneReaderRecastFrame not found!")
+    end
+end
+
+local function HandleMapShow()
+    if GlobalframeName then
+        --      print("Map opened: Moving frame under the map")
+        GlobalframeName:SetFrameStrata("LOW") -- Move under the map
+    end
+end
+
+local function HandleMapHide()
+    if GlobalframeName then
+        --     print("Map closed: Moving frame to top")
+        GlobalframeName:SetFrameStrata("TOOLTIP") -- Move to top
+    end
+end
+
+
+
+local function RegisterMapHooks()
+    if WorldMapFrame then
+        --  print("Registering World Map hooks...")           -- Debug message
+        WorldMapFrame:HookScript("OnShow", HandleMapShow) -- Detect when the map is opened
+        WorldMapFrame:HookScript("OnHide", HandleMapHide) -- Detect when the map is closed
+    else
+        print("ERROR: WorldMapFrame not found!")
+    end
+end
+
+local function RegisterWindowEvents()
+    if GlobalframeName then
+        -- print("Registering pet battle events...")  -- Debug message
+        GlobalframeName:RegisterEvent("PET_BATTLE_OPENING_START")
+        GlobalframeName:RegisterEvent("PET_BATTLE_CLOSE")
+        GlobalframeName:SetScript("OnEvent", function(self, event)
+            HandleWindowEvents(self, event) -- Pet battle handling
+        end)
+        -- Register the map visibility hooks
+        RegisterMapHooks()
+    else
+        print("RuneReaderRecastFrame not found!")
+    end
 end
 
 -- OnLoad function to set up the frame and its update logic
 function RuneReaderRecast_OnLoad()
     if not C_AddOns.IsAddOnLoaded("Hekili") then
         print("Hekili is not loaded. HekiliRunreader is disabled.")
-        return  -- Stop execution of your addon code
+        return -- Stop execution of your addon code
     end
-    local frame = RuneReaderRecastFrame
+    GlobalframeName = _G["RuneReaderRecastFrame"]
 
     -- Ensure the saved variables exist
     if not RuneReaderRecastDB then
@@ -261,23 +304,24 @@ function RuneReaderRecast_OnLoad()
         RuneReaderRecastDB.position = { point = "CENTER", relativeTo = "UIParent", relativePoint = "CENTER", x = 0, y = 0 }
     end
     -- Restore saved position
-    frame:ClearAllPoints()
-    frame:SetPoint(RuneReaderRecastDB.position.point, UIParent, RuneReaderRecastDB.position.relativePoint, RuneReaderRecastDB.position.x, RuneReaderRecastDB.position.y)
+    GlobalframeName:ClearAllPoints()
+    GlobalframeName:SetPoint(RuneReaderRecastDB.position.point, UIParent, RuneReaderRecastDB.position.relativePoint,
+        RuneReaderRecastDB.position.x, RuneReaderRecastDB.position.y)
 
 
-    frame.accumulator = 0
-    frame:SetScript("OnUpdate", function(self, elapsed)
+    GlobalframeName.accumulator = 0
+    GlobalframeName:SetScript("OnUpdate", function(self, elapsed)
         self.accumulator = self.accumulator + elapsed
         if self.accumulator >= 0.05 then
-       --     print("OnUpdate fired", self.accumulator)  -- Debug print
+            --     print("OnUpdate fired", self.accumulator)  -- Debug print
             UpdateRuneReader()
             self.accumulator = 0
         end
     end)
-    
 
-   -- frame:RegisterEvent("PLAYER_TARGET_CHANGED")
-    frame:SetScript("OnEvent", function(self, event, ...)
+
+    RegisterWindowEvents()
+    GlobalframeName:SetScript("OnEvent", function(self, event, ...)
         UpdateRuneReader()
     end)
 end
@@ -289,7 +333,7 @@ function DelayLoadRuneReaderRecast()
         waitFrame:RegisterEvent("ADDON_LOADED")
         waitFrame:SetScript("OnEvent", function(self, event, addonName)
             if addonName == "Hekili" then
-                RuneReaderRecast_OnLoad()  -- Now that Hekili is loaded, initialize our addon
+                RuneReaderRecast_OnLoad() -- Now that Hekili is loaded, initialize our addon
                 self:UnregisterEvent("ADDON_LOADED")
             end
         end)
@@ -301,7 +345,7 @@ function DelayLoadRuneReaderRecast()
     if RuneReaderRecastFrame then
         -- Apply the backdrop mixin manually
         Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
-        
+
         -- Now set the backdrop and its colors
         RuneReaderRecastFrame:SetBackdrop({
             bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -315,20 +359,20 @@ function DelayLoadRuneReaderRecast()
         RuneReaderRecastFrame:SetBackdropBorderColor(0, 0, 0, 1)
         RuneReaderRecastFrameText:SetShadowOffset(0, 0)
         RuneReaderRecastFrame:SetResizable(true)
-         local minWidth, minHeight = 200, 50
+        local minWidth, minHeight = 200, 50
         RuneReaderRecastFrame:SetScript("OnSizeChanged", function(self, width, height)
-        if width < minWidth or height < minHeight then
-            local newWidth = math.max(width, minWidth)
-            local newHeight = math.max(height, minHeight)
-            self:SetSize(newWidth, newHeight)
+            if width < minWidth or height < minHeight then
+                local newWidth = math.max(width, minWidth)
+                local newHeight = math.max(height, minHeight)
+                self:SetSize(newWidth, newHeight)
             end
-        end)        
+        end)
         RuneReaderRecastFrame:SetScript("OnDragStop", function(self)
             self:StopMovingOrSizing()
-        
+
             -- Get the new position
             local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
-        
+
             -- Save it
             RuneReaderRecastDB.position = {
                 point = point,
@@ -337,10 +381,9 @@ function DelayLoadRuneReaderRecast()
                 x = xOfs,
                 y = yOfs
             }
-        end) 
+        end)
     end
 end
+
 -- If the frame is already created when the Lua file loads, initialize it immediately.
-if RuneReaderRecastFrame then
-    DelayLoadRuneReaderRecast()
-end
+C_Timer.After(1, RegisterWindowEvents)

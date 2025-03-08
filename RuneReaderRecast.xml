@@ -10,7 +10,7 @@
         </Offset>
       </Anchor>
     </Anchors>
-   
+
     <Layers>
       <!-- Background texture -->
       <Layer level="BACKGROUND">
@@ -20,23 +20,22 @@
       </Layer>
       <!-- Text region displaying the recommendation (using a custom font) -->
       <Layer level="OVERLAY">
-        <FontString name="$parentText" 
-        font="Interface\AddOns\RuneReaderRecast\Fonts\LibreBarcode39-Regular.ttf"
+        <FontString name="$parentText" font="Interface\AddOns\RuneReaderRecast\Fonts\LibreBarcode39-Regular.ttf"
         outline ="NONE"
         wordwrap = "false">
           <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT">
-            <Offset>
+              <Offset>
                 <AbsDimension x="0" y="5"/>
-            </Offset>
+              </Offset>
             </Anchor>
             <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT">
-            <Offset>
+              <Offset>
                 <AbsDimension x="0" y="-20"/>
-            </Offset>
+              </Offset>
             </Anchor>
           </Anchors>
-          
+
           <FontHeight val="40"></FontHeight>
           <color r="0" g="0" b="0"></color>
         </FontString>
@@ -44,41 +43,41 @@
     </Layers>
 
     <Frames>
-    <Frame name="$parentResizeGrip" movable="true">
-    <Size>
-      <AbsDimension x="16" y="16"/>
-    </Size>
-    <Anchors>
-      <Anchor point="BOTTOMRIGHT">
-        <Offset>
-          <AbsDimension x="0" y="0"/>
-        </Offset>
-      </Anchor>
-    </Anchors>
-    <Layers>
-      <Layer level="OVERLAY">
-        <Texture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up" setAllPoints="true">
-         <Color r="1" g="1" b="1" a="1"></Color>
-        </Texture>
-        
-      </Layer>
-    </Layers>
-    <Scripts>
-      <OnMouseDown>
-        <![CDATA[
+      <Frame name="$parentResizeGrip" movable="true">
+        <Size>
+          <AbsDimension x="16" y="16"/>
+        </Size>
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT">
+            <Offset>
+              <AbsDimension x="0" y="0"/>
+            </Offset>
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="OVERLAY">
+            <Texture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up" setAllPoints="true">
+              <Color r="1" g="1" b="1" a="1"></Color>
+            </Texture>
+
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnMouseDown>
+            <![CDATA[
           if IsAltKeyDown() then
             self:GetParent():StartSizing("BOTTOMRIGHT");
           end
         ]]>
-      </OnMouseDown>
-      <OnMouseUp>
-        <![CDATA[
+          </OnMouseDown>
+          <OnMouseUp>
+            <![CDATA[
           self:GetParent():StopMovingOrSizing();
         ]]>
-      </OnMouseUp>
-    </Scripts>
-  </Frame>
-</Frames>
+          </OnMouseUp>
+        </Scripts>
+      </Frame>
+    </Frames>
 
     <Scripts>
       <OnLoad>
@@ -87,18 +86,25 @@
           self:RegisterForDrag("LeftButton");
         ]]>
       </OnLoad>
-<OnDragStart>
-      <![CDATA[
+      <OnLoaded>
+      </OnLoaded>
+
+
+      <OnDragStart>
+        <![CDATA[
         if IsAltKeyDown() then
           self:StartMoving();
         end
       ]]>
-    </OnDragStart>
-    <OnDragStop>
-      <![CDATA[
+      </OnDragStart>
+      <OnDragStop>
+        <![CDATA[
         self:StopMovingOrSizing();
       ]]>
-    </OnDragStop>
+      </OnDragStop>
+
+
+
 
     </Scripts>
   </Frame>
