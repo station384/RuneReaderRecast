@@ -16,6 +16,8 @@
     ],
     "Lua.diagnostics.globals": [
         "RuneReaderRecastFrameText",
-        "WorldMapFrame"
+        "WorldMapFrame",
+        "RuneReaderRecastFrame",
+        "Hekili_GetRecommendedAbility"
     ]
 }

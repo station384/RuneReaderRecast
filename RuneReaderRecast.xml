@@ -1,5 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-  <Frame name="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" frameStrata="HIGH">
+  <Frame name="RuneReaderRecastFrame" id="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" frameStrata="HIGH">
     <Size>
       <AbsDimension x="200" y="50"/>
     </Size>
@@ -82,7 +82,7 @@
     <Scripts>
       <OnLoad>
         <![CDATA[
-          DelayLoadRuneReaderRecast();
+          RuneReader:DelayLoadRuneReaderRecast();
           self:RegisterForDrag("LeftButton");
         ]]>
       </OnLoad>
