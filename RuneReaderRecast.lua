@@ -22,10 +22,10 @@ end
 if RuneReader.Hekili_GetRecommendedAbility == nil then
     print("Can't find hekili reccomended ability function")
 end
-RuneReader.Hekili_GetRecommendedAbility = Hekili_GetRecommendedAbility
+
 
 RuneReader.GlobalframeName =
-RuneReaderRecastFrame                              -- this is set later after the window is created using XML.   it is on a timer.
+    RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
 function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     local encodedKey = "00"
@@ -137,7 +137,7 @@ end
 function RuneReader:RuneReaderEnv_set_bit(byte, bit_position)
     local bit_mask = 2 ^ bit_position
     if byte % (bit_mask + bit_mask) >= bit_mask then
-        return byte -- bit already set
+        return byte     -- bit already set
     else
         return byte + bit_mask
     end
@@ -155,19 +155,26 @@ end
 
 -- Main update function replicating the WeakAura's customText logic
 function RuneReader:UpdateRuneReader()
-    if not RuneReader.Hekili_GetRecommendedAbility then
+    if not Hekili_GetRecommendedAbility then
         return
     end
 
-
     local curTime = GetTime()
+
     local _, _, _, latencyWorld = GetNetStats()
-    local _, _, dataPac = RuneReader.Hekili_GetRecommendedAbility("Primary", 1)
+
+    -- this function changes  depending on if weakauras is loaded or not
+    --WA is loaded
+    local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
+    --WA NOT loaded
+    --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
+
     if not dataPac then
         return
     end
+    --print("Display Update")
     --Always select the priority spells first.
-    local _, _, dataPacNext = RuneReader.Hekili_GetRecommendedAbility("Primary", 2)
+    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
     if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
         dataPac = dataPacNext
     end
@@ -213,7 +220,7 @@ function RuneReader:UpdateRuneReader()
 
     local exact_time = dataPac.exact_time + delay
     local prePressDelay = RuneReader.config.PrePressDelay
-    local countDown = (exact_time - curTime - prePressDelay) --+ (latencyWorld / 1000)
+    local countDown = (exact_time - curTime - prePressDelay)     --+ (latencyWorld / 1000)
 
     if countDown <= 0 then countDown = 0 end
 
@@ -239,7 +246,7 @@ function RuneReader:UpdateRuneReader()
 end
 
 function RuneReader:HandleWindowEvents(self, event)
-    print("Event received: " .. event) -- Debugging message
+    print("Event received: " .. event)     -- Debugging message
     if RuneReaderRecastFrame then
         if event == "PET_BATTLE_OPENING_START" then
             --  print("Hiding RuneReaderRecastFrame for pet battle.")
@@ -256,22 +263,22 @@ end
 function RuneReader:HandleMapShow()
     if RuneReaderRecastFrame then
         --      print("Map opened: Moving frame under the map")
-        RuneReaderRecastFrame:SetFrameStrata("LOW") -- Move under the map
+        RuneReaderRecastFrame:SetFrameStrata("LOW")     -- Move under the map
     end
 end
 
 function RuneReader:HandleMapHide()
     if RuneReaderRecastFrame then
         --     print("Map closed: Moving frame to top")
-        RuneReaderRecastFrame:SetFrameStrata("TOOLTIP") -- Move to top
+        RuneReaderRecastFrame:SetFrameStrata("TOOLTIP")     -- Move to top
     end
 end
 
 function RuneReader:RegisterMapHooks()
     if WorldMapFrame then
         --  print("Registering World Map hooks...")           -- Debug message
-        WorldMapFrame:HookScript("OnShow", RuneReader.HandleMapShow) -- Detect when the map is opened
-        WorldMapFrame:HookScript("OnHide", RuneReader.HandleMapHide) -- Detect when the map is closed
+        WorldMapFrame:HookScript("OnShow", RuneReader.HandleMapShow)     -- Detect when the map is opened
+        WorldMapFrame:HookScript("OnHide", RuneReader.HandleMapHide)     -- Detect when the map is closed
     else
         print("ERROR: WorldMapFrame not found!")
     end
@@ -279,12 +286,12 @@ end
 
 function RuneReader:RegisterWindowEvents()
     if RuneReaderRecastFrame then
-        print("Registering window battle events...") -- Debug message
+        print("Registering window battle events...")     -- Debug message
 
         RuneReaderRecastFrame:RegisterEvent("PET_BATTLE_OPENING_START")
         RuneReaderRecastFrame:RegisterEvent("PET_BATTLE_CLOSE")
         RuneReaderRecastFrame:SetScript("OnEvent", function(self, event)
-            RuneReader:HandleWindowEvents(self, event) -- Pet battle handling
+            RuneReader:HandleWindowEvents(self, event)     -- Pet battle handling
         end)
         RuneReader:RegisterMapHooks()
     else
@@ -315,26 +322,30 @@ function RuneReader:RuneReaderRecast_OnLoad()
         RuneReaderRecastDB.position.x, RuneReaderRecastDB.position.y)
 
 
-
-    RuneReaderRecastFrame:SetScript("OnUpdate", function(self, elapsed)
-        RuneReader.FrameDelayAccumulator = RuneReader.FrameDelayAccumulator + elapsed
-        if RuneReader.FrameDelayAccumulator >= 0.05 then
-            --     print("OnUpdate fired", self.accumulator)  -- Debug print
-            RuneReader:UpdateRuneReader()
-            RuneReader.FrameDelayAccumulator = 0
-        end
-    end)
+    if RuneReaderRecastFrame then
+        RuneReaderRecastFrame:SetScript("OnUpdate", function(self, elapsed)
+            if RuneReader then
+                RuneReader.FrameDelayAccumulator = RuneReader.FrameDelayAccumulator + elapsed
+                if RuneReader.FrameDelayAccumulator >= 0.05 then
+                    RuneReader:UpdateRuneReader()
+                    RuneReader.FrameDelayAccumulator = 0
+                end
+            else
+                print("RuneReader not found, stopping OnUpdate.")
+                self:SetScript("OnUpdate", nil)
+            end
+        end)
+    end
 end
 
 -- Check if Hekili is loaded; if not, delay initialization
 function RuneReader:DelayLoadRuneReaderRecast()
-    print("DelayLoadRuneReaderRecast")
     if not C_AddOns.IsAddOnLoaded("Hekili") then
         local waitFrame = CreateFrame("Frame")
         waitFrame:RegisterEvent("ADDON_LOADED")
         waitFrame:SetScript("OnEvent", function(self, event, addonName)
             if addonName == "Hekili" then
-                RuneReader:RuneReaderRecast_OnLoad() -- Now that Hekili is loaded, initialize our addon
+                RuneReader:RuneReaderRecast_OnLoad()     -- Now that Hekili is loaded, initialize our addon
                 RuneReader:RegisterWindowEvents();
                 self:UnregisterEvent("ADDON_LOADED")
             end
@@ -391,5 +402,13 @@ function RuneReader:DelayLoadRuneReaderRecast()
                 y = yOfs
             }
         end)
+    end
+
+    -- This is some fakeout code if WeakAuras are not loaded as the function Im using wont fire unless its loaded
+    -- I hate this hack but not much I can do about it as I have no control over hekili
+    if not WeakAuras then
+        WeakAuras = {}
+        WeakAuras.ScanEvents = function(p1, p2, p3, p4, p5, p6)
+        end
     end
 end
