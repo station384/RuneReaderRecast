@@ -127,8 +127,9 @@ function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     elseif hotKey == 'F12' then
         encodedKey = '72'
     end
-
-    if wait ~= nil then encodedWait = string.format("%04.1f", wait):gsub("[.]", "") end
+    if wait > 9.99 then wait = 9.99 end
+    if wait < 0 then wait = 0 end
+    if wait ~= nil then encodedWait = string.format("%04.2f", wait):gsub("[.]", "") end
 
     return encodedKey .. encodedWait
 end
