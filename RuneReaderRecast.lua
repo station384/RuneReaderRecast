@@ -28,8 +28,10 @@ RuneReader.GlobalframeName =
     RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
 function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
+
     local encodedKey = "00"
     local encodedWait = "0.0"
+    if wait == nil then wait = 0 end;
     if hotKey == '1' then
         encodedKey = '01'
     elseif hotKey == "2" then
@@ -127,6 +129,7 @@ function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     elseif hotKey == 'F12' then
         encodedKey = '72'
     end
+
     if wait > 9.99 then wait = 9.99 end
     if wait < 0 then wait = 0 end
     if wait ~= nil then encodedWait = string.format("%04.2f", wait):gsub("[.]", "") end
@@ -218,6 +221,10 @@ function RuneReader:UpdateRuneReader()
     else
         RuneReader.haveUnitTargetAttackable = false
     end
+
+    if C_Spell.IsSpellHarmful(dataPac.actionID) == false then
+        RuneReader.haveUnitTargetAttackable = true
+    end 
 
     local exact_time = dataPac.exact_time + delay
     local prePressDelay = RuneReader.config.PrePressDelay
