@@ -411,7 +411,7 @@ function RuneReader:DelayLoadRuneReaderRecast()
         RuneReaderRecastFrame:SetBackdropBorderColor(0, 0, 0, 1)
         RuneReaderRecastFrameText:SetShadowOffset(0, 0)
         RuneReaderRecastFrame:SetResizable(true)
-        local minWidth, minHeight = 200, 50
+        local minWidth, minHeight = 220, 50
 
         --These events are needed for savinging the layout values.
         RuneReaderRecastFrame:SetScript("OnSizeChanged", function(self, width, height)
