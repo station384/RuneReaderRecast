@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-  <Frame name="RuneReaderRecastFrame" id="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" frameStrata="HIGH">
+  <Frame name="RuneReaderRecastFrame" id="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" frameStrata="HIGH" inherits="BackdropTemplate">
     <Size>
-      <AbsDimension x="200" y="50"/>
+      <AbsDimension x="220" y="50"/>
     </Size>
     <Anchors>
       <Anchor point="TOP" relativePoint="TOP" relativeTo="UIParent">
@@ -43,7 +43,7 @@
     </Layers>
 
     <Frames>
-      <Frame name="$parentResizeGrip" movable="true">
+      <Frame name="$parentResizeGrip" movable="true" virtual="true" >
         <Size>
           <AbsDimension x="16" y="16"/>
         </Size>

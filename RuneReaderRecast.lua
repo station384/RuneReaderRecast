@@ -137,6 +137,28 @@ function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     return encodedKey .. encodedWait
 end
 
+-- Calculate check digit (returns 0-9)
+function RuneReader:CalculateCheckDigit(input)
+    local sum = 0
+    for i = 1, #input do
+        local digit = tonumber(input:sub(i, i))
+        if not digit then return nil, "Invalid character in input" end
+        -- Alternate weights, e.g., 3,1,3,1,...
+        local weight = (i % 2 == 0) and 1 or 3
+        sum = sum + digit * weight
+    end
+    local check = (10 - (sum % 10)) % 10
+    return check
+end
+
+-- Validate a string including check digit
+function RuneReader:ValidateWithCheckDigit(input)
+    local base = input:sub(1, -2)
+    local expected = tonumber(input:sub(-1))
+    local actual = RuneReader:CalculateCheckDigit(base)
+    return expected == actual
+end
+
 -- Helper function: set_bit
 function RuneReader:RuneReaderEnv_set_bit(byte, bit_position)
     local bit_mask = 2 ^ bit_position
@@ -247,7 +269,11 @@ function RuneReader:UpdateRuneReader()
     if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
         keytranslate = "000000"
     end
-    RuneReader.lastResult = "*" .. keytranslate .. bitvalue .. "*"
+
+   local combinedValues =  keytranslate .. bitvalue
+   local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
+
+    RuneReader.lastResult = "*" .. combinedValues .. checkDigit .. "*"
 
 
     RuneReaderRecastFrameText:SetText(RuneReader.lastResult)
@@ -370,8 +396,8 @@ function RuneReader:DelayLoadRuneReaderRecast()
     -- If the frame is already created when the Lua file loads, initialize it immediately.
     if RuneReaderRecastFrame then
         -- Apply the backdrop mixin manually
-        Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
-
+      --  Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
+      --  Mixin(RuneReaderRecastFrame, EditModeManagedFrameMixin)
         -- Now set the backdrop and its colors
         RuneReaderRecastFrame:SetBackdrop({
             bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
