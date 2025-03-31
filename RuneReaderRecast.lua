@@ -244,9 +244,12 @@ function RuneReader:UpdateRuneReader()
         RuneReader.haveUnitTargetAttackable = false
     end
 
-    if C_Spell.IsSpellHarmful(dataPac.actionID) == false then
-        RuneReader.haveUnitTargetAttackable = true
-    end 
+    if dataPac.actionID ~= nil then
+        if C_Spell.IsSpellHarmful(dataPac.actionID) == false then
+            RuneReader.haveUnitTargetAttackable = true
+        end 
+    end
+
 
     local exact_time = dataPac.exact_time + delay
     local prePressDelay = RuneReader.config.PrePressDelay
