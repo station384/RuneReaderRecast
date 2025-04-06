@@ -128,6 +128,8 @@ function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
         encodedKey = '71'
     elseif hotKey == 'F12' then
         encodedKey = '72'
+    elseif hotKey == nil then
+        encodedKey = '00'
     end
 
     if wait > 9.99 then wait = 9.99 end
@@ -191,12 +193,17 @@ function RuneReader:UpdateRuneReader()
 
     -- this function changes  depending on if weakauras is loaded or not
     --WA is loaded
+   -- local dataPac = {};
     local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --WA NOT loaded
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
-
-    if not dataPac then
-        return
+    if dataPac == nil then dataPac = {} end;
+    if dataPac.actionID == nil then
+        dataPac.delay = 0;
+        dataPac.wait = 0;
+        dataPac.keybind = nil;
+        dataPac.actionID = nil;
+       -- return
     end
     --print("Display Update")
     --Always select the priority spells first.
@@ -267,10 +274,10 @@ function RuneReader:UpdateRuneReader()
 
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPac.keybind, countDown)
     if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-        keytranslate = "000000"
+        keytranslate = "00000000"
     end
     if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-        keytranslate = "000000"
+        keytranslate = "00000000"
     end
 
    local combinedValues =  keytranslate .. bitvalue
