@@ -1,4 +1,4 @@
-## Interface: 110100
+## Interface: 110100, 110105
 ## Title: RuneReaderRecast
 ## Notes: Recasts Hekili info for evaluation from video
 ## Version: 1.0.0
