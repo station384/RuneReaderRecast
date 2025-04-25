@@ -374,7 +374,7 @@ function RuneReader:RuneReaderRecast_OnLoad()
         RuneReaderRecastFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 RuneReader.FrameDelayAccumulator = RuneReader.FrameDelayAccumulator + elapsed
-                if RuneReader.FrameDelayAccumulator >= 0.20 then
+                if RuneReader.FrameDelayAccumulator >= 0.10 then
                     RuneReader:UpdateRuneReader()
                     RuneReader.FrameDelayAccumulator = 0
                 end
