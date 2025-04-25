@@ -4,7 +4,7 @@
 RuneReader = {}
 RuneReader.last = GetTime()
 RuneReader.lastResult = "*0000000*"
-RuneReader.config = { PrePressDelay = 0 }
+RuneReader.config = { PrePressDelay = -0.300 }  -- I think there can be .5 second prediction.
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
 RuneReader.lastSpell = 61304
@@ -224,10 +224,10 @@ function RuneReader:UpdateRuneReader()
 
     --print("Display Update")
     --Always select the priority spells first.
-    -- local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
-    -- if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
-    --     dataPac = dataPacNext
-    -- end
+    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
+    if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
+        dataPac = dataPacNext
+    end
 
     --local actionName = dataPac.actionName
     --local index = dataPac.index
@@ -277,7 +277,7 @@ function RuneReader:UpdateRuneReader()
 
     local exact_time = dataPac.exact_time + delay
     local prePressDelay = RuneReader.config.PrePressDelay
-    local countDown = (exact_time - curTime )   --- prePressDelay  --+ (latencyWorld / 1000)
+    local countDown = ((exact_time ) - (curTime - prePressDelay + (latencyWorld / 1000))) 
 
     if countDown <= 0 then countDown = 0 end
 
