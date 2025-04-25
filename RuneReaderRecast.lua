@@ -278,10 +278,10 @@ function RuneReader:UpdateRuneReader()
 
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPac.keybind, countDown)
     if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-        keytranslate = "0000000"
+        keytranslate = "000000"
     end
     if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-        keytranslate = "0000000"
+        keytranslate = "000000"
     end
 
    local combinedValues =  keytranslate .. bitvalue
@@ -374,7 +374,7 @@ function RuneReader:RuneReaderRecast_OnLoad()
         RuneReaderRecastFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 RuneReader.FrameDelayAccumulator = RuneReader.FrameDelayAccumulator + elapsed
-                if RuneReader.FrameDelayAccumulator >= 0.05 then
+                if RuneReader.FrameDelayAccumulator >= 0.20 then
                     RuneReader:UpdateRuneReader()
                     RuneReader.FrameDelayAccumulator = 0
                 end
