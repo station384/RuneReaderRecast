@@ -3,7 +3,7 @@
 -- Environment table mimicking aura_env
 RuneReader = {}
 RuneReader.last = GetTime()
-RuneReader.lastResult = "*000000*"
+RuneReader.lastResult = "*0000000*"
 RuneReader.config = { PrePressDelay = 0 }
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
@@ -197,7 +197,11 @@ function RuneReader:UpdateRuneReader()
     local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --WA NOT loaded
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
-    if dataPac == nil then dataPac = {} end;
+    --if dataPac == nil then dataPac = {} end;
+    if not dataPac  then 
+        -- Hekili Didn't return anything just exit out for now
+        return 
+    end;
     if dataPac.actionID == nil then
         dataPac.delay = 0;
         dataPac.wait = 0;
@@ -207,10 +211,10 @@ function RuneReader:UpdateRuneReader()
     end
     --print("Display Update")
     --Always select the priority spells first.
-    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
-    if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
-        dataPac = dataPacNext
-    end
+    -- local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
+    -- if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
+    --     dataPac = dataPacNext
+    -- end
 
     --local actionName = dataPac.actionName
     --local index = dataPac.index
@@ -238,7 +242,7 @@ function RuneReader:UpdateRuneReader()
     if RuneReader.lastSpell ~= dataPac.actionID then RuneReader.lastSpell = dataPac.actionID end
     --    local spellCooldownInfo  = C_Spell.GetSpellCooldown(RuneReaderEnv.lastSpell)
     --    if not spellCooldownInfo then  spellCooldownInfo = C_Spell.GetSpellCooldown(61304) end
-    --    print(tostring( dataPac.exact_time) .. ' ' .. tostring(spellCooldownInfo.startTime)..' '..tostring(spellCooldownInfo.duration).. ' '..tostring(spellCooldownInfo.isEnabled)..' '..tostring(spellCooldownInfo.modRate));
+    --    print(tostring( dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
 
 
     if dataPac.wait == 0 then
@@ -260,7 +264,7 @@ function RuneReader:UpdateRuneReader()
 
     local exact_time = dataPac.exact_time + delay
     local prePressDelay = RuneReader.config.PrePressDelay
-    local countDown = (exact_time - curTime - prePressDelay)     --+ (latencyWorld / 1000)
+    local countDown = (exact_time - curTime )   --- prePressDelay  --+ (latencyWorld / 1000)
 
     if countDown <= 0 then countDown = 0 end
 
@@ -274,10 +278,10 @@ function RuneReader:UpdateRuneReader()
 
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPac.keybind, countDown)
     if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-        keytranslate = "00000000"
+        keytranslate = "0000000"
     end
     if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-        keytranslate = "00000000"
+        keytranslate = "0000000"
     end
 
    local combinedValues =  keytranslate .. bitvalue
