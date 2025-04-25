@@ -181,6 +181,8 @@ function RuneReader:RuneReaderEnv_hasSpell(tbl, x)
     return false
 end
 
+RuneReader.LastDataPak = {};
+
 -- Main update function replicating the WeakAura's customText logic
 function RuneReader:UpdateRuneReader()
     if not Hekili_GetRecommendedAbility then
@@ -194,14 +196,20 @@ function RuneReader:UpdateRuneReader()
     -- this function changes  depending on if weakauras is loaded or not
     --WA is loaded
    -- local dataPac = {};
-    local _, _, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
+    local t1, t2, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --WA NOT loaded
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --if dataPac == nil then dataPac = {} end;
-    if not dataPac  then 
+    --print(tostring( t1) .. ' ' .. tostring(t2) .. ' ' .. tostring(dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
+
+
+    if not t1 then 
+      --  print(tostring( t1) .. ' ' .. tostring(t2)) 
+        dataPac = self.LastDataPak;
         -- Hekili Didn't return anything just exit out for now
-        return 
+        --return 
     end;
+
     if dataPac.actionID == nil then
         dataPac.delay = 0;
         dataPac.wait = 0;
@@ -209,6 +217,12 @@ function RuneReader:UpdateRuneReader()
         dataPac.actionID = nil;
        -- return
     end
+    --print(tostring( t1) .. ' ' .. tostring(t2) .. ' ' .. tostring(dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
+
+
+
+    self.LastDataPak = dataPac;
+
     --print("Display Update")
     --Always select the priority spells first.
     -- local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
