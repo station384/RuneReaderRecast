@@ -200,13 +200,12 @@ function RuneReader:UpdateRuneReader()
     --WA NOT loaded
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --if dataPac == nil then dataPac = {} end;
-    --print(tostring( t1) .. ' ' .. tostring(t2) .. ' ' .. tostring(dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
-
-
+   
     if not t1 then 
       --  print(tostring( t1) .. ' ' .. tostring(t2)) 
         dataPac = self.LastDataPak;
-        -- Hekili Didn't return anything just exit out for now
+        -- Hekili Sometimes returns a NIL even tough it still predicting on the screen.  I suspect its limiter cuts off the code
+        -- this is here so it just reuses the last value.   
         --return 
     end;
 
