@@ -4,7 +4,7 @@
 RuneReader = {}
 RuneReader.last = GetTime()
 RuneReader.lastResult = "*0000000*"
-RuneReader.config = { PrePressDelay = -0.300 }  -- I think there can be .5 second prediction.
+RuneReader.config = { PrePressDelay = -0.200 }  -- I think there can be .5 second prediction.
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
 RuneReader.lastSpell = 61304
@@ -201,14 +201,14 @@ function RuneReader:UpdateRuneReader()
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --if dataPac == nil then dataPac = {} end;
    
-    if not t1 then 
+    if not t1 or not dataPac then 
       --  print(tostring( t1) .. ' ' .. tostring(t2)) 
         dataPac = self.LastDataPak;
         -- Hekili Sometimes returns a NIL even tough it still predicting on the screen.  I suspect its limiter cuts off the code
         -- this is here so it just reuses the last value.   
         --return 
     end;
-
+    
     if dataPac.actionID == nil then
         dataPac.delay = 0;
         dataPac.wait = 0;
@@ -271,13 +271,14 @@ function RuneReader:UpdateRuneReader()
     if dataPac.actionID ~= nil then
         if C_Spell.IsSpellHarmful(dataPac.actionID) == false then
             RuneReader.haveUnitTargetAttackable = true
-        end 
+        end
     end
 
 
-    local exact_time = dataPac.exact_time + delay
-    local prePressDelay = RuneReader.config.PrePressDelay
-    local countDown = ((exact_time ) - (curTime - prePressDelay + (latencyWorld / 1000))) 
+    local exact_time = dataPac.exact_time + delay + RuneReader.config.PrePressDelay
+
+    local countDown = ((exact_time ) - (curTime  + (latencyWorld / 1000)))
+
 
     if countDown <= 0 then countDown = 0 end
 

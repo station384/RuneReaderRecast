@@ -1,5 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-  <Frame name="RuneReaderRecastFrame" id="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" frameStrata="HIGH" inherits="BackdropTemplate">
+  <Frame name="RuneReaderRecastFrame" id="RuneReaderRecastFrame" parent="UIParent" movable="true" hidden="false" toplevel="true" frameLevel="0" frameStrata="TOOLTIP" inherits="BackdropTemplate">
     <Size>
       <AbsDimension x="220" y="50"/>
     </Size>
