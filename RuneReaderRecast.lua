@@ -4,7 +4,7 @@
 RuneReader = {}
 RuneReader.last = GetTime()
 RuneReader.lastResult = "*0000000*"
-RuneReader.config = { PrePressDelay = -0.100 }  -- I think there can be .5 second prediction.
+RuneReader.config = { PrePressDelay = -0.0 }  -- I think there can be .5 second prediction.
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
 RuneReader.lastSpell = 61304
@@ -251,6 +251,7 @@ function RuneReader:UpdateRuneReader()
     --local action = dataPac.action
     --local display = dataPac.display
     local delay = dataPac.delay
+    local wait = dataPac.wait
     --local since = dataPac.since
     if RuneReader.lastSpell ~= dataPac.actionID then RuneReader.lastSpell = dataPac.actionID end
     --    local spellCooldownInfo  = C_Spell.GetSpellCooldown(RuneReaderEnv.lastSpell)
@@ -258,7 +259,7 @@ function RuneReader:UpdateRuneReader()
     --    print(tostring( dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
 
 
-    if dataPac.wait == 0 then
+    if wait == 0 then
         dataPac.exact_time = curTime
     end
 
@@ -274,8 +275,8 @@ function RuneReader:UpdateRuneReader()
         end
     end
 
-
-    local exact_time = dataPac.exact_time + delay + RuneReader.config.PrePressDelay
+  --print (dataPac.exact_time .. " - " .. delay .. " - " .. wait)
+    local exact_time = (dataPac.exact_time+delay)- (wait) + RuneReader.config.PrePressDelay
 
     local countDown = ((exact_time ) - (curTime  + (latencyWorld / 1000)))
 
