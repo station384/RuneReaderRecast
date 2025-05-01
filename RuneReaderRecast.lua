@@ -4,7 +4,7 @@
 RuneReader = {}
 RuneReader.last = GetTime()
 RuneReader.lastResult = "*0000000*"
-RuneReader.config = { PrePressDelay = -0.200 }  -- I think there can be .5 second prediction.
+RuneReader.config = { PrePressDelay = -0.100 }  -- I think there can be .5 second prediction.
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
 RuneReader.lastSpell = 61304
