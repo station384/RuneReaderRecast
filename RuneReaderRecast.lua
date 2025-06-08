@@ -4,13 +4,18 @@
 RuneReader = {}
 RuneReader.last = GetTime()
 RuneReader.lastResult = "*0000000*"
-RuneReader.config = { PrePressDelay = -0.0 }  -- I think there can be .5 second prediction.
+-- KEY WAIT BIT(0,1) CHECK
+-- 00  000  0  0
+-- BitMask 0=Target 1=Combat
+-- Check quick check if of total values to the left
+RuneReader.config = { PrePressDelay = -0.0 } -- I think there can be .5 second prediction.
 RuneReader.haveUnitTargetAttackable = false
 RuneReader.incombat = false
 RuneReader.lastSpell = 61304
-RuneReader.PrioritySpells = { 47528, 2139, 30449, 147362 }
+RuneReader.PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.FrameDelayAccumulator = 0
 RuneReader.lastResult = ""
+RuneReader.DEBUG = false
 
 -- Check for Hekili addon
 RuneReader.IsHekiliLoadedOrLoadeding, RuneReader.IsHekiliLoaded = C_AddOns.IsAddOnLoaded("Hekili")
@@ -27,8 +32,14 @@ end
 RuneReader.GlobalframeName =
     RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
-function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
 
+function RuneReader:AddToInspector(data, strName)
+    if DevTool and self.DEBUG then
+        DevTool:AddData(data, strName)
+    end
+end
+
+function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     local encodedKey = "00"
     local encodedWait = "0.0"
     if wait == nil then wait = 0 end;
@@ -165,7 +176,7 @@ end
 function RuneReader:RuneReaderEnv_set_bit(byte, bit_position)
     local bit_mask = 2 ^ bit_position
     if byte % (bit_mask + bit_mask) >= bit_mask then
-        return byte     -- bit already set
+        return byte -- bit already set
     else
         return byte + bit_mask
     end
@@ -183,6 +194,19 @@ end
 
 RuneReader.LastDataPak = {};
 
+
+function RuneReader:GetHekiliReccomend(mode)
+
+    if (mode == "primary") then
+    end
+
+    if (mode == "aoe") then
+    end
+
+    
+
+end
+
 -- Main update function replicating the WeakAura's customText logic
 function RuneReader:UpdateRuneReader()
     if not Hekili_GetRecommendedAbility then
@@ -195,46 +219,53 @@ function RuneReader:UpdateRuneReader()
 
     -- this function changes  depending on if weakauras is loaded or not
     --WA is loaded
-   -- local dataPac = {};
-    local t1, t2, dataPac = Hekili_GetRecommendedAbility("Primary", 1)
+    -- local dataPac = {};
+    local t1, t2, dataPacPrimary = Hekili_GetRecommendedAbility("Primary", 1)
+    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2) -- Used for detecting interupts
+    local _, _, dataPacAoe = Hekili_GetRecommendedAbility("AOE", 1)
+    --local _, _, dataPacAOE = Hekili_GetRecommendedAbility("AOE", 1)
+    --local _, _, dataPacSingle = Hekili_GetRecommendedAbility("Single", 1)
     --WA NOT loaded
     --dataPac = Hekili_GetRecommendedAbility("Primary", 1)
     --if dataPac == nil then dataPac = {} end;
-   
-    if not t1 or not dataPac then 
-      --  print(tostring( t1) .. ' ' .. tostring(t2)) 
-        dataPac = self.LastDataPak;
+
+    -- This is if hekili doesn't have a suggesion we use the last one.
+    if not t1 or not dataPacPrimary then
+        --  print(tostring( t1) .. ' ' .. tostring(t2))
+        dataPacPrimary = self.LastDataPak;
         -- Hekili Sometimes returns a NIL even tough it still predicting on the screen.  I suspect its limiter cuts off the code
-        -- this is here so it just reuses the last value.   
-        --return 
+        -- this is here so it just reuses the last value.
+        --return
     end;
-    
-    if dataPac.actionID == nil then
-        dataPac.delay = 0;
-        dataPac.wait = 0;
-        dataPac.keybind = nil;
-        dataPac.actionID = nil;
-       -- return
+
+    if dataPacPrimary.actionID == nil then
+        dataPacPrimary.delay = 0;
+        dataPacPrimary.wait = 0;
+        dataPacPrimary.keybind = nil;
+        dataPacPrimary.actionID = nil;
+        -- return
     end
     --print(tostring( t1) .. ' ' .. tostring(t2) .. ' ' .. tostring(dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
 
 
 
-    self.LastDataPak = dataPac;
+    self.LastDataPak = dataPacPrimary;
 
     --print("Display Update")
     --Always select the priority spells first.
-    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
+
+
+
     if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
-        dataPac = dataPacNext
+        dataPacPrimary = dataPacNext
     end
 
     --local actionName = dataPac.actionName
     --local index = dataPac.index
-    if not dataPac.delay then dataPac.delay = 0 end
-    if not dataPac.wait then dataPac.wait = 0 end
-    if not dataPac.exact_time then dataPac.exact_time = curTime end
-    if not dataPac.keybind then dataPac.keybind = "" end
+    if not dataPacPrimary.delay then dataPacPrimary.delay = 0 end
+    if not dataPacPrimary.wait then dataPacPrimary.wait = 0 end
+    if not dataPacPrimary.exact_time then dataPacPrimary.exact_time = curTime end
+    if not dataPacPrimary.keybind then dataPacPrimary.keybind = "" end
     --local scriptType = dataPac.scriptType
     --local time = dataPac.time
     --local display = dataPac.display
@@ -250,17 +281,17 @@ function RuneReader:UpdateRuneReader()
     --local hook = dataPac.hook
     --local action = dataPac.action
     --local display = dataPac.display
-    local delay = dataPac.delay
-    local wait = dataPac.wait
+    local delay = dataPacPrimary.delay
+    local wait = dataPacPrimary.wait
     --local since = dataPac.since
-    if RuneReader.lastSpell ~= dataPac.actionID then RuneReader.lastSpell = dataPac.actionID end
+    if RuneReader.lastSpell ~= dataPacPrimary.actionID then RuneReader.lastSpell = dataPacPrimary.actionID end
     --    local spellCooldownInfo  = C_Spell.GetSpellCooldown(RuneReaderEnv.lastSpell)
     --    if not spellCooldownInfo then  spellCooldownInfo = C_Spell.GetSpellCooldown(61304) end
     --    print(tostring( dataPac.keybind) .. ' ' .. tostring(dataPac.delay)..' '..tostring(dataPac.wait).. ' '..tostring(dataPac.actionID)..' '..tostring(dataPac.depth));
 
 
     if wait == 0 then
-        dataPac.exact_time = curTime
+        dataPacPrimary.exact_time = curTime
     end
 
     if UnitCanAttack("player", "target") then
@@ -269,16 +300,16 @@ function RuneReader:UpdateRuneReader()
         RuneReader.haveUnitTargetAttackable = false
     end
 
-    if dataPac.actionID ~= nil then
-        if C_Spell.IsSpellHarmful(dataPac.actionID) == false then
+    if dataPacPrimary.actionID ~= nil then
+        if C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
             RuneReader.haveUnitTargetAttackable = true
         end
     end
 
-  --print (dataPac.exact_time .. " - " .. delay .. " - " .. wait)
-    local exact_time = (dataPac.exact_time+delay)- (wait) + RuneReader.config.PrePressDelay
+    --print (dataPac.exact_time .. " - " .. delay .. " - " .. wait)
+    local exact_time = (dataPacPrimary.exact_time + delay) - (wait) + RuneReader.config.PrePressDelay
 
-    local countDown = ((exact_time ) - (curTime  + (latencyWorld / 1000)))
+    local countDown = ((exact_time) - (curTime + (latencyWorld / 1000))) - 0.1
 
 
     if countDown <= 0 then countDown = 0 end
@@ -291,7 +322,7 @@ function RuneReader:UpdateRuneReader()
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
     end
 
-    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPac.keybind, countDown)
+    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind, countDown)
     if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
         keytranslate = "000000"
     end
@@ -299,8 +330,8 @@ function RuneReader:UpdateRuneReader()
         keytranslate = "000000"
     end
 
-   local combinedValues =  keytranslate .. bitvalue
-   local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
+    local combinedValues = keytranslate .. bitvalue
+    local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
 
     RuneReader.lastResult = "*" .. combinedValues .. checkDigit .. "*"
 
@@ -309,7 +340,7 @@ function RuneReader:UpdateRuneReader()
 end
 
 function RuneReader:HandleWindowEvents(self, event)
-    print("Event received: " .. event)     -- Debugging message
+    print("Event received: " .. event) -- Debugging message
     if RuneReaderRecastFrame then
         if event == "PET_BATTLE_OPENING_START" then
             --  print("Hiding RuneReaderRecastFrame for pet battle.")
@@ -326,22 +357,22 @@ end
 function RuneReader:HandleMapShow()
     if RuneReaderRecastFrame then
         --      print("Map opened: Moving frame under the map")
-        RuneReaderRecastFrame:SetFrameStrata("LOW")     -- Move under the map
+        RuneReaderRecastFrame:SetFrameStrata("LOW") -- Move under the map
     end
 end
 
 function RuneReader:HandleMapHide()
     if RuneReaderRecastFrame then
         --     print("Map closed: Moving frame to top")
-        RuneReaderRecastFrame:SetFrameStrata("TOOLTIP")     -- Move to top
+        RuneReaderRecastFrame:SetFrameStrata("TOOLTIP") -- Move to top
     end
 end
 
 function RuneReader:RegisterMapHooks()
     if WorldMapFrame then
         --  print("Registering World Map hooks...")           -- Debug message
-        WorldMapFrame:HookScript("OnShow", RuneReader.HandleMapShow)     -- Detect when the map is opened
-        WorldMapFrame:HookScript("OnHide", RuneReader.HandleMapHide)     -- Detect when the map is closed
+        WorldMapFrame:HookScript("OnShow", RuneReader.HandleMapShow) -- Detect when the map is opened
+        WorldMapFrame:HookScript("OnHide", RuneReader.HandleMapHide) -- Detect when the map is closed
     else
         print("ERROR: WorldMapFrame not found!")
     end
@@ -349,12 +380,12 @@ end
 
 function RuneReader:RegisterWindowEvents()
     if RuneReaderRecastFrame then
-        print("Registering window battle events...")     -- Debug message
+        print("Registering window battle events...") -- Debug message
 
         RuneReaderRecastFrame:RegisterEvent("PET_BATTLE_OPENING_START")
         RuneReaderRecastFrame:RegisterEvent("PET_BATTLE_CLOSE")
         RuneReaderRecastFrame:SetScript("OnEvent", function(self, event)
-            RuneReader:HandleWindowEvents(self, event)     -- Pet battle handling
+            RuneReader:HandleWindowEvents(self, event) -- Pet battle handling
         end)
         RuneReader:RegisterMapHooks()
     else
@@ -408,7 +439,7 @@ function RuneReader:DelayLoadRuneReaderRecast()
         waitFrame:RegisterEvent("ADDON_LOADED")
         waitFrame:SetScript("OnEvent", function(self, event, addonName)
             if addonName == "Hekili" then
-                RuneReader:RuneReaderRecast_OnLoad()     -- Now that Hekili is loaded, initialize our addon
+                RuneReader:RuneReaderRecast_OnLoad() -- Now that Hekili is loaded, initialize our addon
                 RuneReader:RegisterWindowEvents();
                 self:UnregisterEvent("ADDON_LOADED")
             end
@@ -425,8 +456,8 @@ function RuneReader:DelayLoadRuneReaderRecast()
     -- If the frame is already created when the Lua file loads, initialize it immediately.
     if RuneReaderRecastFrame then
         -- Apply the backdrop mixin manually
-      --  Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
-      --  Mixin(RuneReaderRecastFrame, EditModeManagedFrameMixin)
+        --  Mixin(RuneReaderRecastFrame, BackdropTemplateMixin)
+        --  Mixin(RuneReaderRecastFrame, EditModeManagedFrameMixin)
         -- Now set the backdrop and its colors
         RuneReaderRecastFrame:SetBackdrop({
             bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",

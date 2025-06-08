@@ -20,7 +20,7 @@
       </Layer>
       <!-- Text region displaying the recommendation (using a custom font) -->
       <Layer level="OVERLAY">
-        <FontString name="$parentText" font="Interface\AddOns\RuneReaderRecast\Fonts\LibreBarcode39-Regular.ttf"
+        <FontString name="$parentText" font="Interface\AddOns\RuneReaderRecast\Fonts\LibreBarcode39Text-Regular.ttf"
         outline ="NONE"
         wordwrap = "false">
           <Anchors>
