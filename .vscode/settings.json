@@ -20,6 +20,7 @@
         "RuneReaderRecastFrame",
         "Hekili_GetRecommendedAbility",
         "DevTool",
-        "class"
+        "class",
+        "SlashCmdList"
     ]
 }

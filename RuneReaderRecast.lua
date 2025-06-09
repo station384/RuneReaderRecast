@@ -3,6 +3,10 @@
 -- Environment table mimicking aura_env
 RuneReader = {}
 RuneReader.last = GetTime()
+RuneReader.DataLength = 19;
+RuneReader.Ec_level = 7;
+RuneReader.QRModuleSize=1;
+RuneReader.QRQuietZone=2;
 RuneReader.lastResult = "*0000000*"
 -- KEY WAIT BIT(0,1) CHECK
 -- 00  000  0  0
@@ -16,6 +20,8 @@ RuneReader.PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.FrameDelayAccumulator = 0
 RuneReader.lastResult = ""
 RuneReader.DEBUG = false
+
+
 
 -- Check for Hekili addon
 RuneReader.IsHekiliLoadedOrLoadeding, RuneReader.IsHekiliLoaded = C_AddOns.IsAddOnLoaded("Hekili")
@@ -33,8 +39,18 @@ RuneReader.GlobalframeName =
     RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
 
+function  RuneReader:Pad_right( str1, len, pad )
+    pad = pad or " "
+    local pad_len = len - #str1
+    if pad_len > 0 then
+        return str1 .. string.rep(pad, pad_len)
+    else
+        return str1
+    end
+end
+
 function RuneReader:AddToInspector(data, strName)
-    if DevTool and self.DEBUG then
+    if DevTool and RuneReader.DEBUG then
         DevTool:AddData(data, strName)
     end
 end
@@ -232,7 +248,7 @@ function RuneReader:UpdateRuneReader()
     -- This is if hekili doesn't have a suggesion we use the last one.
     if not t1 or not dataPacPrimary then
         --  print(tostring( t1) .. ' ' .. tostring(t2))
-        dataPacPrimary = self.LastDataPak;
+        dataPacPrimary = RuneReader.LastDataPak;
         -- Hekili Sometimes returns a NIL even tough it still predicting on the screen.  I suspect its limiter cuts off the code
         -- this is here so it just reuses the last value.
         --return
@@ -249,7 +265,7 @@ function RuneReader:UpdateRuneReader()
 
 
 
-    self.LastDataPak = dataPacPrimary;
+    RuneReader.LastDataPak = dataPacPrimary;
 
     --print("Display Update")
     --Always select the priority spells first.
@@ -337,6 +353,18 @@ function RuneReader:UpdateRuneReader()
 
 
     RuneReaderRecastFrameText:SetText(RuneReader.lastResult)
+  local tstr = RuneReader:Pad_right(RuneReader.lastResult,RuneReader.DataLength," ");
+
+  --print(tstr)
+    local success, matrix = QRencode.qrcode(tstr)--, RuneReader.Ec_level, "L")
+    if success then
+        if string.len(tstr) ~= RuneReader.DataLength then
+            RuneReader.DataLength = string.len(tstr)
+            RuneReader:BuildQRCodeTextures(matrix,RuneReader.QRQuietZone,RuneReader.QRModuleSize)
+        end
+        RuneReader:UpdateQRCodeTextures(matrix)
+    end
+
 end
 
 function RuneReader:HandleWindowEvents(self, event)
@@ -393,13 +421,84 @@ function RuneReader:RegisterWindowEvents()
     end
 end
 
+
+
+function RuneReader:UpdateQRCodeTextures(qrMatrix)
+    local qrSize = #qrMatrix
+    for y = 1, qrSize do
+        for x = 1, qrSize do
+            local i = (y - 1) * qrSize + x
+            local tex = QRFrame.textures[i]
+            if qrMatrix[y][x] and qrMatrix[y][x] > 0 then
+                tex:SetColorTexture(0, 0, 0, 1)
+                tex:Show()
+            else
+                tex:SetColorTexture(1, 1, 1, 1) -- Optionally, for white
+                tex:Hide()                     -- Or just hide for white
+            end
+        end
+    end
+end
+
+
+
+function RuneReader:BuildQRCodeTextures(qrMatrix, moduleSize, quietZone)
+    moduleSize = moduleSize or 6
+    quietZone = quietZone or 4
+
+    local qrSize = #qrMatrix
+    local totalSize = (qrSize + 2 * quietZone) * moduleSize
+
+    if not QRFrame then
+        QRFrame = CreateFrame("Frame", "QRCodeDisplayFrame", UIParent, "BackdropTemplate")
+        QRFrame:SetMovable(true)
+        QRFrame:EnableMouse(true)
+        QRFrame:RegisterForDrag("LeftButton")
+        QRFrame:SetScript("OnDragStart", QRFrame.StartMoving)
+        QRFrame:SetScript("OnDragStop", QRFrame.StopMovingOrSizing)
+        QRFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+        QRFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        QRFrame:SetBackdropColor(1, 1, 1, 1)
+    end
+
+    QRFrame:SetSize(totalSize, totalSize)
+    QRFrame:SetPoint("CENTER")
+    QRFrame:Show()
+
+    -- Only build textures if first time or matrix size has changed
+    if not QRFrame.textures or #QRFrame.textures ~= qrSize * qrSize then
+        -- Remove old textures if any
+        if QRFrame.textures then
+            for _, tex in ipairs(QRFrame.textures) do tex:Hide() tex:SetParent(nil) tex = nil end
+            wipe(QRFrame.textures)
+        end
+        
+        QRFrame.textures = {}
+        for y = 1, qrSize do
+            for x = 1, qrSize do
+                local tex = QRFrame:CreateTexture(nil, "ARTWORK")
+                tex:SetSize(moduleSize, moduleSize)
+                tex:SetPoint("TOPLEFT",
+                    (x - 1 + quietZone) * moduleSize,
+                    -((y - 1 + quietZone) * moduleSize)
+                )
+                table.insert(QRFrame.textures, tex)
+            end
+        end
+    end
+
+    -- Initial fill
+    RuneReader:UpdateQRCodeTextures(qrMatrix)
+end
+
+
+
 -- OnLoad function to set up the frame and its update logic
 function RuneReader:RuneReaderRecast_OnLoad()
     if not C_AddOns.IsAddOnLoaded("Hekili") then
         print("Hekili is not loaded. HekiliRunreader is disabled.")
         return
     end
-
 
     -- Ensure the saved variables exist
     if not RuneReaderRecastDB then
@@ -411,9 +510,7 @@ function RuneReader:RuneReaderRecast_OnLoad()
     end
     -- Restore saved position
     RuneReaderRecastFrame:ClearAllPoints()
-    RuneReaderRecastFrame:SetPoint(RuneReaderRecastDB.position.point, UIParent, RuneReaderRecastDB.position
-        .relativePoint,
-        RuneReaderRecastDB.position.x, RuneReaderRecastDB.position.y)
+    RuneReaderRecastFrame:SetPoint(RuneReaderRecastDB.position.point, UIParent, RuneReaderRecastDB.position.relativePoint,RuneReaderRecastDB.position.x, RuneReaderRecastDB.position.y)
 
 
     if RuneReaderRecastFrame then
@@ -426,11 +523,29 @@ function RuneReader:RuneReaderRecast_OnLoad()
                 end
             else
                 print("RuneReader not found, stopping OnUpdate.")
-                self:SetScript("OnUpdate", nil)
+                RuneReader:SetScript("OnUpdate", nil)
             end
         end)
     end
+   
+    
+   -- _, RuneReader.Ec_level --QRencode.get_version_eclevel(RuneReader.DataLength, 4, 1)
+    --print (RuneReader.Ec_level)
+    local tstr = ""
+    local tstr = RuneReader:Pad_right(tstr,RuneReader.DataLength+5," ")
+   -- print (tstr)
+    local success, matrix1 = QRencode.qrcode(tstr)--,7,"L")
+    if success then
+        RuneReader:BuildQRCodeTextures(matrix1, RuneReader.QRQuietZone, RuneReader.QRModuleSize)
+    end
+
+   
+
 end
+
+
+
+
 
 -- Check if Hekili is loaded; if not, delay initialization
 function RuneReader:DelayLoadRuneReaderRecast()
@@ -506,3 +621,35 @@ function RuneReader:DelayLoadRuneReaderRecast()
         end
     end
 end
+
+
+ 
+
+
+-- SLASH_SHOWQR1 = "/showqr"
+-- SlashCmdList["SHOWQR"] = function(msg)
+
+--     local success, lmatrix = QRencode.qrcode("Updated QR", 7, "L")
+--     if success then
+--         RuneReader.UpdateQRCodeTextures(matrix)
+--     end
+--     -- local success, matrix = QRencode.qrcode(msg ~= "" and msg or "https://github.com/speedata/luaqrcode", 7, "L")
+--     -- if success then
+--     --     ShowQRCodeOnScreen(matrix, 6, 4)
+--     -- else
+--     --     print("QR Error: input too long?")
+--     -- end
+-- end
+
+-- SLASH_HIDEQR1 = "/hideqr"
+-- SlashCmdList["HIDEQR"] = function()
+--     if QRFrame then QRFrame:Hide() end
+-- end
+
+-- local success, matrix = QRencode.qrcode("Hello World!", 5, "L")
+-- if success then
+--     ShowQRCodeOnScreen(matrix, 4, 2)
+-- end
+
+-- First time setup:
+

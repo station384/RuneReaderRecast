@@ -5,6 +5,7 @@
 ## Globe-Main: Hekili
 ## Dependencies: Hekili
 ## SavedVariablesPerAccount: RuneReaderRecastDB
+QRcodeEncoder.lua
 RuneReaderRecast.lua
 RuneReaderRecast.xml
 
