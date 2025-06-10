@@ -3,23 +3,29 @@
 -- Environment table mimicking aura_env
 RuneReader = {}
 RuneReader.last = GetTime()
-RuneReader.DataLength = 19;
+RuneReader.DataLength = 7;
 RuneReader.Ec_level = 7;
 RuneReader.QRModuleSize=1;
 RuneReader.QRQuietZone=2;
-RuneReader.lastResult = "*0000000*"
+RuneReader.QRFrame = nil
+
+RuneReader.config = { 
+    PrePressDelay = 0 --C_CVar.GetCVar("SpellQueueWindow") / 1000  lets just report that info as is.
+    } -- Lets get the spell SpellQueueWindow
+RuneReader.haveUnitTargetAttackable = false
+RuneReader.inCombat = false
+RuneReader.lastSpell = 61304
+RuneReader.lastEncodeResult = "1A2Z!U"
 -- KEY WAIT BIT(0,1) CHECK
 -- 00  000  0  0
 -- BitMask 0=Target 1=Combat
 -- Check quick check if of total values to the left
-RuneReader.config = { PrePressDelay = -0.0 } -- I think there can be .5 second prediction.
-RuneReader.haveUnitTargetAttackable = false
-RuneReader.incombat = false
-RuneReader.lastSpell = 61304
 RuneReader.PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.FrameDelayAccumulator = 0
-RuneReader.lastResult = ""
 RuneReader.DEBUG = false
+RuneReader.LastDataPak = {};
+RuneReader.UseQRCode = true;
+
 
 
 
@@ -35,8 +41,7 @@ if RuneReader.Hekili_GetRecommendedAbility == nil then
 end
 
 
-RuneReader.GlobalframeName =
-    RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
+RuneReader.GlobalframeName = RuneReaderRecastFrame -- this is set later after the window is created using XML.   it is on a timer.
 -- Helper function: translateKey
 
 function  RuneReader:Pad_right( str1, len, pad )
@@ -208,7 +213,6 @@ function RuneReader:RuneReaderEnv_hasSpell(tbl, x)
     return false
 end
 
-RuneReader.LastDataPak = {};
 
 
 function RuneReader:GetHekiliReccomend(mode)
@@ -218,9 +222,6 @@ function RuneReader:GetHekiliReccomend(mode)
 
     if (mode == "aoe") then
     end
-
-    
-
 end
 
 -- Main update function replicating the WeakAura's customText logic
@@ -323,9 +324,10 @@ function RuneReader:UpdateRuneReader()
     end
 
     --print (dataPac.exact_time .. " - " .. delay .. " - " .. wait)
-    local exact_time = (dataPacPrimary.exact_time + delay) - (wait) + RuneReader.config.PrePressDelay
+    local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - RuneReader.config.PrePressDelay
 
-    local countDown = ((exact_time) - (curTime + (latencyWorld / 1000))) - 0.1
+    --local countDown = ((exact_time) - (curTime + (latencyWorld / 1000))) // lets ignore out latency.  I will move this to an output later.  
+    local countDown = (exact_time - curTime)
 
 
     if countDown <= 0 then countDown = 0 end
@@ -334,41 +336,48 @@ function RuneReader:UpdateRuneReader()
     if RuneReader.haveUnitTargetAttackable then
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)
     end
-    if RuneReader.incombat then
+    if RuneReader.inCombat then
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
     end
 
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind, countDown)
     if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-        keytranslate = "000000"
+        keytranslate = "00000"
     end
     if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-        keytranslate = "000000"
+        keytranslate = "00000"
     end
 
     local combinedValues = keytranslate .. bitvalue
     local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
+    local fullResult = combinedValues .. checkDigit
 
-    RuneReader.lastResult = "*" .. combinedValues .. checkDigit .. "*"
+    -- only updated the code if the code accually changed.  This saves on qrcode processing time
+    -- also,  why do extra when we don't have to?
 
+    if RuneReader.lastEncodeResult ~= fullResult  then
 
-    RuneReaderRecastFrameText:SetText(RuneReader.lastResult)
-  local tstr = RuneReader:Pad_right(RuneReader.lastResult,RuneReader.DataLength," ");
-
-  --print(tstr)
-    local success, matrix = QRencode.qrcode(tstr)--, RuneReader.Ec_level, "L")
-    if success then
-        if string.len(tstr) ~= RuneReader.DataLength then
-            RuneReader.DataLength = string.len(tstr)
-            RuneReader:BuildQRCodeTextures(matrix,RuneReader.QRQuietZone,RuneReader.QRModuleSize)
+        RuneReader.lastEncodeResult =  fullResult
+        RuneReaderRecastFrameText:SetText("*" .. RuneReader.lastEncodeResult .. "*")
+        if (RuneReader.UseQRCode) then
+            --print(RuneReader.lastResult)
+            local success, matrix = QRencode.qrcode(RuneReader.lastEncodeResult)--, RuneReader.Ec_level, "L")
+    
+            if success then
+            if string.len(RuneReader.lastEncodeResult) ~= RuneReader.DataLength then
+                print ("old len " .. RuneReader.DataLength .. "new length" .. #RuneReader.lastEncodeResult)
+                RuneReader.DataLength = #RuneReader.lastEncodeResult
+                RuneReader:BuildQRCodeTextures(matrix,RuneReader.QRQuietZone,RuneReader.QRModuleSize)
+            end
+            RuneReader:UpdateQRCodeTextures(matrix)
+            end
         end
-        RuneReader:UpdateQRCodeTextures(matrix)
     end
 
 end
 
 function RuneReader:HandleWindowEvents(self, event)
-    print("Event received: " .. event) -- Debugging message
+  --  print("Event received: " .. event) -- Debugging message
     if RuneReaderRecastFrame then
         if event == "PET_BATTLE_OPENING_START" then
             --  print("Hiding RuneReaderRecastFrame for pet battle.")
@@ -428,8 +437,8 @@ function RuneReader:UpdateQRCodeTextures(qrMatrix)
     for y = 1, qrSize do
         for x = 1, qrSize do
             local i = (y - 1) * qrSize + x
-            local tex = QRFrame.textures[i]
-            if qrMatrix[y][x] and qrMatrix[y][x] > 0 then
+            local tex = RuneReader.QRFrame.textures[i]
+            if qrMatrix[y][x] > 0 then
                 tex:SetColorTexture(0, 0, 0, 1)
                 tex:Show()
             else
@@ -449,40 +458,44 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, moduleSize, quietZone)
     local qrSize = #qrMatrix
     local totalSize = (qrSize + 2 * quietZone) * moduleSize
 
-    if not QRFrame then
-        QRFrame = CreateFrame("Frame", "QRCodeDisplayFrame", UIParent, "BackdropTemplate")
-        QRFrame:SetMovable(true)
-        QRFrame:EnableMouse(true)
-        QRFrame:RegisterForDrag("LeftButton")
-        QRFrame:SetScript("OnDragStart", QRFrame.StartMoving)
-        QRFrame:SetScript("OnDragStop", QRFrame.StopMovingOrSizing)
-        QRFrame:SetFrameStrata("FULLSCREEN_DIALOG")
-        QRFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-        QRFrame:SetBackdropColor(1, 1, 1, 1)
+    if not RuneReader.QRFrame then
+        RuneReader.QRFrame = CreateFrame("Frame", "QRCodeDisplayFrame", UIParent, "BackdropTemplate")
+        RuneReader.QRFrame:SetMovable(true)
+        RuneReader.QRFrame:EnableMouse(true)
+        RuneReader.QRFrame:RegisterForDrag("LeftButton")
+        RuneReader.QRFrame:SetScript("OnDragStart", RuneReader.QRFrame .StartMoving)
+        RuneReader.QRFrame:SetScript("OnDragStop", RuneReader.QRFrame .StopMovingOrSizing)
+        RuneReader.QRFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+        RuneReader.QRFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        RuneReader.QRFrame:SetBackdropColor(1, 1, 1, 1)
+        RuneReader.QRFrame:SetPoint("CENTER")
     end
 
-    QRFrame:SetSize(totalSize, totalSize)
-    QRFrame:SetPoint("CENTER")
-    QRFrame:Show()
+    RuneReader.QRFrame:SetSize(totalSize, totalSize)
+
+    RuneReader.QRFrame:Show()
 
     -- Only build textures if first time or matrix size has changed
-    if not QRFrame.textures or #QRFrame.textures ~= qrSize * qrSize then
+    if not RuneReader.QRFrame.textures or #RuneReader.QRFrame.textures ~= qrSize * qrSize then
         -- Remove old textures if any
-        if QRFrame.textures then
-            for _, tex in ipairs(QRFrame.textures) do tex:Hide() tex:SetParent(nil) tex = nil end
-            wipe(QRFrame.textures)
+        if RuneReader.QRFrame.textures then
+            for _, tex in ipairs(RuneReader.QRFrame.textures) do
+                tex:Hide()
+                tex:SetParent(nil)
+            end
+            wipe(RuneReader.QRFrame.textures)
         end
         
-        QRFrame.textures = {}
+        RuneReader.QRFrame.textures = {}
         for y = 1, qrSize do
             for x = 1, qrSize do
-                local tex = QRFrame:CreateTexture(nil, "ARTWORK")
+                local tex = RuneReader.QRFrame:CreateTexture(nil, "ARTWORK")
                 tex:SetSize(moduleSize, moduleSize)
                 tex:SetPoint("TOPLEFT",
                     (x - 1 + quietZone) * moduleSize,
                     -((y - 1 + quietZone) * moduleSize)
                 )
-                table.insert(QRFrame.textures, tex)
+                table.insert(RuneReader.QRFrame.textures, tex)
             end
         end
     end
@@ -529,16 +542,14 @@ function RuneReader:RuneReaderRecast_OnLoad()
     end
    
     
-   -- _, RuneReader.Ec_level --QRencode.get_version_eclevel(RuneReader.DataLength, 4, 1)
-    --print (RuneReader.Ec_level)
-    local tstr = ""
-    local tstr = RuneReader:Pad_right(tstr,RuneReader.DataLength+5," ")
-   -- print (tstr)
-    local success, matrix1 = QRencode.qrcode(tstr)--,7,"L")
-    if success then
-        RuneReader:BuildQRCodeTextures(matrix1, RuneReader.QRQuietZone, RuneReader.QRModuleSize)
-    end
 
+    if (RuneReader.UseQRCode) then
+    -- print (tstr)
+        local success, matrix1 = QRencode.qrcode(RuneReader.lastEncodeResult)--,7,"L")
+        if success then
+            RuneReader:BuildQRCodeTextures(matrix1, RuneReader.QRQuietZone, RuneReader.QRModuleSize)
+        end
+    end
    
 
 end
