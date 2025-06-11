@@ -22,5 +22,6 @@
         "DevTool",
         "class",
         "SlashCmdList"
-    ]
+    ],
+    "Lua.type.weakUnionCheck": true
 }

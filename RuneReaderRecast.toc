@@ -7,6 +7,6 @@
 ## SavedVariablesPerAccount: RuneReaderRecastDB
 QRcodeEncoder.lua
 RuneReaderRecast.lua
-RuneReaderRecast.xml
+
 
 
