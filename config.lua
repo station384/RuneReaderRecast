@@ -7,10 +7,10 @@ RuneReader.defaultConfig = {
     UseCode39 = false,
     UseQRCode = true,
     Ec_level = 7,
-    QRModuleSize = 1,
-    QRQuietZone = 2,
+    QRModuleSize = 2,
+    QRQuietZone = 3,
     UpdateValuesDelay = 0.10,
-    DEBUG=true
+    DEBUG=false
 }
 
 function RuneReader:InitConfig()
@@ -23,7 +23,8 @@ function RuneReader:InitConfig()
     if RuneReaderRecastDB.UpdateValuesDelay == nil then
         RuneReaderRecastDB.UpdateValuesDelay = RuneReader.defaultConfig.UpdateValuesDelay
     end
-    RuneReaderRecastDB.QRModuleSize = 1
+     RuneReaderRecastDB.DEBUG=false
+    RuneReaderRecastDB.QRModuleSize = 2
     RuneReaderRecastDB.QRQuietZone = 3
     RuneReaderRecastDB.UseCode39 = false
 end

@@ -12,18 +12,26 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:Show()
         return
     end
-
+    
     moduleSize = moduleSize or 6
     quietZone = quietZone or 4
-  RuneReader:AddToInspector(moduleSize, "moduleSize Create")
+    RuneReader:AddToInspector(moduleSize, "moduleSize Create")
     RuneReader:AddToInspector(quietZone, "quietZone Create")
     local qrSize = qrMatrix and #qrMatrix 
     local totalSize = (qrSize + 2 * quietZone) * moduleSize
+
+   --Figure out an alternate totalSize
+   local CodeWidth = #qrMatrix[1]
+   local CodeHeight = #qrMatrix
+
+
 
     local f = CreateFrame("Frame", "RuneReaderQRFrame", UIParent, "BackdropTemplate")
     f:SetMovable(true)
     f:EnableMouse(true)
     f:SetResizable(true)
+    f:SetScale(0.30)
+    f:SetIgnoreParentScale(true)
     f:SetClampedToScreen(true)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", tile=true})
@@ -102,6 +110,10 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
     local qrSize = #qrMatrix
     local totalSize = (qrSize + 2 * quietZone) * moduleSize
 
+   local CodeWidth = #qrMatrix[1]
+   local CodeHeight = #qrMatrix
+
+
     local f = RuneReader.QRFrame
     if not f then
            RuneReader:AddToInspector(true, "QRFrame Wasn't created yet.  SHouldn't happen.")
@@ -125,8 +137,7 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
                 local tex = f:CreateTexture(nil, "ARTWORK")
                 tex:SetSize(moduleSize, moduleSize)
                 tex:SetPoint("TOPLEFT",
-                    (x - 1 + quietZone) * moduleSize,
-                    -((y - 1 + quietZone) * moduleSize)
+                      (x - 1 + quietZone  ) * moduleSize,   (-((y - 1 + quietZone  ) * moduleSize))
                 )
                 tex:Show()
                 table.insert(f.textures, tex)
