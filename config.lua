@@ -24,7 +24,7 @@ function RuneReader:InitConfig()
         RuneReaderRecastDB.UpdateValuesDelay = RuneReader.defaultConfig.UpdateValuesDelay
     end
      RuneReaderRecastDB.DEBUG=false
-    RuneReaderRecastDB.QRModuleSize = 2
-    RuneReaderRecastDB.QRQuietZone = 3
+    RuneReaderRecastDB.QRModuleSize = 1
+    RuneReaderRecastDB.QRQuietZone = 2
     RuneReaderRecastDB.UseCode39 = false
 end
