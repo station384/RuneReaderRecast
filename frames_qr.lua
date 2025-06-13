@@ -30,19 +30,22 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:SetResizable(true)
-    f:SetScale(0.30)
+    f:SetScale(0.40)
     f:SetIgnoreParentScale(true)
     f:SetClampedToScreen(true)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", tile=true})
     f:SetBackdropColor(1, 1, 1, 1)
     f:RegisterForDrag("LeftButton")
-    f:SetPoint("TOPLEFT")
+
+
+    f:SetPoint("CENTER")
 
     f.textures = {}
 
     f:SetScript("OnDragStart", function(self)
-        self:StartMoving()
+         if IsAltKeyDown() then self:StartMoving() end
+        --self:StartMoving()
     end)
     f:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()

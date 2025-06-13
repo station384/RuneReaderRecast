@@ -25,6 +25,6 @@ function RuneReader:InitConfig()
     end
      RuneReaderRecastDB.DEBUG=false
     RuneReaderRecastDB.QRModuleSize = 2
-    RuneReaderRecastDB.QRQuietZone = 3
+    RuneReaderRecastDB.QRQuietZone = 4
     RuneReaderRecastDB.UseCode39 = false
 end
