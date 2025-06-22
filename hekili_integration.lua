@@ -10,24 +10,6 @@ RuneReader.LastDataPak = {};
 RuneReader.GenerationDelayTimeStamp = time()
 RuneReader.GenerationDelayAccumulator = 0
 
-function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
-    local encodedKey = "00"
-    local encodedWait = "0.0"
-    if wait == nil then wait = 0 end
-    local keyMap = {
-        ["1"] = "01", ["2"] = "02", ["3"] = "03", ["4"] = "04", ["5"] = "05",
-        ["6"] = "06", ["7"] = "07", ["8"] = "08", ["9"] = "09", ["0"] = "10",
-        ["-"] = "11", ["="] = "12",
-        ["CF1"]="21",["CF2"]="22",["CF3"]="23",["CF4"]="24",["CF5"]="25",["CF6"]="26",["CF7"]="27",["CF8"]="28",["CF9"]="29",["CF10"]="30",["CF11"]="31",["CF12"]="32",
-        ["AF1"]="41",["AF2"]="42",["AF3"]="43",["AF4"]="44",["AF5"]="45",["AF6"]="46",["AF7"]="47",["AF8"]="48",["AF9"]="49",["AF10"]="50",["AF11"]="51",["AF12"]="52",
-        ["F1"]="61",["F2"]="62",["F3"]="63",["F4"]="64",["F5"]="65",["F6"]="66",["F7"]="67",["F8"]="68",["F9"]="69",["F10"]="70",["F11"]="71",["F12"]="72"
-    }
-    encodedKey = keyMap[hotKey] or "00"
-    if wait > 9.99 then wait = 9.99 end
-    if wait < 0 then wait = 0 end
-    if wait ~= nil then encodedWait = string.format("%04.2f", wait):gsub("[.]", "") end
-    return encodedKey .. encodedWait
-end
 
 function RuneReader:RuneReaderEnv_hasSpell(tbl, x)
     for _, v in ipairs(tbl) do
@@ -36,17 +18,78 @@ function RuneReader:RuneReaderEnv_hasSpell(tbl, x)
     return false
 end
 
+function RuneReader:Hekili_GetRecommendedAblilityPrimary(index)
+    local result = {}
+    if not Hekili then
+        result = nil
+    else
+     local dpak = Hekili.DisplayPool.Primary.Recommendations[index]
+     result.actionID = dpak.actionID
+     result.delay = dpak.delay
+     result.wait = dpak.wait
+     result.time = dpak.time
+     result.keybind = dpak.keybind
+     result.exact_time = dpak.exact_time
+    end
+  return result
+end
+
+function RuneReader:Hekili_GetRecommendedAblilityAOE(index)
+    local result = {}
+    if not Hekili then
+        result = nil
+    else
+    local dpak = Hekili.DisplayPool.AOE.Recommendations[index]
+     result.actionID = dpak.actionID
+     result.delay = dpak.delay
+     result.wait = dpak.wait
+     result.time = dpak.time
+     result.keybind = dpak.keybind
+     result.exact_time = dpak.exact_time
+    end
+  return result
+end
+
 --The returned string is in this format
--- KEY WAIT BIT(0,1) CHECK
--- 00  000  0  0
+--This is the format for code39
+--Code39 -- Mode-0
+-- MODE KEY WAIT BIT(0,1) CHECK
+-- 0    00  000  0        0
+-- Mode 0-Code39 1-QR
 -- BitMask 0=Target 1=Combat
 -- Check quick check if of total values to the left
+
+--QR -- Mode-1 
+--1st char is number for compatability with code39 mode check
+--Comma seperated values, Alpha value mean, 
+--All text can be alpha numberic ASCII
+--No checksum needed for data validation as QR ECC takes care of that for us.
+-- A = Alpha numeric (A..Z,a..z,0..9,-,=)
+-- Only the first parameter (MODE) is a fixed position
+--MODE bool(0,1) 
+--1,B0,W0000,K00,D0000,
+--B (N) BitMask(4Bit) 0=Target 1=Combat 2=Multi-Target
+--W (0000) WaitTime (4 digit Mask of max value of 9999 or 9 seconds and 999 miliseconds)
+--K (NN) Keymask Encoded Key value
+--D (0000) Delay (4 digit Mask of max value of 9999 or 9 seconds and 999 miliseconds)
+--A (N...) ActionID (spellID)
+--G (0000) GCD (Global Cooldown Time) cooldown time 
+--L (0000) World Latency
+--T ServerTime (When event started) -Not sure how to represent this yet but it will have to be a fixed length as it changes all the time.
+--E ExactTime (When event is expected to end (delay+wait+GCD) ) -Not sure how to represent this yet but it will have to be a fixed length as it changes all the time.
+--M (AA:N...) Keymapping (Multiple) : seperated list of Keyvalues and spellIDs (F1:8193) example (MF1:8193,MF2:2323,MCF1:9949)
+--C (A) Keymapping Checksum quick calculation of Keymapping values, this will be "unique" to the total values in the keymapping parameter
+
+
+
 function RuneReader:UpdateCodeValues()
+
     RuneReader.GenerationDelayAccumulator = RuneReader.GenerationDelayAccumulator + (time() - RuneReader.GenerationDelayTimeStamp)
     if RuneReader.GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
         RuneReader.GenerationDelayTimeStamp = time()
         return RuneReader.LastEncodedResult
     end
+
     RuneReader.GenerationDelayTimeStamp = time()
 
     if not Hekili_GetRecommendedAbility then return end
@@ -54,14 +97,14 @@ function RuneReader:UpdateCodeValues()
     local curTime = GetTime()
     local _, _, _, latencyWorld = GetNetStats()
 
-    local t1, t2, dataPacPrimary = Hekili_GetRecommendedAbility("Primary", 1)
-    local _, _, dataPacNext = Hekili_GetRecommendedAbility("Primary", 2)
-    local _, _, dataPacAoe = Hekili_GetRecommendedAbility("AOE", 1)
-
-    if not t1 or not dataPacPrimary then
+    local dataPacPrimary = RuneReader:Hekili_GetRecommendedAblilityPrimary( 1)
+    local dataPacNext = RuneReader:Hekili_GetRecommendedAblilityPrimary(2)
+    local dataPacAoe = RuneReader:Hekili_GetRecommendedAblilityAOE( 1)
+    
+    if  not dataPacPrimary then
         dataPacPrimary = RuneReader.LastDataPak
     end
-
+--print(dataPacPrimary.keybind )
     if not dataPacPrimary then dataPacPrimary = {} end
     if dataPacPrimary.actionID == nil then
         dataPacPrimary.delay = 0; dataPacPrimary.wait = 0; dataPacPrimary.keybind = nil; dataPacPrimary.actionID = nil
@@ -107,6 +150,7 @@ function RuneReader:UpdateCodeValues()
     end
 
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind, countDown)
+
     if AuraUtil and AuraUtil.FindAuraByName then
         if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
             keytranslate = "00000"
@@ -120,5 +164,6 @@ function RuneReader:UpdateCodeValues()
     local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
     local fullResult = combinedValues .. checkDigit
     RuneReader.LastEncodedResult = fullResult
+--            print(RuneReader.LastEncodedResult )
     return fullResult
 end

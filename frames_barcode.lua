@@ -83,6 +83,7 @@ function RuneReader:CreateBarcodeWindow()
             if RuneReader then
                 RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
                 if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay then
+                    print("Updated")
                     RuneReader:UpdateC39Display()
                     RuneReader.C39FrameDelayAccumulator = 0
                 end
@@ -108,6 +109,7 @@ end
 
 function RuneReader:UpdateC39Display()
     local fullResult = self:UpdateCodeValues()
+    print("test")
     if self.lastC39EncodeResult ~= fullResult then
         self.lastC39EncodeResult = fullResult
         self:SetBarcodeText("*" .. self.lastC39EncodeResult .. "*")

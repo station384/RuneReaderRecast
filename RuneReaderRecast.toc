@@ -8,6 +8,7 @@
 QRcodeEncoder.lua
 config.lua
 encoding.lua
+keymapping.lua
 hekili_integration.lua
 frames_barcode.lua
 frames_qr.lua
