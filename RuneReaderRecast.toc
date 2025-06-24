@@ -1,4 +1,4 @@
-## Interface: 110100, 110105
+## Interface: 110100, 110105, 110107, 110200
 ## Title: RuneReader Recast
 ## Notes: Hekili Companion - Barcode and QR helper
 ## Version: 2.8.0
