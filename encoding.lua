@@ -24,9 +24,31 @@ function RuneReader:CalculateCheckDigit(input)
     return check
 end
 
+function RuneReader:CalculateCheckDigitASCII(input)
+    local sum = 0
+    for i = 1, #input do
+        local ascii = string.byte(input, i) -- Full ASCII support
+        local weight = (i % 2 == 0) and 1 or 3
+        sum = sum + ascii * weight
+    end
+    local check = (10 - (sum % 10)) % 10
+    return check
+end
+
 function RuneReader:ValidateWithCheckDigit(input)
     local base = input:sub(1, -2)
     local expected = tonumber(input:sub(-1))
+    local actual = self:CalculateCheckDigit(base)
+    return expected == actual
+end
+
+function RuneReader:ValidateWithCheckDigitASCII(input)
+    if not input or #input < 2 then return false end
+
+    local base = input:sub(1, -2)
+    local expected = tonumber(input:sub(-1))
+    if not expected then return false end
+
     local actual = self:CalculateCheckDigit(base)
     return expected == actual
 end

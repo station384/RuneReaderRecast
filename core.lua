@@ -52,6 +52,7 @@ RuneReaderInit:RegisterEvent("ADDON_LOADED")
 RuneReaderInit:SetScript("OnEvent",
     function(self, event, addonName)
         if event == "ADDON_LOADED" and addonName == "RuneReaderRecast" then
+            print("Loading Rune Reader")
             RuneReader:InitializeAddon()
         elseif event == "PET_BATTLE_OPENING_START" then
                if RuneReader.BarcodeFrame then
