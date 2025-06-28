@@ -6,7 +6,7 @@
 RuneReader = RuneReader or {}
 RuneReader.AssistedCombatSpellInfo = RuneReader.AssistedCombatSpellInfo or {}
 RuneReader.lastAssistedSpell = nil
-RuneReader.Assisted_LastEncodedResult = "0000000"
+RuneReader.Assisted_LastEncodedResult = "00000000"
 RuneReader.Assisted_GenerationDelayTimeStamp = time()
 RuneReader.Assisted_GenerationDelayAccumulator = 0
 
@@ -23,6 +23,7 @@ local function GetHotkeyForSpell(spellID)
     end
     return ""
 end
+
 
 function RuneReader:BuildAssistedSpellMap()
     RuneReader.AssistedCombatSpellInfo = {}

@@ -171,7 +171,7 @@ function RuneReader:UpdateQRCodeTextures(qrMatrix)
 end
 
 function RuneReader:UpdateQRDisplay()
-    local fullResult = RuneReader:UpdateCodeValues()
+    local fullResult = RuneReader:Hekili_UpdateCodeValues(1) -- QR Code Display
     if RuneReader.lastQREncodeResult ~= fullResult then
         RuneReader.lastQREncodeResult = fullResult
         local stringToEncode = RuneReader.lastQREncodeResult

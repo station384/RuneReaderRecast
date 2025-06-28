@@ -108,7 +108,7 @@ function RuneReader:SetBarcodeText(str)
 end
 
 function RuneReader:UpdateC39Display()
-    local fullResult = self:UpdateCodeValues()
+    local fullResult = self:Hekili_UpdateCodeValues()
     print("test")
     if self.lastC39EncodeResult ~= fullResult then
         self.lastC39EncodeResult = fullResult

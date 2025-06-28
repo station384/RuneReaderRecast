@@ -2,16 +2,16 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.haveUnitTargetAttackable = false
-RuneReader.inCombat = false
-RuneReader.lastSpell = 61304
-RuneReader.PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
-RuneReader.LastDataPak = {};
-RuneReader.GenerationDelayTimeStamp = time()
-RuneReader.GenerationDelayAccumulator = 0
+RuneReader.hekili_haveUnitTargetAttackable = false
+RuneReader.hekili_inCombat = false
+RuneReader.hekili_lastSpell = 61304
+RuneReader.hekili_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
+RuneReader.hekili_LastDataPak = {};
+RuneReader.hekili_GenerationDelayTimeStamp = time()
+RuneReader.hekili_GenerationDelayAccumulator = 0
 
 
-function RuneReader:RuneReaderEnv_hasSpell(tbl, x)
+function RuneReader:Hekili_RuneReaderEnv_hasSpell(tbl, x)
     for _, v in ipairs(tbl) do
         if v == x then return true end
     end
@@ -82,15 +82,18 @@ end
 
 
 
-function RuneReader:UpdateCodeValues()
+function RuneReader:Hekili_UpdateCodeValues(mode)
+    if mode == nil
+        then mode = 0
+    end
 
-    RuneReader.GenerationDelayAccumulator = RuneReader.GenerationDelayAccumulator + (time() - RuneReader.GenerationDelayTimeStamp)
-    if RuneReader.GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
-        RuneReader.GenerationDelayTimeStamp = time()
+    RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
+    if RuneReader.hekili_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
+        RuneReader.hekili_GenerationDelayTimeStamp = time()
         return RuneReader.LastEncodedResult
     end
 
-    RuneReader.GenerationDelayTimeStamp = time()
+    RuneReader.hekili_GenerationDelayTimeStamp = time()
 
     if not Hekili_GetRecommendedAbility then return end
 
@@ -102,7 +105,7 @@ function RuneReader:UpdateCodeValues()
     local dataPacAoe = RuneReader:Hekili_GetRecommendedAblilityAOE( 1)
     
     if  not dataPacPrimary then
-        dataPacPrimary = RuneReader.LastDataPak
+        dataPacPrimary = RuneReader.hekili_LastDataPak
     end
 --print(dataPacPrimary.keybind )
     if not dataPacPrimary then dataPacPrimary = {} end
@@ -110,9 +113,9 @@ function RuneReader:UpdateCodeValues()
         dataPacPrimary.delay = 0; dataPacPrimary.wait = 0; dataPacPrimary.keybind = nil; dataPacPrimary.actionID = nil
     end
 
-    RuneReader.LastDataPak = dataPacPrimary
+    RuneReader.hekili_LastDataPak = dataPacPrimary
 
-    if dataPacNext and RuneReader:RuneReaderEnv_hasSpell(RuneReader.PrioritySpells, dataPacNext.actionID) then
+    if dataPacNext and RuneReader:Hekili_RuneReaderEnv_hasSpell(RuneReader.hekili_PrioritySpells, dataPacNext.actionID) then
         dataPacPrimary = dataPacNext
     end
 
@@ -124,17 +127,17 @@ function RuneReader:UpdateCodeValues()
     local delay = dataPacPrimary.delay
     local wait = dataPacPrimary.wait
 
-    if RuneReader.lastSpell ~= dataPacPrimary.actionID then RuneReader.lastSpell = dataPacPrimary.actionID end
+    if RuneReader.hekili_lastSpell ~= dataPacPrimary.actionID then RuneReader.hekili_lastSpell = dataPacPrimary.actionID end
 
     if wait == 0 then dataPacPrimary.exact_time = curTime end
 
     if UnitCanAttack("player", "target") then
-        RuneReader.haveUnitTargetAttackable = true
+        RuneReader.hekili_haveUnitTargetAttackable = true
     else
-        RuneReader.haveUnitTargetAttackable = false
+        RuneReader.hekili_haveUnitTargetAttackable = false
     end
     if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
-        RuneReader.haveUnitTargetAttackable = true
+        RuneReader.hekili_haveUnitTargetAttackable = true
     end
 
     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - (RuneReaderRecastDB.PrePressDelay or 0)
@@ -142,10 +145,10 @@ function RuneReader:UpdateCodeValues()
     if countDown <= 0 then countDown = 0 end
 
     local bitvalue = 0
-    if RuneReader.haveUnitTargetAttackable then
+    if RuneReader.hekili_haveUnitTargetAttackable then
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)
     end
-    if RuneReader.inCombat then
+    if RuneReader.hekili_inCombat then
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
     end
 
