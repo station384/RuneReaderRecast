@@ -22,7 +22,9 @@
         "DevTool",
         "class",
         "SlashCmdList",
-        "Hekili"
+        "Hekili",
+        "ActionButtonUtil",
+        "RANGE_INDICATOR"
     ],
     "Lua.type.weakUnionCheck": true
 }

@@ -31,7 +31,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
     f:EnableMouse(true)
     f:SetResizable(true)
     f:SetIgnoreParentScale(true)
-    f:SetScale(0.60)
+    f:SetScale(0.70)
     f:SetClampedToScreen(true)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", tile=true})
@@ -93,7 +93,37 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
     f:SetSize(totalSize+4, totalSize+4)
     f:Hide()   
     f:Show()
+    RuneReader:RegisterActionBarEvents()
 end
+
+function RuneReader:OnActionBarChanged(event, arg1)
+    -- Rebuild your visible action bar spell → hotkey map here
+    RuneReader:BuildAssistedSpellMap()
+
+    -- Optional: trigger QR/Barcode refresh
+    RuneReader.lastQREncodeResult = ""  -- Force QR refresh on next UpdateQRDisplay
+
+    -- Debug/logging
+    RuneReader:AddToInspector(event .. " fired", "ActionBarChange")
+end
+
+function RuneReader:RegisterActionBarEvents()
+    local f = CreateFrame("Frame")
+    f:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+    f:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+    f:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+    f:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
+    f:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+    f:RegisterEvent("UPDATE_BINDINGS")
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    f:SetScript("OnEvent", function(_, event, arg1)
+        RuneReader:OnActionBarChanged(event, arg1)
+    end)
+end
+
+
+
 
 function RuneReader:DestroyQRWindow()
     if RuneReader.QRFrame then
@@ -171,13 +201,21 @@ function RuneReader:UpdateQRCodeTextures(qrMatrix)
 end
 
 function RuneReader:UpdateQRDisplay()
-    local fullResult = RuneReader:Hekili_UpdateCodeValues(1) -- QR Code Display
+    local fullResult = ""
+    if RuneReaderRecastDB.HelperSource == 0 then
+        fullResult = RuneReader:Hekili_UpdateValues(1)
+    end
+    if RuneReaderRecastDB.HelperSource == 1 then
+        fullResult = RuneReader:AssistedCombat_UpdateValues(1)
+    end
+
     if RuneReader.lastQREncodeResult ~= fullResult then
         RuneReader.lastQREncodeResult = fullResult
         local stringToEncode = RuneReader.lastQREncodeResult
         local success, matrix = QRencode.qrcode(stringToEncode)
         if success then
             -- if the size of the frame doesn't match (someone played with the config files), or the size of the barcode changed recreate the frame to the correct size.
+  --          print(fullResult )
 
 
             if  (string.len(RuneReader.lastQREncodeResult) ~= RuneReader.DataLength) then

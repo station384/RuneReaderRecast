@@ -2,7 +2,7 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.lastC39EncodeResult = "1A2Z!U"
+RuneReader.lastC39EncodeResult = "11A2Z!U"
 RuneReader.C39FrameDelayAccumulator = 0
 
 function RuneReader:CreateBarcodeWindow()
@@ -108,7 +108,7 @@ function RuneReader:SetBarcodeText(str)
 end
 
 function RuneReader:UpdateC39Display()
-    local fullResult = self:Hekili_UpdateCodeValues()
+    local fullResult = self:Hekili_UpdateValues(0) --Standard code39 for now.....
     print("test")
     if self.lastC39EncodeResult ~= fullResult then
         self.lastC39EncodeResult = fullResult

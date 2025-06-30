@@ -82,10 +82,8 @@ end
 
 
 
-function RuneReader:Hekili_UpdateCodeValues(mode)
-    if mode == nil
-        then mode = 0
-    end
+function RuneReader:Hekili_UpdateValues(mode)
+   local mode = mode or 0
 
     RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
     if RuneReader.hekili_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
@@ -104,20 +102,29 @@ function RuneReader:Hekili_UpdateCodeValues(mode)
     local dataPacNext = RuneReader:Hekili_GetRecommendedAblilityPrimary(2)
     local dataPacAoe = RuneReader:Hekili_GetRecommendedAblilityAOE( 1)
     
+
     if  not dataPacPrimary then
         dataPacPrimary = RuneReader.hekili_LastDataPak
     end
 --print(dataPacPrimary.keybind )
     if not dataPacPrimary then dataPacPrimary = {} end
+    
     if dataPacPrimary.actionID == nil then
         dataPacPrimary.delay = 0; dataPacPrimary.wait = 0; dataPacPrimary.keybind = nil; dataPacPrimary.actionID = nil
+        if RuneReader.hekili_LastDataPak then
+            dataPacPrimary = RuneReader.hekili_LastDataPak
+        end
     end
+-- Found an odd qwirk in wow.  it sometimes doesn't handle unsigned ints right...   this is a fix for it.
+    -- if dataPacPrimary.actionID and dataPacPrimary.actionID < 0 then
+    --     dataPacPrimary.actionID = bit.band(dataPacPrimary.actionID, 0xFFFFFFFF)
+    -- end
 
     RuneReader.hekili_LastDataPak = dataPacPrimary
 
-    if dataPacNext and RuneReader:Hekili_RuneReaderEnv_hasSpell(RuneReader.hekili_PrioritySpells, dataPacNext.actionID) then
-        dataPacPrimary = dataPacNext
-    end
+    -- if dataPacNext and RuneReader:Hekili_RuneReaderEnv_hasSpell(RuneReader.hekili_PrioritySpells, dataPacNext.actionID) then
+    --     dataPacPrimary = dataPacNext
+    -- end
 
     if not dataPacPrimary.delay then dataPacPrimary.delay = 0 end
     if not dataPacPrimary.wait then dataPacPrimary.wait = 0 end
@@ -127,7 +134,7 @@ function RuneReader:Hekili_UpdateCodeValues(mode)
     local delay = dataPacPrimary.delay
     local wait = dataPacPrimary.wait
 
-    if RuneReader.hekili_lastSpell ~= dataPacPrimary.actionID then RuneReader.hekili_lastSpell = dataPacPrimary.actionID end
+    if RuneReader.h1111ekili_lastSpell ~= dataPacPrimary.actionID then RuneReader.hekili_lastSpell = dataPacPrimary.actionID end
 
     if wait == 0 then dataPacPrimary.exact_time = curTime end
 
@@ -152,21 +159,37 @@ function RuneReader:Hekili_UpdateCodeValues(mode)
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
     end
 
-    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind, countDown)
+    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind)
 
     if AuraUtil and AuraUtil.FindAuraByName then
         if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-            keytranslate = "00000"
+            keytranslate = "00"
         end
         if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-            keytranslate = "00000"
+            keytranslate = "00"
         end
     end
 
-    local combinedValues = keytranslate .. bitvalue
-    local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
-    local fullResult = combinedValues .. checkDigit
+    local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
+     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
+    --print ( duration .. enable) 
+    local combinedValues =  '1' .. 
+                            ',B' .. bitvalue .. 
+                            ',W' .. string.format("%04.3f", countDown ):gsub("[.]", "") ..
+                            ',K' .. keytranslate .. 
+                            ',D' .. string.format("%04.3f", delay):gsub("[.]", "") ..
+                            ',G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") ..
+                            ',L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
+                            ',A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") ..
+                            ',S' .. source
+                                
+                            
+                            
+
+    --mode .. keytranslate .. waitTranslate .. bitvalue 
+    --local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
+    local fullResult = combinedValues --.. checkDigit
     RuneReader.LastEncodedResult = fullResult
---            print(RuneReader.LastEncodedResult )
+
     return fullResult
 end

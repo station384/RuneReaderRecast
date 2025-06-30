@@ -11,7 +11,7 @@ RuneReader.defaultConfig = {
     QRQuietZone = 3,
     UpdateValuesDelay = 0.10,
     DEBUG=false,
-    UseAssistedCombat = true
+    HelperSource = 0 -- 0 =  Hekili, 1 = Commbat Assist
 }
 
 function RuneReader:InitConfig()
@@ -28,4 +28,6 @@ function RuneReader:InitConfig()
     -- RuneReaderRecastDB.QRModuleSize = 1
     -- RuneReaderRecastDB.QRQuietZone = 2
     -- RuneReaderRecastDB.UseCode39 = false
+RuneReaderRecastDB.HelperSource = 0
+
 end

@@ -10,15 +10,110 @@ RuneReader.Assisted_LastEncodedResult = "00000000"
 RuneReader.Assisted_GenerationDelayTimeStamp = time()
 RuneReader.Assisted_GenerationDelayAccumulator = 0
 
-local function GetHotkeyForSpell(spellID)
-    for i = 1, 120 do
-        if HasAction(i) then
-            local actionType, id, _ = GetActionInfo(i)
-            if actionType == "spell" and id == spellID then
-                local buttonName = "ActionButton" .. i
-                local hotkey = GetBindingKey("CLICK " .. buttonName .. ":LeftButton")
-                return hotkey or ""
-            end
+
+function RuneReader:IsActionBarPageVisible(barIndex)
+    return GetActionBarPage() == barIndex
+end
+
+-- Example: is bar 10 visible?
+if RuneReader:IsActionBarPageVisible(10) then
+    print("Bar 10 is currently visible")
+else
+    print("Bar 10 is not visible (swapped out)")
+end
+
+function RuneReader:GetVisibleActionBarSlotRange()
+    local page = GetActionBarPage()
+    local startSlot = ((page - 1) * 12) + 1
+    local endSlot = startSlot + 11
+    return startSlot, endSlot
+end
+
+--  function RuneReader:GetHotkeyForSpell(spellID)
+--     for i = 120, 1, -1 do
+--         if HasAction(i) then
+--             local actionType, id, _ = GetActionInfo(i)
+--             if actionType == "spell" and id == spellID then
+--            --     print(i .. "found " .. spellID)
+--                 local buttonName = "ActionButton" .. i
+--                 local hotkey1, hotkey2 = GetBindingKey("CLICK " .. buttonName .. ":LeftButton")
+
+--           --       print("found " .. hotkey1)
+--                 return hotkey1 or ""
+--             end
+--         end
+--     end
+--     return ""
+-- end
+
+
+-- function RuneReader:GetBindingNameForActionSlot(slot)
+--     -- Slot 1-12: Action Bar
+--     if slot >= 1 and slot <= 12 then
+--         return "ACTIONBUTTON" .. slot
+--     end
+
+--     -- MultiBars: calculate offsets
+--    local slotMap = {
+--         [13] = "MULTIACTIONBAR1BUTTON",  -- Bar 2
+--         [25] = "MULTIACTIONBAR2BUTTON",  -- Bar 3
+--         [37] = "MULTIACTIONBAR3BUTTON",  -- Bar 4
+--         [49] = "MULTIACTIONBAR4BUTTON",  -- Bar 5
+--         [61] = "MULTIACTIONBAR5BUTTON",  -- Bar 6
+--         [73] = "MULTIACTIONBAR6BUTTON",  -- Bar 7
+--         [85] = "MULTIACTIONBAR7BUTTON",  -- Bar 8
+--     }
+
+
+--     for baseSlot, prefix in pairs(slotMap) do
+--         if slot >= baseSlot and slot < baseSlot + 12 then
+--             return prefix .. (slot - baseSlot + 1)
+--         end
+--     end
+
+--     return nil -- Unsupported binding range
+-- end
+
+-- function RuneReader:GetHotkeyForSpell(spellID)
+--     for slot = 1, 120 do
+--         if HasAction(slot) then
+--             local actionType, id  = GetActionInfo(slot)
+--             if (actionType == "spell" or actionType == "macro" or actionType == "item") and id == spellID then
+--                 local bindingName = RuneReader:GetBindingNameForActionSlot(slot)
+--                     print(actionType .." ".. id .. " " .. spellID .. " ".. bindingName)
+--                 if bindingName then
+--                     local key1, key2 = GetBindingKey(bindingName)
+--                     return key1 or key2 or ""
+--                 end
+--             end
+--         end
+--     end
+--     return ""
+-- end
+
+
+--GOING TO BRUTE FORCE THIS.
+-- function RuneReader:GetHotkeyForSpell(spellID)
+--   -- I don't care about slots.   I only want to know what the user sees and for that I am going to it the _G till bliz shuts me down.
+--   -- ActionBar1
+-- --  for slot = 1,12 do
+-- --  end
+--    local result =  ActionButtonUtil.GetActionButtonBySpellID(spellID)
+--    local keyBind = ""
+--     if result then
+--         keyBind = result.HotKey:GetText()
+--         print(keyBind)
+--         keyBind = keyBind or ""
+--     end
+--   return keyBind:gsub("-", ""):upper()
+-- end
+
+function RuneReader:GetHotkeyForSpell(spellID)
+    local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
+    if button and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
+        local keyText = button.HotKey:GetText()
+        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
+            return keyText:gsub("-", ""):upper()
         end
     end
     return ""
@@ -29,21 +124,27 @@ function RuneReader:BuildAssistedSpellMap()
     RuneReader.AssistedCombatSpellInfo = {}
     local rotation = C_AssistedCombat.GetRotationSpells()
     for _, spellID in ipairs(rotation or {}) do
-        local name, _, icon, castTime = C_Spell.GetSpellInfo(spellID)
-        local start, duration, enabled = GetSpellCooldown(spellID)
-        local hotkey = GetHotkeyForSpell(spellID)
-
+        local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+        local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
+        local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+       --  print(hotkey)
+       -- print(spellID .. " " .. sSpellInfo.name.." "..sSpellCoolDown.duration.." "..hotkey)
         -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
         -- Choosing the time will be a big deal as it will.
         -- also have to take into account GCD.
+
         RuneReader.AssistedCombatSpellInfo[spellID] = {
-            name = name or "",
-            cooldown = (duration or 0),
-            castTime = (castTime or 0) / 1000,
-            startTime = start or 0,
+            name = sSpellInfo.name or "",
+            cooldown = (sSpellCoolDown.duration or 0) ,
+            castTime = (sSpellInfo.castTime or 0) / 1000,
+            startTime = sSpellCoolDown.startTime or 0,
             hotkey = hotkey
         }
     end
+    -- for i = 1, 12 do
+    -- local key = GetBindingKey("MULTIACTIONBAR7BUTTON" .. i)
+    -- print("Bar 7 slot", i, "bound to:", key)
+    -- end
 end
 
 --This is the format for code39
@@ -73,39 +174,42 @@ end
 --T ServerTime (When event started) -Not sure how to represent this yet but it will have to be a fixed length as it changes all the time.
 --E ExactTime (When event is expected to end (delay+wait+GCD) ) -Not sure how to represent this yet but it will have to be a fixed length as it changes all the time.
 --M (AA:N...) Keymapping (Multiple) : seperated list of Keyvalues and spellIDs (F1:8193) example (MF1:8193,MF2:2323,MCF1:9949)
+--S (N) Source 0 - Hekili, 1 - Combat Assist
 --C (A) Keymapping Checksum quick calculation of Keymapping values, this will be "unique" to the total values in the keymapping parameter
 
-function RuneReader:UpdateAssistedCombatValues()
+function RuneReader:AssistedCombat_UpdateValues(mode)
     RuneReader.Assisted_GenerationDelayAccumulator = RuneReader.Assisted_GenerationDelayAccumulator + (time() - RuneReader.Assisted_GenerationDelayTimeStamp)
     if RuneReader.Assisted_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay then
         RuneReader.Assisted_GenerationDelayTimeStamp = time()
         return RuneReader.Assisted_LastEncodedResult
     end
     RuneReader.Assisted_GenerationDelayTimeStamp = time()
-
+    local _, _, _, latencyWorld = GetNetStats()
     local curTime = GetTime()
     local spellID = C_AssistedCombat.GetNextCastSpell(true)
-    if not spellID then return RuneReader.Assisted_LastEncodedResult end
 
+    if not spellID then return RuneReader.Assisted_LastEncodedResult end
     local info = RuneReader.AssistedCombatSpellInfo[spellID]
     if not info then
+        print("Building map")
         RuneReader:BuildAssistedSpellMap()
         info = RuneReader.AssistedCombatSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
+ local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
 
     -- Wait time until cooldown ends
     local wait = 0
-    if info.startTime > 0 then
-        wait = info.startTime + info.cooldown - curTime
+    if sCurrentSpellCooldown.startTime > 0 then
+        wait = sCurrentSpellCooldown.startTime + sCurrentSpellCooldown.duration - curTime
     end
     if wait < 0 then wait = 0 end
     if wait > 9.99 then wait = 9.99 end
-
+    local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
     -- Encode fields
-    local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey, wait)  -- 5 digits
-    local cooldownEnc = string.format("%03d", math.min(999, math.floor((info.cooldown or 0) * 10)))  -- 3 digits
-    local castTimeEnc = string.format("%02d", math.min(99, math.floor((info.castTime or 0) * 10)))  -- 2 digits
+    local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey)  -- 2 digits
+    local cooldownEnc = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10)))  -- 4 digits
+    local castTimeEnc = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10)))  -- 4 digits
     local bitMask = 0
     if UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
@@ -114,9 +218,19 @@ function RuneReader:UpdateAssistedCombatValues()
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
-    local baseStr = keytranslate .. cooldownEnc .. castTimeEnc .. bitMask .. source
-    local checkDigit = RuneReader:CalculateCheckDigit(baseStr)
-    local full = baseStr .. tostring(checkDigit)
+
+    local combinedValues =  mode .. 
+                            ',B' .. bitMask .. 
+                            ',W' .. string.format("%04.3f", wait):gsub("[.]", "") ..
+                            ',K' .. keytranslate .. 
+                            ',D' .. string.format("%04.3f", 0):gsub("[.]", "") ..
+                            ',G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") ..
+                            ',L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
+                            ',A' .. string.format("%08i", spellID or 0):gsub("[.]", "") ..
+                            ',S' .. source
+
+
+    local full = combinedValues
 
     RuneReader.Assisted_LastEncodedResult = full
     return full

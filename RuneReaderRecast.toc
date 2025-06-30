@@ -10,6 +10,7 @@ config.lua
 encoding.lua
 keymapping.lua
 hekili_integration.lua
+assistedcombat_integration.lua
 frames_barcode.lua
 frames_qr.lua
 core.lua

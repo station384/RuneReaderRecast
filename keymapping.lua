@@ -1,7 +1,7 @@
 function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
     local encodedKey = "00"
-    local encodedWait = "0.0"
-    if wait == nil then wait = 0 end
+
+
     local keyMap = {
         ["1"] = "01", ["2"] = "02", ["3"] = "03", ["4"] = "04", ["5"] = "05",
         ["6"] = "06", ["7"] = "07", ["8"] = "08", ["9"] = "09", ["0"] = "10",
@@ -11,8 +11,6 @@ function RuneReader:RuneReaderEnv_translateKey(hotKey, wait)
         ["F1"]="61",["F2"]="62",["F3"]="63",["F4"]="64",["F5"]="65",["F6"]="66",["F7"]="67",["F8"]="68",["F9"]="69",["F10"]="70",["F11"]="71",["F12"]="72"
     }
     encodedKey = keyMap[hotKey] or "00"
-    if wait > 9.99 then wait = 9.99 end
-    if wait < 0 then wait = 0 end
-    if wait ~= nil then encodedWait = string.format("%04.2f", wait):gsub("[.]", "") end
-    return encodedKey .. encodedWait
+
+    return encodedKey
 end
