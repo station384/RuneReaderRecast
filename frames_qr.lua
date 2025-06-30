@@ -108,6 +108,7 @@ function RuneReader:OnActionBarChanged(event, arg1)
 end
 
 function RuneReader:RegisterActionBarEvents()
+    
     local f = CreateFrame("Frame")
     f:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
     f:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
@@ -118,7 +119,9 @@ function RuneReader:RegisterActionBarEvents()
     f:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     f:SetScript("OnEvent", function(_, event, arg1)
+        if RuneReaderRecastDB.HelperSource == 1 then
         RuneReader:OnActionBarChanged(event, arg1)
+        end
     end)
 end
 

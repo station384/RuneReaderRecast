@@ -109,14 +109,22 @@ end
 -- end
 
 function RuneReader:GetHotkeyForSpell(spellID)
+ 
+    
     local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
-    if button and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
-        local keyText = button.HotKey:GetText()
-        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
-            return keyText:gsub("-", ""):upper()
+     
+    if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
+   
+        if button.HotKey then
+          local keyText = button.HotKey:GetText()
+          if not keyText then keyText = "" end
+        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then             
+          return keyText:gsub("-", ""):upper()
+        end
+
         end
     end
-    return ""
+return ""
 end
 
 
@@ -187,6 +195,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local _, _, _, latencyWorld = GetNetStats()
     local curTime = GetTime()
     local spellID = C_AssistedCombat.GetNextCastSpell(true)
+        local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
 
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
     local info = RuneReader.AssistedCombatSpellInfo[spellID]

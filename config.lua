@@ -28,6 +28,6 @@ function RuneReader:InitConfig()
     -- RuneReaderRecastDB.QRModuleSize = 1
     -- RuneReaderRecastDB.QRQuietZone = 2
     -- RuneReaderRecastDB.UseCode39 = false
-RuneReaderRecastDB.HelperSource = 0
+RuneReaderRecastDB.HelperSource = 1
 
 end
