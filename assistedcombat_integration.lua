@@ -229,14 +229,14 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
 
     local combinedValues =  mode .. 
-                            ',B' .. bitMask .. 
-                            ',W' .. string.format("%04.3f", wait):gsub("[.]", "") ..
-                            ',K' .. keytranslate .. 
-                            ',D' .. string.format("%04.3f", 0):gsub("[.]", "") ..
-                            ',G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") ..
-                            ',L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
-                            ',A' .. string.format("%08i", spellID or 0):gsub("[.]", "") ..
-                            ',S' .. source
+                            '/B' .. bitMask .. 
+                            '/W' .. string.format("%04.3f", wait):gsub("[.]", "") ..
+                            '/K' .. keytranslate .. 
+                            '/D' .. string.format("%04.3f", 0):gsub("[.]", "") ..
+                            '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") ..
+                            '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
+                            '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "") ..
+                            '/S' .. source
 
 
     local full = combinedValues
