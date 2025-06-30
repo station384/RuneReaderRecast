@@ -27,7 +27,9 @@ function RuneReader:InitConfig()
     -- RuneReaderRecastDB.DEBUG=false
     -- RuneReaderRecastDB.QRModuleSize = 1
     -- RuneReaderRecastDB.QRQuietZone = 2
-    -- RuneReaderRecastDB.UseCode39 = false
+     RuneReaderRecastDB.UseCode39 = true
+     RuneReaderRecastDB.UseQRCode = false
 RuneReaderRecastDB.HelperSource = 0
+RuneReaderRecastDB.UpdateValuesDelay = 0.30
 
 end

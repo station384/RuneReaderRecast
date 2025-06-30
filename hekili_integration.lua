@@ -173,15 +173,15 @@ function RuneReader:Hekili_UpdateValues(mode)
     local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
      local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
     --print ( duration .. enable) 
-    local combinedValues =  '1' .. 
-                            ',B' .. bitvalue .. 
-                            ',W' .. string.format("%04.3f", countDown ):gsub("[.]", "") ..
-                            ',K' .. keytranslate .. 
-                            ',D' .. string.format("%04.3f", delay):gsub("[.]", "") ..
-                            ',G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") ..
-                            ',L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
-                            ',A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") ..
-                            ',S' .. source
+    local combinedValues =  mode .. 
+                            '/B' .. bitvalue .. 
+                            '/W' .. string.format("%04.3f", countDown ):gsub("[.]", "") ..
+                            '/K' .. keytranslate .. 
+                            '/D' .. string.format("%04.3f", delay):gsub("[.]", "") ..
+                            '/G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") ..
+                            '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
+                            '/A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") ..
+                            '/S' .. source
                                 
                             
                             

@@ -20,6 +20,7 @@ function RuneReader:CreateBarcodeWindow()
     f:SetMovable(true)
     f:SetResizable(true)
     f:EnableMouse(true)
+       f:SetScale(0.70)
     f:SetClampedToScreen(true)
     f:RegisterForDrag("LeftButton")
     f:SetScript("OnDragStart", function(self)
@@ -44,17 +45,24 @@ function RuneReader:CreateBarcodeWindow()
         insets = { left = 8, right = 8, top = 8, bottom = 8 }
     })
     f:SetBackdropColor(0.3, 0.2, 0, 1)
-    f:SetResizeBounds(220,50)
+    f:SetResizeBounds(220,20)
 
     local text = f:CreateFontString(nil, "OVERLAY")
-    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39Text-Regular.ttf", 40, "MONOCHROME")
+    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", 40, "MONOCHROME")
+    
     text:SetTextColor(0, 0, 0)
+
     text:SetJustifyH("CENTER")
     text:SetJustifyV("MIDDLE")
-    text:SetPoint("TOPLEFT", 0, 0)
-    text:SetPoint("BOTTOMRIGHT", 0, 0)
+    text:SetWordWrap(false)
     text:SetParent(f)
+    text:SetPoint("TOPLEFT", text:GetParent(),"TOPLEFT")
+    text:SetPoint("BOTTOMRIGHT", text:GetParent(),"BOTTOMRIGHT")
+    text:SetShadowColor(255,255,255,0)
+    text:SetDrawLayer("BACKGROUND")
     f.Text = text
+        f:SetResizeBounds(text:GetWidth(true),text:GetHeight(true))
+
 
     local resize = CreateFrame("Frame", nil, f)
     resize:SetSize(16, 16)
@@ -83,7 +91,6 @@ function RuneReader:CreateBarcodeWindow()
             if RuneReader then
                 RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
                 if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay then
-                    print("Updated")
                     RuneReader:UpdateC39Display()
                     RuneReader.C39FrameDelayAccumulator = 0
                 end
@@ -108,8 +115,15 @@ function RuneReader:SetBarcodeText(str)
 end
 
 function RuneReader:UpdateC39Display()
-    local fullResult = self:Hekili_UpdateValues(0) --Standard code39 for now.....
-    print("test")
+   local fullResult = ""
+    if RuneReaderRecastDB.HelperSource == 0 then
+      fullResult = self:Hekili_UpdateValues(1) --Standard code39 for now.....
+    end
+    if RuneReaderRecastDB.HelperSource == 1 then
+        fullResult = RuneReader:AssistedCombat_UpdateValues(1)
+    end
+
+ 
     if self.lastC39EncodeResult ~= fullResult then
         self.lastC39EncodeResult = fullResult
         self:SetBarcodeText("*" .. self.lastC39EncodeResult .. "*")
