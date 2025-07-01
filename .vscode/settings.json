@@ -24,7 +24,8 @@
         "SlashCmdList",
         "Hekili",
         "ActionButtonUtil",
-        "RANGE_INDICATOR"
+        "RANGE_INDICATOR",
+        "AssistedCombatManager"
     ],
     "Lua.type.weakUnionCheck": true
 }

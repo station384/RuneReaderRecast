@@ -29,96 +29,36 @@ function RuneReader:GetVisibleActionBarSlotRange()
     return startSlot, endSlot
 end
 
---  function RuneReader:GetHotkeyForSpell(spellID)
---     for i = 120, 1, -1 do
---         if HasAction(i) then
---             local actionType, id, _ = GetActionInfo(i)
---             if actionType == "spell" and id == spellID then
---            --     print(i .. "found " .. spellID)
---                 local buttonName = "ActionButton" .. i
---                 local hotkey1, hotkey2 = GetBindingKey("CLICK " .. buttonName .. ":LeftButton")
-
---           --       print("found " .. hotkey1)
---                 return hotkey1 or ""
---             end
---         end
---     end
---     return ""
--- end
 
 
--- function RuneReader:GetBindingNameForActionSlot(slot)
---     -- Slot 1-12: Action Bar
---     if slot >= 1 and slot <= 12 then
---         return "ACTIONBUTTON" .. slot
---     end
+--[[
+    File Path: /d:/Games/Blizzard/World of Warcraft/_retail_/Interface/AddOns/RuneReaderRecast/assistedcombat_integration.lua
 
---     -- MultiBars: calculate offsets
---    local slotMap = {
---         [13] = "MULTIACTIONBAR1BUTTON",  -- Bar 2
---         [25] = "MULTIACTIONBAR2BUTTON",  -- Bar 3
---         [37] = "MULTIACTIONBAR3BUTTON",  -- Bar 4
---         [49] = "MULTIACTIONBAR4BUTTON",  -- Bar 5
---         [61] = "MULTIACTIONBAR5BUTTON",  -- Bar 6
---         [73] = "MULTIACTIONBAR6BUTTON",  -- Bar 7
---         [85] = "MULTIACTIONBAR7BUTTON",  -- Bar 8
---     }
+    Function Name: RuneReader:GetHotkeyForSpell(spellID)
 
+    Description:
+        This function retrieves the hotkey associated with a given spell ID for use in assisted combat integration. It checks if there is an action button linked to that specific spell and then extracts its visible, non-empty text representation as the key.
 
---     for baseSlot, prefix in pairs(slotMap) do
---         if slot >= baseSlot and slot < baseSlot + 12 then
---             return prefix .. (slot - baseSlot + 1)
---         end
---     end
-
---     return nil -- Unsupported binding range
--- end
-
--- function RuneReader:GetHotkeyForSpell(spellID)
---     for slot = 1, 120 do
---         if HasAction(slot) then
---             local actionType, id  = GetActionInfo(slot)
---             if (actionType == "spell" or actionType == "macro" or actionType == "item") and id == spellID then
---                 local bindingName = RuneReader:GetBindingNameForActionSlot(slot)
---                     print(actionType .." ".. id .. " " .. spellID .. " ".. bindingName)
---                 if bindingName then
---                     local key1, key2 = GetBindingKey(bindingName)
---                     return key1 or key2 or ""
---                 end
---             end
---         end
---     end
---     return ""
--- end
-
-
---GOING TO BRUTE FORCE THIS.
--- function RuneReader:GetHotkeyForSpell(spellID)
---   -- I don't care about slots.   I only want to know what the user sees and for that I am going to it the _G till bliz shuts me down.
---   -- ActionBar1
--- --  for slot = 1,12 do
--- --  end
---    local result =  ActionButtonUtil.GetActionButtonBySpellID(spellID)
---    local keyBind = ""
---     if result then
---         keyBind = result.HotKey:GetText()
---         print(keyBind)
---         keyBind = keyBind or ""
---     end
---   return keyBind:gsub("-", ""):upper()
--- end
-
-function RuneReader:GetHotkeyForSpell(spellID)
- 
+    Parameters:
+        - spellID (number): The unique identifier of the desired spell whose corresponding hotkey needs to be retrieved.
     
+    Returns: 
+        A string representing the uppercase version of the extracted hotkey without any hyphens. If no valid button is found or if there are issues with visibility, it returns an empty string.
+
+    Usage Example:
+        local hotkey = RuneReader:GetHotkeyForSpell(12345)
+]]
+function RuneReader:GetHotkeyForSpell(spellID)
+
+
     local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
-     
+
     if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
-   
+
         if button.HotKey then
           local keyText = button.HotKey:GetText()
           if not keyText then keyText = "" end
-        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then             
+        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
           return keyText:gsub("-", ""):upper()
         end
 
@@ -128,32 +68,47 @@ return ""
 end
 
 
+
+--[[
+This function builds an assisted combat spell map for RuneReader.
+
+It populates the `RuneReader.AssistedCombatSpellInfo` table by retrieving information about each 
+spell from C_AssistedCombat.GetRotationSpells() and C_Spell.GetSpellInfo(). The collected data includes:
+- Spell name (name)
+- Cooldown duration in seconds (cooldown, converted to float if necessary)
+- Cast time divided into milliseconds (castTime / 1000 for conversion), defaulting to zero
+- Start time of the cooldown period or a fallback value set as needed by C_Spell.GetSpellInfo() 
+- A hotkey assigned through RuneReader:GetHotkeyForSpell(spellID) 
+
+The function iterates over each spell ID in `rotation`, which is obtained from an external source, presumably representing spells that can be used assisted combat. The resulting table maps these IDs to their respective properties for easy access and manipulation.
+
+Note: Additional logic may need implementation regarding push/spike timing decisions based on GCD (Global Cooldown) considerations.
+]]
 function RuneReader:BuildAssistedSpellMap()
     RuneReader.AssistedCombatSpellInfo = {}
     local rotation = C_AssistedCombat.GetRotationSpells()
-    for _, spellID in ipairs(rotation or {}) do
-        local sSpellInfo = C_Spell.GetSpellInfo(spellID)
-        local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
-        local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-       --  print(hotkey)
-       -- print(spellID .. " " .. sSpellInfo.name.." "..sSpellCoolDown.duration.." "..hotkey)
-        -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
-        -- Choosing the time will be a big deal as it will.
-        -- also have to take into account GCD.
+    if rotation then
+        for _, spellID in ipairs(rotation) do
+            local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+            local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
+            local hotkey = RuneReader:GetHotkeyForSpell(spellID)
 
-        RuneReader.AssistedCombatSpellInfo[spellID] = {
-            name = sSpellInfo.name or "",
-            cooldown = (sSpellCoolDown.duration or 0) ,
-            castTime = (sSpellInfo.castTime or 0) / 1000,
-            startTime = sSpellCoolDown.startTime or 0,
-            hotkey = hotkey
-        }
+            -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
+            -- Choosing the time will be a big deal as it will.
+            -- also have to take into account GCD.
+
+            RuneReader.AssistedCombatSpellInfo[spellID] = {
+                name = sSpellInfo.name or "",
+                cooldown = (sSpellCoolDown.duration or 0) ,
+                castTime = (sSpellInfo.castTime or 0) / 1000,
+                startTime = sSpellCoolDown.startTime or 0,
+                hotkey = hotkey
+            }
+        end
     end
-    -- for i = 1, 12 do
-    -- local key = GetBindingKey("MULTIACTIONBAR7BUTTON" .. i)
-    -- print("Bar 7 slot", i, "bound to:", key)
-    -- end
 end
+
+
 
 --This is the format for code39
 --Code39 -- Mode-0
@@ -228,15 +183,15 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     end
     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
 
-    local combinedValues =  mode .. 
-                            '/B' .. bitMask .. 
-                            '/W' .. string.format("%04.3f", wait):gsub("[.]", "") ..
-                            '/K' .. keytranslate .. 
-                            '/D' .. string.format("%04.3f", 0):gsub("[.]", "") ..
-                            '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") ..
-                            '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
-                            '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "") ..
-                            '/S' .. source
+    local combinedValues =  mode 
+                            .. '/B' .. bitMask 
+                            .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "") 
+                            .. '/K' .. keytranslate 
+                            --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "") 
+                            --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") 
+                            --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") 
+                            --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "") 
+                            --.. '/S' .. source
 
 
     local full = combinedValues

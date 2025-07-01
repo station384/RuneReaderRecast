@@ -18,36 +18,44 @@ function RuneReader:Hekili_RuneReaderEnv_hasSpell(tbl, x)
     return false
 end
 
-function RuneReader:Hekili_GetRecommendedAblilityPrimary(index)
-    local result = {}
-    if not Hekili then
-        result = nil
-    else
-     local dpak = Hekili.DisplayPool.Primary.Recommendations[index]
-     result.actionID = dpak.actionID
-     result.delay = dpak.delay
-     result.wait = dpak.wait
-     result.time = dpak.time
-     result.keybind = dpak.keybind
-     result.exact_time = dpak.exact_time
+function RuneReader:Hekili_GetRecommendedAbilityPrimary(index)
+    if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.Primary or not Hekili.DisplayPool.Primary.Recommendations then
+        return nil
     end
-  return result
+    local dpak = Hekili.DisplayPool.Primary.Recommendations[index]
+    if not dpak then
+        return nil
+    end
+    if dpak.actionID == nil or dpak.keybind == nil or dpak.keybind == "" or dpak.wait == nil or dpak.delay == nil or dpak.exact_time == nil then
+        return nil
+    end
+    return {
+        actionID = dpak.actionID,
+        delay = dpak.delay,
+        wait = dpak.wait,
+        time = dpak.time,
+        keybind = dpak.keybind,
+        exact_time = dpak.exact_time
+    }
 end
 
-function RuneReader:Hekili_GetRecommendedAblilityAOE(index)
-    local result = {}
-    if not Hekili then
-        result = nil
-    else
-    local dpak = Hekili.DisplayPool.AOE.Recommendations[index]
-     result.actionID = dpak.actionID
-     result.delay = dpak.delay
-     result.wait = dpak.wait
-     result.time = dpak.time
-     result.keybind = dpak.keybind
-     result.exact_time = dpak.exact_time
+function RuneReader:Hekili_GetRecommendedAbilityAOE(index)
+    if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.AOE or not Hekili.DisplayPool.AOE.Recommendations then
+        return nil
     end
-  return result
+    local dpak = Hekili.DisplayPool.AOE.Recommendations[index]
+    if not dpak then return nil end
+    if dpak.actionID == nil or dpak.keybind == nil or dpak.keybind == "" or dpak.wait == nil or dpak.delay == nil or dpak.exact_time == nil then
+        return nil
+    end
+    return {
+        actionID = dpak.actionID,
+        delay = dpak.delay,
+        wait = dpak.wait,
+        time = dpak.time,
+        keybind = dpak.keybind,
+        exact_time = dpak.exact_time
+    }
 end
 
 --The returned string is in this format
@@ -98,33 +106,30 @@ function RuneReader:Hekili_UpdateValues(mode)
     local curTime = GetTime()
     local _, _, _, latencyWorld = GetNetStats()
 
-    local dataPacPrimary = RuneReader:Hekili_GetRecommendedAblilityPrimary( 1)
-    local dataPacNext = RuneReader:Hekili_GetRecommendedAblilityPrimary(2)
-    local dataPacAoe = RuneReader:Hekili_GetRecommendedAblilityAOE( 1)
+    local dataPacPrimary = RuneReader:Hekili_GetRecommendedAbilityPrimary( 1)
+    local dataPacNext = RuneReader:Hekili_GetRecommendedAbilityPrimary(2)
+    local dataPacAoe = RuneReader:Hekili_GetRecommendedAbilityAOE( 1)
     
 
     if  not dataPacPrimary then
         dataPacPrimary = RuneReader.hekili_LastDataPak
     end
---print(dataPacPrimary.keybind )
+
     if not dataPacPrimary then dataPacPrimary = {} end
     
     if dataPacPrimary.actionID == nil then
-        dataPacPrimary.delay = 0; dataPacPrimary.wait = 0; dataPacPrimary.keybind = nil; dataPacPrimary.actionID = nil
+        dataPacPrimary.delay = 0
+        dataPacPrimary.wait = 0
+        dataPacPrimary.keybind = nil
+        dataPacPrimary.actionID = nil
         if RuneReader.hekili_LastDataPak then
             dataPacPrimary = RuneReader.hekili_LastDataPak
         end
     end
--- Found an odd qwirk in wow.  it sometimes doesn't handle unsigned ints right...   this is a fix for it.
-    -- if dataPacPrimary.actionID and dataPacPrimary.actionID < 0 then
-    --     dataPacPrimary.actionID = bit.band(dataPacPrimary.actionID, 0xFFFFFFFF)
-    -- end
 
     RuneReader.hekili_LastDataPak = dataPacPrimary
 
-    -- if dataPacNext and RuneReader:Hekili_RuneReaderEnv_hasSpell(RuneReader.hekili_PrioritySpells, dataPacNext.actionID) then
-    --     dataPacPrimary = dataPacNext
-    -- end
+
 
     if not dataPacPrimary.delay then dataPacPrimary.delay = 0 end
     if not dataPacPrimary.wait then dataPacPrimary.wait = 0 end
@@ -146,12 +151,24 @@ function RuneReader:Hekili_UpdateValues(mode)
     if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
         RuneReader.hekili_haveUnitTargetAttackable = true
     end
+  -- Check if the player is in combat
+    local isInCombat = UnitAffectingCombat("player")
+
+    if isInCombat then
+        RuneReader.hekili_inCombat = true
+    else
+        RuneReader.hekili_inCombat = false
+    end
 
     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - (RuneReaderRecastDB.PrePressDelay or 0)
     local countDown = (exact_time - curTime)
     if countDown <= 0 then countDown = 0 end
 
     local bitvalue = 0
+    -- if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
+    --     RuneReader.hekili_haveUnitTargetAttackable = true
+    -- end
+
     if RuneReader.hekili_haveUnitTargetAttackable then
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)
     end
@@ -174,17 +191,15 @@ function RuneReader:Hekili_UpdateValues(mode)
      local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
     --print ( duration .. enable) 
     local combinedValues =  mode .. 
-                            '/B' .. bitvalue .. 
-                            '/W' .. string.format("%04.3f", countDown ):gsub("[.]", "") ..
-                            '/K' .. keytranslate .. 
-                            '/D' .. string.format("%04.3f", delay):gsub("[.]", "") ..
-                            '/G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") ..
-                            '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") ..
-                            '/A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") ..
-                            '/S' .. source
-                                
-                            
-                            
+                            '/B' .. bitvalue  
+                            .. '/W' .. string.format("%04.3f", countDown ):gsub("[.]", "") 
+                            .. '/K' .. keytranslate
+
+                            --.. '/D' .. string.format("%04.3f", delay):gsub("[.]", "") 
+                            --.. '/G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") 
+                            --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") 
+                            --.. '/A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") 
+                            --.. '/S' .. source                
 
     --mode .. keytranslate .. waitTranslate .. bitvalue 
     --local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
