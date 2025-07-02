@@ -40,7 +40,8 @@ function RuneReader:InitializeAddon()
     if RuneReaderRecastDB.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult, RuneReaderRecastDB.Ec_level or 7)
         if success then
-            RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRQuietZone, RuneReaderRecastDB.QRModuleSize)
+             RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRModuleSize, RuneReaderRecastDB.QRQuietZone)
+             RuneReader.lastDisplayedQREncode = RuneReader.lastC39EncodeResult;
         end
     end
 end
@@ -52,7 +53,7 @@ RuneReaderInit:RegisterEvent("ADDON_LOADED")
 RuneReaderInit:SetScript("OnEvent",
     function(self, event, addonName)
         if event == "ADDON_LOADED" and addonName == "RuneReaderRecast" then
-            print("Loading Rune Reader")
+      --      print("Loading Rune Reader")
             RuneReader:InitializeAddon()
         elseif event == "PET_BATTLE_OPENING_START" then
                if RuneReader.BarcodeFrame then

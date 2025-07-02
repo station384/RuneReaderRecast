@@ -1,7 +1,7 @@
 -- frames_qr.lua: QR code window management
 
 RuneReader = RuneReader or {}
-RuneReader.lastQREncodeResult = "1,B0,W0000,K00"
+RuneReader.lastQREncodeResult = "1,B0,W0001,K00"
 RuneReader.QRFrameDelayAccumulator = 0
 
 
@@ -27,6 +27,12 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
 
 
     local f = CreateFrame("Frame", "RuneReaderQRFrame", UIParent, "BackdropTemplate")
+    f:SetPoint("CENTER")
+    if RuneReaderRecastDB and RuneReaderRecastDB.QRposition then
+        local pos = RuneReaderRecastDB.QRposition
+        f:ClearAllPoints()
+        f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
+    end
     f:SetScale(RuneReaderRecastDB.Scale or 1.0)
     f:SetMovable(true)
     f:EnableMouse(true)
@@ -41,7 +47,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
     f:RegisterForDrag("LeftButton")
 
 
-    f:SetPoint("CENTER")
+
 
     f.textures = {}
 
@@ -68,7 +74,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 RuneReader.QRFrameDelayAccumulator = RuneReader.QRFrameDelayAccumulator + elapsed
-                if RuneReader.QRFrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay and RuneReader.QRFrame:IsShown() then
+                if RuneReader.QRFrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay  then
                     RuneReader:UpdateQRDisplay()
                     RuneReader.QRFrameDelayAccumulator = 0
                 end
@@ -79,11 +85,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame.hasBeenInitialized = true
     end
 
-    if RuneReaderRecastDB and RuneReaderRecastDB.QRposition then
-        local pos = RuneReaderRecastDB.QRposition
-        f:ClearAllPoints()
-        f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
-    end
+
 
     if qrMatrix then
         RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
@@ -131,6 +133,7 @@ end
 
 
 function RuneReader:DestroyQRWindow()
+    --   if RuneReader.QRFrame then RuneReader.QRFrame:Hide() end
     if RuneReader.QRFrame then
         RuneReader.QRFrame:Hide()
         RuneReader.QRFrame:SetParent(nil)
@@ -155,8 +158,8 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
     local f = RuneReader.QRFrame
     if not f then
            RuneReader:AddToInspector(true, "QRFrame Wasn't created yet.  SHouldn't happen.")
-             RuneReader:CreateQRWindow(qrMatrix, RuneReaderRecastDB.QRQuietZone, RuneReaderRecastDB.QRModuleSize)
-        f = RuneReader.QRFrame
+           RuneReader:CreateQRWindow(qrMatrix, RuneReaderRecastDB.QRModuleSize,RuneReaderRecastDB.QRQuietZone )
+           f = RuneReader.QRFrame
     end
     f:SetSize(totalSize, totalSize)
 
@@ -190,7 +193,7 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
 end
 
 function RuneReader:UpdateQRCodeTextures(qrMatrix)
-    if not RuneReader.QRFrame or not RuneReader.QRFrame.textures or not RuneReader.QRFrame:IsShown() then return end
+    if not RuneReader.QRFrame or not RuneReader.QRFrame.textures then return end
     local qrSize = #qrMatrix
     for y = 1, qrSize do
         for x = 1, qrSize do
@@ -214,8 +217,8 @@ function RuneReader:UpdateQRDisplay()
         fullResult = RuneReader:AssistedCombat_UpdateValues(1)
     end
 
-    if RuneReader.lastQREncodeResult ~= fullResult then
-        RuneReader.lastQREncodeResult = fullResult
+    if RuneReader.lastQREncodeResult ~= fullResult or RuneReader.lastDisplayedQREncode ~= fullResult then
+       
         local stringToEncode = RuneReader.lastQREncodeResult
         local success, matrix = QRencode.qrcode(stringToEncode, RuneReaderRecastDB.Ec_level or 7)
         if success then
@@ -227,9 +230,13 @@ function RuneReader:UpdateQRDisplay()
                 RuneReader.DataLength = #RuneReader.lastQREncodeResult
                 RuneReader:AddToInspector(stringToEncode, "Value encoded QRCode")
                 RuneReader:DestroyQRWindow()
-                RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRQuietZone, RuneReaderRecastDB.QRModuleSize)
+
+                RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRModuleSize, RuneReaderRecastDB.QRQuietZone)
             end
             RuneReader:UpdateQRCodeTextures(matrix)
+            RuneReader.lastDisplayedQREncode= stringToEncode;
+            --print("UpdateQRDisplay: " .. stringToEncode)
         end
     end
+     RuneReader.lastQREncodeResult = fullResult
 end

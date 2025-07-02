@@ -26,9 +26,9 @@ function RuneReader:InitConfig()
     -- for k,v in pairs(RuneReaderRecastDB) do
     --     print (k , " = ", v)
     -- end
-    if RuneReaderRecastDB.UpdateValuesDelay == nil then
-        RuneReaderRecastDB.UpdateValuesDelay = RuneReader.defaultConfig.UpdateValuesDelay
-    end
+    -- if RuneReaderRecastDB.UpdateValuesDelay == nil then
+    --     RuneReaderRecastDB.UpdateValuesDelay = RuneReader.defaultConfig.UpdateValuesDelay
+    -- end
     -- RuneReaderRecastDB.DEBUG=false
     -- RuneReaderRecastDB.QRModuleSize = 1
     -- RuneReaderRecastDB.QRQuietZone = 2
