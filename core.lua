@@ -2,7 +2,6 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.UpdateValuesDelay = 0.10
 
 function RuneReader:HandleMapShow()
     if RuneReader.BarcodeFrame then
@@ -34,11 +33,12 @@ end
 function RuneReader:InitializeAddon()
     RuneReader:InitConfig()
     RuneReader:RegisterMapHooks()
-    if RuneReaderRecastDB.UseCode39 then
+    RuneReader:CreateConfigPanel()
+    if RuneReaderRecastDB.BarCodeMode == 0 then
         RuneReader:CreateBarcodeWindow()
     end
-    if RuneReaderRecastDB.UseQRCode then
-        local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult )
+    if RuneReaderRecastDB.BarCodeMode == 1 then
+        local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult, RuneReaderRecastDB.Ec_level or 7)
         if success then
             RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRQuietZone, RuneReaderRecastDB.QRModuleSize)
         end

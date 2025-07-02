@@ -1,7 +1,7 @@
 ## Interface: 110100, 110105, 110107, 110200
 ## Title: RuneReader Recast
 ## Notes: Hekili Companion - Barcode and QR helper
-## Version: 2.8.0
+## Version: 2.9.0
 ## Author: Michael Sutton
 ## SavedVariables: RuneReaderRecastDB
 
@@ -13,4 +13,6 @@ hekili_integration.lua
 assistedcombat_integration.lua
 frames_barcode.lua
 frames_qr.lua
+config_panel.lua
 core.lua
+
