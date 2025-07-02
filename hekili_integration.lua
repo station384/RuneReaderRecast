@@ -161,8 +161,9 @@ function RuneReader:Hekili_UpdateValues(mode)
     end
 
     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - (RuneReaderRecastDB.PrePressDelay or 0)
-    local countDown = (exact_time - curTime)
+    local countDown = (exact_time - curTime) 
     if countDown <= 0 then countDown = 0 end
+    if countDown >= 9.999 then countDown = 9.999 end
 
     local bitvalue = 0
     -- if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then

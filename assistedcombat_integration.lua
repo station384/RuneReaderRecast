@@ -150,7 +150,9 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local _, _, _, latencyWorld = GetNetStats()
     local curTime = GetTime()
     local spellID = C_AssistedCombat.GetNextCastSpell(true)
-        local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
+       -- local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
+      --  local spellID =  C_AssistedCombat.GetNextCastSpell(true)
+--        local NextSpellID = C_AssistedCombat.GetNextCastSpell(true)
 
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
     local info = RuneReader.AssistedCombatSpellInfo[spellID]
@@ -160,16 +162,24 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         info = RuneReader.AssistedCombatSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
- local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
+  
+   local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
+   --local sNextSpellCooldown = C_Spell.GetSpellCooldown(NextSpellID)
+   --local GCD = C_Spell.GetSpellCooldown(61304).duration
 
+
+
+   local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
     -- Wait time until cooldown ends
     local wait = 0
     if sCurrentSpellCooldown.startTime > 0 then
-        wait = sCurrentSpellCooldown.startTime + sCurrentSpellCooldown.duration - curTime
+        wait = sCurrentSpellCooldown.startTime + sCurrentSpellCooldown.duration - curTime  - (RuneReaderRecastDB.PrePressDelay or 0)
+        if wait < 0 then wait = 0 end
+        if wait > 9.99 then wait = 9.99 end
     end
-    if wait < 0 then wait = 0 end
-    if wait > 9.99 then wait = 9.99 end
-    local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
+
+
+
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey)  -- 2 digits
     local cooldownEnc = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10)))  -- 4 digits

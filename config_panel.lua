@@ -91,7 +91,7 @@ function RuneReader:CreateConfigPanel()
     AddSlider("QRModuleSize",    "QR Module Size",    "QR module pixel size",      2,   1,   10,   1,"%i")
     AddSlider("QRQuietZone",     "QR Quiet Zone",     "Quiet zone around QR",      3,   1,   10,   1,"%i")
     -- Settings.CreateCategory(category, "Timing")
-    AddSlider("PrePressDelay",   "Pre-Press Delay (ms)",   "Delay before press (ms)",        0,   -1,  1,    0.05, "%.1f ms")
+    AddSlider("PrePressDelay",   "Spell Queue PrePress (sec)",   "Time in seconds to press the next spell before GCD finishes (sec)",        0,   0,  1,    0.001, "%.3f sec")
 
     -- AddCheckbox("UseQRCode",     "Use QR Code",       "Enable QR code output",     true)
     -- AddCheckbox("UseCode39",     "Use Code39",        "Enable Code39 barcodes",    false)
