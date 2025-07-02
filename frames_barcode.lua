@@ -2,28 +2,30 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.lastC39EncodeResult = "11A2Z!U"
+RuneReader.lastC39EncodeResult = "1,B0,W0000,K00"
 RuneReader.C39FrameDelayAccumulator = 0
 
 function RuneReader:CreateBarcodeWindow()
-    if self.BarcodeFrame and self.BarcodeFrame:IsShown() then
+    if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame:IsShown() then
         return
-    elseif self.BarcodeFrame then
-        self.BarcodeFrame:Show()
+    elseif RuneReader.BarcodeFrame then
+        RuneReader.BarcodeFrame:Show()
         return
     end
 
     local f = CreateFrame("Frame", "RuneReaderBarcodeFrame", UIParent, "BackdropTemplate")
-    f:SetSize(220, 50)
+    --f:SetSize(220, 50)
+    f:SetScale(RuneReaderRecastDB.Scale or 1.0)
     f:SetPoint("TOP", UIParent, "TOP", 0, 0)
     f:SetFrameStrata("TOOLTIP")
     f:SetMovable(true)
     f:SetResizable(true)
     f:EnableMouse(true)
     f:SetIgnoreParentScale(true)
-       f:SetScale(0.50)
+    f:SetClampedToScreen(true)
     f:SetClampedToScreen(true)
     f:RegisterForDrag("LeftButton")
+
     f:SetScript("OnDragStart", function(self)
         if IsAltKeyDown() then self:StartMoving() end
     end)
@@ -45,24 +47,41 @@ function RuneReader:CreateBarcodeWindow()
         tile = true, tileSize = 32, edgeSize = 16,
         insets = { left = 8, right = 8, top = 8, bottom = 8 }
     })
+
+
     f:SetBackdropColor(0.3, 0.2, 0, 1)
     f:SetResizeBounds(220,20)
 
     local text = f:CreateFontString(nil, "OVERLAY")
-    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", 40, "MONOCHROME")
+    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", RuneReaderRecastDB.Code39Size or 40, "MONOCHROME")
     
     text:SetTextColor(0, 0, 0)
-
     text:SetJustifyH("CENTER")
     text:SetJustifyV("MIDDLE")
     text:SetWordWrap(false)
     text:SetParent(f)
-    text:SetPoint("TOPLEFT", text:GetParent(),"TOPLEFT")
-    text:SetPoint("BOTTOMRIGHT", text:GetParent(),"BOTTOMRIGHT")
     text:SetShadowColor(255,255,255,0)
     text:SetDrawLayer("BACKGROUND")
+    text:ClearAllPoints() 
+    local container = CreateFrame("Frame", nil, f)
+    container:SetAllPoints()
+    container:SetFrameLevel(f:GetFrameLevel() )
+
+    text:SetParent(container)
+    text:ClearAllPoints()
+    text:SetPoint("CENTER", container, "CENTER", 0, -7) -- nudge down slightly
+
+    -- Auto Resize frame function
     f.Text = text
-        f:SetResizeBounds(text:GetWidth(true),text:GetHeight(true))
+    f.Text:SetText("*" .. RuneReader.lastC39EncodeResult .. "*")
+    local width = f.Text:GetStringWidth()
+    local height = f.Text:GetStringHeight()
+
+    -- Optional padding
+    local padX, padY = 40, 0
+
+    f:SetSize(width + padX, height + padY)
+    f:SetResizeBounds(text:GetWidth(true),text:GetHeight(true))
 
 
     local resize = CreateFrame("Frame", nil, f)
@@ -77,7 +96,7 @@ function RuneReader:CreateBarcodeWindow()
         self:GetParent():StopMovingOrSizing()
     end)
 
-    self.BarcodeFrame = f
+    RuneReader.BarcodeFrame = f
 
     if RuneReaderRecastDB and RuneReaderRecastDB.C39Position then
         local pos = RuneReaderRecastDB.C39Position
@@ -85,13 +104,13 @@ function RuneReader:CreateBarcodeWindow()
         f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
     end
 
-    f.Text:SetText("*SCANNED*")
+    -- f.Text:SetText("*SCANNED*")
 
-    if not self.BarcodeFrame.hasBeenInitialized then
-        self.BarcodeFrame:SetScript("OnUpdate", function(self, elapsed)
+    if not RuneReader.BarcodeFrame.hasBeenInitialized then
+        RuneReader.BarcodeFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
-                if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay then
+                if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay and RuneReader.BarcodeFrame:IsShown() then
                     RuneReader:UpdateC39Display()
                     RuneReader.C39FrameDelayAccumulator = 0
                 end
@@ -99,14 +118,19 @@ function RuneReader:CreateBarcodeWindow()
                 RuneReader.BarcodeFrame:SetScript("OnUpdate", nil)
             end
         end)
-        self.BarcodeFrame.hasBeenInitialized = true
+        RuneReader.BarcodeFrame.hasBeenInitialized = true
     end
 
     f:Show()
 end
 
 function RuneReader:DestroyBarcodeWindow()
-    if self.BarcodeFrame then self.BarcodeFrame:Hide() end
+   -- if RuneReader.BarcodeFrame then RuneReader.BarcodeFrame:Hide() end
+        if RuneReader.BarcodeFrame then
+        RuneReader.BarcodeFrame:Hide()
+        RuneReader.BarcodeFrame:SetParent(nil)
+        RuneReader.BarcodeFrame = nil;
+    end
 end
 
 function RuneReader:SetBarcodeText(str)

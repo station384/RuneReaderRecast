@@ -1,7 +1,7 @@
 -- frames_qr.lua: QR code window management
 
 RuneReader = RuneReader or {}
-RuneReader.lastQREncodeResult = "0000000"
+RuneReader.lastQREncodeResult = "1,B0,W0000,K00"
 RuneReader.QRFrameDelayAccumulator = 0
 
 
@@ -27,15 +27,17 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
 
 
     local f = CreateFrame("Frame", "RuneReaderQRFrame", UIParent, "BackdropTemplate")
+    f:SetScale(RuneReaderRecastDB.Scale or 1.0)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:SetResizable(true)
     f:SetIgnoreParentScale(true)
-    f:SetScale(0.70)
     f:SetClampedToScreen(true)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", tile=true})
     f:SetBackdropColor(1, 1, 1, 1)
+
+    
     f:RegisterForDrag("LeftButton")
 
 
@@ -66,7 +68,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 RuneReader.QRFrameDelayAccumulator = RuneReader.QRFrameDelayAccumulator + elapsed
-                if RuneReader.QRFrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay then
+                if RuneReader.QRFrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay and RuneReader.QRFrame:IsShown() then
                     RuneReader:UpdateQRDisplay()
                     RuneReader.QRFrameDelayAccumulator = 0
                 end
@@ -153,7 +155,7 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
     local f = RuneReader.QRFrame
     if not f then
            RuneReader:AddToInspector(true, "QRFrame Wasn't created yet.  SHouldn't happen.")
-        RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
+             RuneReader:CreateQRWindow(qrMatrix, RuneReaderRecastDB.QRQuietZone, RuneReaderRecastDB.QRModuleSize)
         f = RuneReader.QRFrame
     end
     f:SetSize(totalSize, totalSize)
@@ -188,7 +190,7 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
 end
 
 function RuneReader:UpdateQRCodeTextures(qrMatrix)
-    if not RuneReader.QRFrame or not RuneReader.QRFrame.textures then return end
+    if not RuneReader.QRFrame or not RuneReader.QRFrame.textures or not RuneReader.QRFrame:IsShown() then return end
     local qrSize = #qrMatrix
     for y = 1, qrSize do
         for x = 1, qrSize do
@@ -215,7 +217,7 @@ function RuneReader:UpdateQRDisplay()
     if RuneReader.lastQREncodeResult ~= fullResult then
         RuneReader.lastQREncodeResult = fullResult
         local stringToEncode = RuneReader.lastQREncodeResult
-        local success, matrix = QRencode.qrcode(stringToEncode)
+        local success, matrix = QRencode.qrcode(stringToEncode, RuneReaderRecastDB.Ec_level or 7)
         if success then
             -- if the size of the frame doesn't match (someone played with the config files), or the size of the barcode changed recreate the frame to the correct size.
   --          print(fullResult )
