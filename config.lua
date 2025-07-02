@@ -4,11 +4,11 @@ RuneReader = RuneReader or {}
 RuneReaderRecastDB = RuneReaderRecastDB or {}
 
 RuneReader.defaultConfig = {
-    PrePressDelay = 0,
-    UseCode39 = false,
-    UseQRCode = true,
-    Ec_level = 7,
-    QRModuleSize = 2,
+    PrePressDelay = 0.100,
+    UseCode39 = true,
+    UseQRCode = false,
+    Ec_level = 0,
+    QRModuleSize = 1,
     QRQuietZone = 3,
     UpdateValuesDelay = 0.10,
     DEBUG=false,
