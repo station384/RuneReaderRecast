@@ -25,7 +25,15 @@
         "Hekili",
         "ActionButtonUtil",
         "RANGE_INDICATOR",
-        "AssistedCombatManager"
+        "AssistedCombatManager",
+        "UIDropDownMenu_SetWidth",
+        "UIDropDownMenu_SetText",
+        "UIDropDownMenu_Initialize",
+        "UIDropDownMenu_AddButton",
+        "UIDropDownMenu_CreateInfo",
+        "SettingsPanel",
+        "Settings",
+        "MinimalSliderWithSteppersMixin"
     ],
     "Lua.type.weakUnionCheck": true
 }
