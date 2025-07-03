@@ -13,7 +13,8 @@ RuneReader.defaultConfig = {
     UpdateValuesDelay = 0.10,
     DEBUG=false,
     HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist
-    Scale = 1.0,  -- Scale for the barcode frame
+    ScaleCode39 = 1.0,  -- Scale for the barcode frame
+    ScaleQR = 1.0,  -- Scale for the barcode frame
     Code39Size = 40
 }
 
