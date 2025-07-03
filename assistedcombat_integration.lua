@@ -49,22 +49,18 @@ end
         local hotkey = RuneReader:GetHotkeyForSpell(12345)
 ]]
 function RuneReader:GetHotkeyForSpell(spellID)
-
-
     local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
 
     if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
-
         if button.HotKey then
-          local keyText = button.HotKey:GetText()
-          if not keyText then keyText = "" end
-        if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
-          return keyText:gsub("-", ""):upper()
-        end
-
+            local keyText = button.HotKey:GetText()
+            if not keyText then keyText = "" end
+            if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
+                return keyText:gsub("-", ""):upper()
+            end
         end
     end
-return ""
+    return ""
 end
 
 
