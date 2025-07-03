@@ -5,6 +5,9 @@ RuneReader = RuneReader or {}
 RuneReader.lastC39EncodeResult = "1,B0,W0001,K00"
 RuneReader.C39FrameDelayAccumulator = 0
 
+
+
+
 function RuneReader:CreateBarcodeWindow()
 
 
@@ -23,12 +26,13 @@ function RuneReader:CreateBarcodeWindow()
         f:ClearAllPoints()
         f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
     end
-    f:SetScale(RuneReaderRecastDB.Scale or 1.0)
+        f:SetIgnoreParentScale(true)
+    f:SetScale(RuneReaderRecastDB.ScaleCode39 or 1.0)
     f:SetFrameStrata( "TOOLTIP")
     f:SetMovable(true)
     f:SetResizable(false)
     f:EnableMouse(true)
-    f:SetIgnoreParentScale(true)
+
     f:SetClampedToScreen(true)
     f:RegisterForDrag("LeftButton")
 
@@ -60,18 +64,18 @@ function RuneReader:CreateBarcodeWindow()
     --f:SetResizeBounds(220,20)
 
     -- Create ScrollFrame inside the barcode frame
-    --  local scroll = CreateFrame("ScrollFrame", nil, f)
-    -- scroll:SetAllPoints(f)
-    -- scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -1)
+     local scroll = CreateFrame("ScrollFrame", nil, f)
+    scroll:SetAllPoints(f)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -1)
 
     
 
     -- Create container frame for the text
-    -- local textHolder = CreateFrame("Frame", nil, scroll)
-    -- scroll:SetScrollChild(textHolder)
-    -- textHolder:SetAllPoints(f)
+    local textHolder = CreateFrame("Frame", nil, scroll)
+    scroll:SetScrollChild(textHolder)
+    textHolder:SetAllPoints(f)
     
-    local text = f:CreateFontString(nil, "OVERLAY", "GameTooltipText")
+    local text = textHolder:CreateFontString(nil, "OVERLAY", "GameTooltipText")
     text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", RuneReaderRecastDB.Code39Size or 40, "MONOCHROME")
     text:SetTextColor(0, 0, 0)
     text:SetJustifyH("CENTER")
@@ -80,45 +84,31 @@ function RuneReader:CreateBarcodeWindow()
     text:SetShadowColor(255,255,255,0)
     text:SetDrawLayer("BACKGROUND")
     text:SetText("*" .. RuneReader.lastC39EncodeResult .. "*")
-    text:SetPoint("CENTER", f, "CENTER", 0, -5)
-    text:SetParent(f)
+    text:SetPoint("CENTER", textHolder, "CENTER", 0, -0)
+    --text:SetParent(f)
 
 
-    --local width = text:GetStringWidth()
-    --local height = text:GetStringHeight()
+    local width = text:GetStringWidth()
+    local height = text:GetStringHeight()
     --f:SetSize(width, height)
 
 
     -- text:SetAllPoints(textHolder)
 
-    f.Text = text
+
 
     -- Optional padding
     local padX, padY = 20, 0
 
-   f:SetSize(250 + padX, 20)
-   -- f:SetSize(width + padX, height )
+   f:SetSize(width + padX, height /3)
 
 
-    --f:SetResizeBounds(text:GetWidth(true),20)--text:GetHeight(true))
-
-    -- if IsFrameOffScreen(f) then
-    --     f:ClearAllPoints()
-    --     f:SetPoint("CENTER", UIParent, "CENTER")
-    -- end
 
 
-    -- local resize = CreateFrame("Frame", nil, f)
-    -- resize:SetSize(16, 16)
-    -- resize:SetPoint("BOTTOMRIGHT")
-    -- local tex = resize:CreateTexture(nil, "OVERLAY")
-    -- tex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-    -- resize:SetScript("OnMouseDown", function(self)
-    --     if IsAltKeyDown() then self:GetParent():StartSizing("BOTTOMRIGHT") end
-    -- end)
-    -- resize:SetScript("OnMouseUp", function(self)
-    --     self:GetParent():StopMovingOrSizing()
-    -- end)
+
+
+
+        f.Text = text
     f:Hide() 
     f:Show()
     RuneReader.BarcodeFrame = f

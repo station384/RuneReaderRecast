@@ -33,7 +33,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         f:ClearAllPoints()
         f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
     end
-    f:SetScale(RuneReaderRecastDB.Scale or 1.0)
+    f:SetScale(RuneReaderRecastDB.ScaleQR or 1.0)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:SetResizable(true)

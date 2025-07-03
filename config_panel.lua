@@ -23,10 +23,10 @@ function RuneReader:ApplyConfig()
 
     -- Apply UI scale to any visible frames
     if RuneReader.QRFrame then
-        RuneReader.QRFrame:SetScale(cfg.Scale or 1.0)
+        RuneReader.QRFrame:SetScale(cfg.ScaleQR or 1.0)
     end
     if RuneReader.BarcodeFrame then
-        RuneReader.BarcodeFrame:SetScale(cfg.Scale or 1.0)
+        RuneReader.BarcodeFrame:SetScale(cfg.ScaleCode39 or 1.0)
     end
 
     -- Save debug and helper source flags for logic use
@@ -80,16 +80,20 @@ function RuneReader:CreateConfigPanel()
 
     -- Add all your controls
     --  Settings.CreateCategory(category, "General Settings")
-    AddSlider("Scale",           "Frame Scale",       "Scale of frames",           1.0, 0.3, 1.3, 0.005,"%.3f")
+    AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, {"Hekili", "Assisted Combat"})
+
+    AddSlider("ScaleCode39",      "Code39 Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f")
+    AddSlider("ScaleQR",          "QRCode Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f")
+
     AddSlider("UpdateValuesDelay", "Update Delay",    "Delay repoll interval",     0.10, 0.01, 1.0, 0.01,"%.2f ms")
-    AddDropdown("BarCodeMode",  "Code Display Engine","Code",      0, {"Code39", "QRCode"})
+    AddDropdown("BarCodeMode",  "Barcode Style", "Code39 Low CPU, QR More CPU but small",      0, {"Code39", "QRCode"})
     --  Settings.CreateCategory(category, "QR Code Settings")
     
-    AddSlider("Code39Size",    "Code39 size",    "Size of the Code39 Barcode",      40,   6,   60,   1, "%i")
+    --AddSlider("Code39Size",    "Code39 size",    "Size of the Code39 Barcode",      40,   6,   60,   1, "%i")
     
-    AddSlider("Ec_level",        "EC Level",          "QR error correction level", 4,    0,   4,   1,"%1.0f")
-    AddSlider("QRModuleSize",    "QR Module Size",    "QR module pixel size",      2,   1,   10,   1,"%i")
-    AddSlider("QRQuietZone",     "QR Quiet Zone",     "Quiet zone around QR",      3,   1,   10,   1,"%i")
+    -- AddSlider("Ec_level",        "EC Level",          "QR error correction level", 4,    0,   4,   1,"%1.0f")
+    -- AddSlider("QRModuleSize",    "QR Module Size",    "QR module pixel size",      2,   1,   10,   1,"%i")
+    -- AddSlider("QRQuietZone",     "QR Quiet Zone",     "Quiet zone around QR",      3,   1,   10,   1,"%i")
     -- Settings.CreateCategory(category, "Timing")
     AddSlider("PrePressDelay",   "Spell Queue PrePress (sec)",   "Time in seconds to press the next spell before GCD finishes (sec)",        0,   0,  1,    0.001, "%.3f sec")
 
@@ -98,7 +102,6 @@ function RuneReader:CreateConfigPanel()
      --  Settings.CreateCategory(category, "Engine Settings")
     AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
 
-    AddDropdown("HelperSource",  "Helper Source",     "Combat helper engine",      0, {"Hekili", "Assisted Combat"})
 
 
 
