@@ -12,7 +12,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:Show()
         return
     end
-    
+    RuneReader.lastQREncodeResult = "1,B0,W0001,K00"
     moduleSize = moduleSize or 6
     quietZone = quietZone or 4
     RuneReader:AddToInspector(moduleSize, "moduleSize Create")

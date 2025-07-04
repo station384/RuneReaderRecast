@@ -81,7 +81,7 @@ The function iterates over each spell ID in `rotation`, which is obtained from a
 Note: Additional logic may need implementation regarding push/spike timing decisions based on GCD (Global Cooldown) considerations.
 ]]
 function RuneReader:BuildAssistedSpellMap()
-    RuneReader.AssistedCombatSpellInfo = {}
+   -- RuneReader.AssistedCombatSpellInfo = {}
     local rotation = C_AssistedCombat.GetRotationSpells()
     if rotation then
         for _, spellID in ipairs(rotation) do
@@ -146,6 +146,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local _, _, _, latencyWorld = GetNetStats()
     local curTime = GetTime()
     local spellID = C_AssistedCombat.GetNextCastSpell(true)
+
        -- local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
       --  local spellID =  C_AssistedCombat.GetNextCastSpell(true)
 --        local NextSpellID = C_AssistedCombat.GetNextCastSpell(true)
@@ -158,7 +159,9 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         info = RuneReader.AssistedCombatSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
-  
+    if RuneReader.SpellIconFrame then
+      RuneReader:SetSpellIconFrame(spellID, RuneReader.AssistedCombatSpellInfo[spellID].hotkey) 
+    end
    local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
    --local sNextSpellCooldown = C_Spell.GetSpellCooldown(NextSpellID)
    --local GCD = C_Spell.GetSpellCooldown(61304).duration

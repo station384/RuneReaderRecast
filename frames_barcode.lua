@@ -10,7 +10,7 @@ RuneReader.C39FrameDelayAccumulator = 0
 
 function RuneReader:CreateBarcodeWindow()
 
-
+    RuneReader.lastC39EncodeResult = "1,B0,W0001,K00"
     if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame:IsShown() then
         return
     elseif RuneReader.BarcodeFrame then
@@ -26,13 +26,12 @@ function RuneReader:CreateBarcodeWindow()
         f:ClearAllPoints()
         f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
     end
-        f:SetIgnoreParentScale(true)
+    f:SetIgnoreParentScale(true)
     f:SetScale(RuneReaderRecastDB.ScaleCode39 or 1.0)
     f:SetFrameStrata( "TOOLTIP")
     f:SetMovable(true)
     f:SetResizable(false)
     f:EnableMouse(true)
-
     f:SetClampedToScreen(true)
     f:RegisterForDrag("LeftButton")
 
@@ -41,7 +40,7 @@ function RuneReader:CreateBarcodeWindow()
         if IsAltKeyDown() then self:StartMoving() end
     end)
     f:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
+       self:StopMovingOrSizing()
        local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
        RuneReaderRecastDB = RuneReaderRecastDB or {}
         RuneReaderRecastDB.C39Position = {
@@ -108,8 +107,8 @@ function RuneReader:CreateBarcodeWindow()
 
 
 
-        f.Text = text
-    f:Hide() 
+    f.Text = text
+    f:Hide()
     f:Show()
     RuneReader.BarcodeFrame = f
 

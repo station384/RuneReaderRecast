@@ -9,7 +9,21 @@ function RuneReader:ApplyConfig()
     -- Re-create visuals based on toggles
     RuneReader:DestroyQRWindow()
     RuneReader:DestroyBarcodeWindow()
+    if RuneReader.SpellIconFrame then
+       RuneReader:DestroySpellIconFrame()
+     end
+     
+    if cfg.HelperSource == 1 then
+            RuneReader:CreateSpellIconFrame()
+    end
 
+      if cfg.BarCodeMode == 0 then
+        -- Note to future self:  This is a hack to force the barcode window to be recreated WITH the proper scale on inital load of the game.
+        -- DO NOT REMOVE THIS.
+        -- IT IS NOT A BUG, IT IS A FEATURE.
+        -- This is needed because the frame may not be created yet when the addon is loaded.  
+        RuneReader:CreateBarcodeWindow()
+    end
     if cfg.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.Assisted_LastEncodedResult)
         if success then
@@ -17,9 +31,7 @@ function RuneReader:ApplyConfig()
         end
     end
 
-    if cfg.BarCodeMode == 0 then
-        RuneReader:CreateBarcodeWindow()
-    end
+
 
     -- Apply UI scale to any visible frames
     if RuneReader.QRFrame then

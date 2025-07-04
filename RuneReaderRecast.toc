@@ -9,6 +9,7 @@ QRcodeEncoder.lua
 config.lua
 encoding.lua
 keymapping.lua
+frames_spellicon.lua
 hekili_integration.lua
 assistedcombat_integration.lua
 frames_barcode.lua
