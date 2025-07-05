@@ -164,16 +164,16 @@ end
 
 function RuneReader:UpdateC39Display()
    local fullResult = ""
-    if RuneReaderRecastDB.HelperSource == 0 then
+    if  Hekili  and (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0) then
       fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
     end
-    if RuneReaderRecastDB.HelperSource == 1 then
+    if (not Hekili and RuneReaderRecastDBPerChar.HelperSource == 0) or RuneReaderRecastDBPerChar.HelperSource == 1 then
         fullResult = RuneReader:AssistedCombat_UpdateValues(1)
     end
 
  
     if RuneReader.lastC39EncodeResult ~= fullResult then
         RuneReader.lastC39EncodeResult = fullResult
-        RuneReader:SetBarcodeText("*" .. self.lastC39EncodeResult .. "*")
+        RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
     end
 end

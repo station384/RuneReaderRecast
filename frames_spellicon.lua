@@ -19,7 +19,9 @@ function RuneReader:CreateSpellIconFrame()
     f:SetMovable(true)
     f:RegisterForDrag("LeftButton")
     f:SetClampedToScreen(true)
-    f:SetScript("OnDragStart", f.StartMoving)
+    f:SetScript("OnDragStart",function(self) 
+        if IsAltKeyDown() then self:StartMoving() end    
+    end)
     f:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
@@ -48,8 +50,10 @@ function RuneReader:CreateSpellIconFrame()
     icon:SetSize(48, 48)
     icon:SetPoint("CENTER")
     icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    icon:EnableMouse(false)
+  
 
-    icon:SetScript("OnEnter", function(self)
+    f:SetScript("OnEnter", function(self)
         if f.spellID then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetSpellByID(f.spellID)
@@ -57,7 +61,7 @@ function RuneReader:CreateSpellIconFrame()
         end
     end)
 
-    icon:SetScript("OnLeave", function()
+    f:SetScript("OnLeave", function()
         GameTooltip:Hide()
     end)
 

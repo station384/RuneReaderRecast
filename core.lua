@@ -71,9 +71,9 @@ function RuneReader:InitializeAddon()
 
         end
     end
-      if RuneReaderRecastDB.HelperSource == 1 then
+    if (RuneReaderRecastDB.HelperSource == 1 or not Hekili) then
          RuneReader:CreateSpellIconFrame()
-  end
+    end
     addonInitalized =true
 end
 

@@ -4,6 +4,7 @@
 ## Version: 2.9.3
 ## Author: Michael Sutton
 ## SavedVariables: RuneReaderRecastDB
+## SavedVariablesPerCharacter: RuneReaderRecastDBPerChar
 
 QRcodeEncoder.lua
 config.lua

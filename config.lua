@@ -2,7 +2,7 @@
 
 RuneReader = RuneReader or {}
 RuneReaderRecastDB = RuneReaderRecastDB or {}
-
+RuneReaderRecastDBPerChar = RuneReaderRecastDBPerChar or {}
 RuneReader.defaultConfig = {
     PrePressDelay = 0.100,
     UseCode39 = true,
@@ -12,11 +12,14 @@ RuneReader.defaultConfig = {
     QRQuietZone = 3,
     UpdateValuesDelay = 0.10,
     DEBUG=false,
-    HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist
     ScaleCode39 = 1.0,  -- Scale for the barcode frame
     ScaleQR = 1.0,  -- Scale for the barcode frame
     Code39Size = 40
 }
+RuneReader.defaultConfigPerChar = {
+    HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist
+}
+
 
 function RuneReader:InitConfig()
     for k,v in pairs(RuneReader.defaultConfig) do
@@ -24,6 +27,14 @@ function RuneReader:InitConfig()
             RuneReaderRecastDB[k] = v
         end
     end
+    for k,v in pairs(RuneReader.defaultConfigPerChar) do
+        if RuneReaderRecastDB[k] == nil then
+            RuneReaderRecastDBPerChar[k] = v
+        end
+    end
+
+
+
     -- for k,v in pairs(RuneReaderRecastDB) do
     --     print (k , " = ", v)
     -- end

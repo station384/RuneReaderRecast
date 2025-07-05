@@ -210,10 +210,10 @@ end
 
 function RuneReader:UpdateQRDisplay()
     local fullResult = ""
-    if RuneReaderRecastDB.HelperSource == 0 then
+    if Hekili or  (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0)  then
         fullResult = RuneReader:Hekili_UpdateValues(1)
     end
-    if RuneReaderRecastDB.HelperSource == 1 then
+    if Hekili or RuneReaderRecastDBPerChar.HelperSource == 1 then
         fullResult = RuneReader:AssistedCombat_UpdateValues(1)
     end
 
