@@ -33,7 +33,8 @@
         "UIDropDownMenu_CreateInfo",
         "SettingsPanel",
         "Settings",
-        "MinimalSliderWithSteppersMixin"
+        "MinimalSliderWithSteppersMixin",
+        "ConRO"
     ],
     "Lua.type.weakUnionCheck": true
 }

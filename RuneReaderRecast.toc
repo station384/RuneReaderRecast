@@ -11,8 +11,9 @@ config.lua
 encoding.lua
 keymapping.lua
 frames_spellicon.lua
-hekili_integration.lua
-assistedcombat_integration.lua
+integration_support.lua
+integration_hekili.lua
+integration_assistedcombat.lua
 frames_barcode.lua
 frames_qr.lua
 config_panel.lua

@@ -53,8 +53,6 @@ function RuneReader:InitializeAddon()
         RuneReader:CreateBarcodeWindow()
         RuneReader:DestroyBarcodeWindow()
         RuneReader:CreateBarcodeWindow()
-
-
     end
     if RuneReaderRecastDB.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult, RuneReaderRecastDB.Ec_level or 7)
@@ -67,13 +65,21 @@ function RuneReader:InitializeAddon()
             RuneReader.lastDisplayedQREncode = RuneReader.lastC39EncodeResult;
             RuneReader:DestroyQRWindow()
             RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRModuleSize, RuneReaderRecastDB.QRQuietZone)
-
-
         end
     end
-    if (RuneReaderRecastDB.HelperSource == 1 or not Hekili) then
+
+    if C_AssistedCombat and (RuneReaderRecastDBPerChar.HelperSource == 1) then
+         RuneReader:CreateSpellIconFrame()
+         RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
     end
+
+    if C_AssistedCombat and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+         RuneReader:CreateSpellIconFrame()
+         RuneReader:DestroySpellIconFrame()
+         RuneReader:CreateSpellIconFrame()
+    end
+
     addonInitalized =true
 end
 

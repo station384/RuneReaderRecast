@@ -3,6 +3,7 @@
 RuneReader = RuneReader or {}
 
 RuneReader.lastC39EncodeResult = "1,B0,W0001,K00"
+RuneReader.lastDisplayedC39Encode = ""
 RuneReader.C39FrameDelayAccumulator = 0
 
 
@@ -164,16 +165,19 @@ end
 
 function RuneReader:UpdateC39Display()
    local fullResult = ""
-    if  Hekili  and (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0) then
-      fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
-    end
-    if (not Hekili and RuneReaderRecastDBPerChar.HelperSource == 0) or RuneReaderRecastDBPerChar.HelperSource == 1 then
-        fullResult = RuneReader:AssistedCombat_UpdateValues(1)
-    end
+    -- if  Hekili  and (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0) then
+    --   fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
+    -- end
+    -- if (not Hekili and RuneReaderRecastDBPerChar.HelperSource == 0) or RuneReaderRecastDBPerChar.HelperSource == 1 then
+    --     fullResult = RuneReader:AssistedCombat_UpdateValues(1)
+    -- end
+   fullResult = RuneReader:GetUpdatedValues()
+   if RuneReader.lastC39EncodeResult ~= fullResult or RuneReader.lastDisplayedC39Encode ~= fullResult then
+        if fullResult then
+                RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
+                RuneReader.lastDisplayedC39Encode= fullResult;
+        end
 
- 
-    if RuneReader.lastC39EncodeResult ~= fullResult then
-        RuneReader.lastC39EncodeResult = fullResult
-        RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
-    end
+   end
+    RuneReader.lastC39EncodeResult = fullResult
 end

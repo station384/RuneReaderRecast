@@ -1,5 +1,7 @@
 function RuneReader:ApplyConfig()
     local cfg = RuneReaderRecastDB
+    local cfgPerChar = RuneReaderRecastDBPerChar
+
     --print ("Applying RuneReader Recast configuration...")
 
 
@@ -13,11 +15,16 @@ function RuneReader:ApplyConfig()
        RuneReader:DestroySpellIconFrame()
      end
      
-    if cfg.HelperSource == 1 then
+
+    if Hekili and cfgPerChar.HelperSource == 1 then
             RuneReader:CreateSpellIconFrame()
     end
 
-    if not Hekili or cfg.HelperSource == 1 then
+    if ConRO and cfgPerChar.HelperSource == 3 then
+            RuneReader:CreateSpellIconFrame()
+    end
+
+    if C_AssistedCombat  then
             RuneReader:CreateSpellIconFrame()
     end
 
@@ -83,7 +90,7 @@ function RuneReader:CreateConfigPanel()
 
     local function AddDropdown(key, label, tooltip, default, optionLabels, Perchar)
        local setting = {}
-        if (Perchar) then
+        if (Perchar == 1 or not Perchar) then
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
         else
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
@@ -105,6 +112,7 @@ function RuneReader:CreateConfigPanel()
     Data = {}
     if Hekili then table.insert(Data,"Hekili") end
     if C_AssistedCombat then table.insert(Data,"WoW Assisted Combat") end
+    if ConRO then table.insert(Data,"ConRO") end
     --Data = {"Hekili", "Assisted Combat"}
     AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 1)
 

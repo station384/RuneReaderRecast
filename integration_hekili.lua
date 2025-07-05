@@ -139,7 +139,10 @@ function RuneReader:Hekili_UpdateValues(mode)
     local delay = dataPacPrimary.delay
     local wait = dataPacPrimary.wait
 
-    if RuneReader.h1111ekili_lastSpell ~= dataPacPrimary.actionID then RuneReader.hekili_lastSpell = dataPacPrimary.actionID end
+    -- if RuneReader.hekili_lastSpell ~= dataPacPrimary.actionID then 
+    --     RuneReader.hekili_lastSpell = dataPacPrimary.actionID 
+
+    --     end
 
     if wait == 0 then dataPacPrimary.exact_time = curTime end
 
