@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- combat_state.lua: Detect hostile targets in player/pet range, factoring in combat and nameplate visibility
 -- This is not used currently but put here for later when RuneReaderRecastDB will need to be more proactive in decisions it needs to take
 -- Instead of trusting what is suggested.

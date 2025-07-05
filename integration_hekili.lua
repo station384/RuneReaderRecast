@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- hekili_integration.lua: Interfacing with Hekili and key translation
 
 RuneReader = RuneReader or {}
@@ -9,6 +15,7 @@ RuneReader.hekili_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.hekili_LastDataPak = {};
 RuneReader.hekili_GenerationDelayTimeStamp = time()
 RuneReader.hekili_GenerationDelayAccumulator = 0
+RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
 
 function RuneReader:Hekili_RuneReaderEnv_hasSpell(tbl, x)
@@ -94,9 +101,9 @@ function RuneReader:Hekili_UpdateValues(mode)
    local mode = mode or 0
 
     RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
-    if RuneReader.hekili_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
+    if RuneReader.hekili_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay  then
         RuneReader.hekili_GenerationDelayTimeStamp = time()
-        return RuneReader.LastEncodedResult
+        return RuneReader.hekili_LastEncodedResult
     end
 
     RuneReader.hekili_GenerationDelayTimeStamp = time()
@@ -165,8 +172,8 @@ function RuneReader:Hekili_UpdateValues(mode)
 
     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - (RuneReaderRecastDB.PrePressDelay or 0)
     local countDown = (exact_time - curTime) 
-    if countDown <= 0 then countDown = 0 end
-    if countDown >= 9.999 then countDown = 9.999 end
+
+        countDown = RuneReader:Clamp(countDown, 0, 9.99)
 
     local bitvalue = 0
     -- if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
@@ -208,7 +215,7 @@ function RuneReader:Hekili_UpdateValues(mode)
     --mode .. keytranslate .. waitTranslate .. bitvalue 
     --local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
     local fullResult = combinedValues --.. checkDigit
-    RuneReader.LastEncodedResult = fullResult
+    RuneReader.hekili_LastEncodedResult = fullResult
 
     return fullResult
 end

@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- frames_qr.lua: QR code window management
 
 RuneReader = RuneReader or {}
@@ -6,6 +12,7 @@ RuneReader.QRFrameDelayAccumulator = 0
 
 
 function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
+
     if RuneReader.QRFrame and RuneReader.QRFrame:IsShown() then
         return
     elseif RuneReader.QRFrame then

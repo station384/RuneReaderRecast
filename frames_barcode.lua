@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- frames_barcode.lua: Barcode window management
 
 RuneReader = RuneReader or {}
@@ -158,7 +164,7 @@ function RuneReader:DestroyBarcodeWindow()
 end
 
 function RuneReader:SetBarcodeText(str)
-    if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame then
+    if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame.Text then
         RuneReader.BarcodeFrame.Text:SetText(str)
     end
 end
@@ -172,12 +178,13 @@ function RuneReader:UpdateC39Display()
     --     fullResult = RuneReader:AssistedCombat_UpdateValues(1)
     -- end
    fullResult = RuneReader:GetUpdatedValues()
-   if RuneReader.lastC39EncodeResult ~= fullResult or RuneReader.lastDisplayedC39Encode ~= fullResult then
+
+  
         if fullResult then
                 RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
                 RuneReader.lastDisplayedC39Encode= fullResult;
         end
 
-   end
-    RuneReader.lastC39EncodeResult = fullResult
+  
+    RuneReader.lastC39EncodeResult = fullResult or RuneReader.lastC39EncodeResult
 end

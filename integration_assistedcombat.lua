@@ -1,3 +1,10 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+
 -- assistedcombat_integration.lua: Integration with Blizzard's AssistedCombat system
 -- Total beta.   No real info on the API has been released yet.  This is all Guesswork
 
@@ -6,7 +13,7 @@
 RuneReader = RuneReader or {}
 RuneReader.AssistedCombatSpellInfo = RuneReader.AssistedCombatSpellInfo or {}
 RuneReader.lastAssistedSpell = nil
-RuneReader.Assisted_LastEncodedResult = "00000000"
+RuneReader.Assisted_LastEncodedResult = "1,B0,W0001,K00"
 RuneReader.Assisted_GenerationDelayTimeStamp = time()
 RuneReader.Assisted_GenerationDelayAccumulator = 0
 
@@ -137,8 +144,9 @@ end
 --C (A) Keymapping Checksum quick calculation of Keymapping values, this will be "unique" to the total values in the keymapping parameter
 
 function RuneReader:AssistedCombat_UpdateValues(mode)
+    local mode = mode or 1
     RuneReader.Assisted_GenerationDelayAccumulator = RuneReader.Assisted_GenerationDelayAccumulator + (time() - RuneReader.Assisted_GenerationDelayTimeStamp)
-    if RuneReader.Assisted_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay then
+    if RuneReader.Assisted_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
         RuneReader.Assisted_GenerationDelayTimeStamp = time()
         return RuneReader.Assisted_LastEncodedResult
     end
@@ -163,22 +171,24 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
       RuneReader:SetSpellIconFrame(spellID, RuneReader.AssistedCombatSpellInfo[spellID].hotkey) 
     end
    local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
-   --local sNextSpellCooldown = C_Spell.GetSpellCooldown(NextSpellID)
-   --local GCD = C_Spell.GetSpellCooldown(61304).duration
+      local spellInfo1 = C_Spell.GetSpellInfo(spellID);
+   local delay = (spellInfo1.castTime/1000)
+   local duration = sCurrentSpellCooldown.duration
 
 
 
-   local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
+   local GCD = C_Spell.GetSpellCooldown(61304).duration -- find the GCD
+
+
+
+   if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
     local wait = 0
-    if sCurrentSpellCooldown.startTime > 0 then
-        wait = sCurrentSpellCooldown.startTime + sCurrentSpellCooldown.duration - curTime  - (RuneReaderRecastDB.PrePressDelay or 0)
-        if wait < 0 then wait = 0 end
-        if wait > 9.99 then wait = 9.99 end
-    end
 
+             sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime ) + duration  - (RuneReaderRecastDB.PrePressDelay or 0)
+            wait = sCurrentSpellCooldown.startTime  - curTime 
 
-
+        wait = RuneReader:Clamp(wait, 0, 9.99)
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey)  -- 2 digits
     local cooldownEnc = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10)))  -- 4 digits

@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- config.lua: Default settings and config initialization
 
 RuneReader = RuneReader or {}
@@ -28,7 +34,7 @@ function RuneReader:InitConfig()
         end
     end
     for k,v in pairs(RuneReader.defaultConfigPerChar) do
-        if RuneReaderRecastDB[k] == nil then
+        if RuneReaderRecastDBPerChar[k] == nil then
             RuneReaderRecastDBPerChar[k] = v
         end
     end

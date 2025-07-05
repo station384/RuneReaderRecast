@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 function RuneReader:ApplyConfig()
     local cfg = RuneReaderRecastDB
     local cfgPerChar = RuneReaderRecastDBPerChar
@@ -6,7 +12,9 @@ function RuneReader:ApplyConfig()
 
 
     -- Update refresh delay for AssistedCombat or QR value updates
-    RuneReaderRecastDB.UpdateValuesDelay = cfg.UpdateValuesDelay or 0.10
+    --cfg.UpdateValuesDelay = cfg.UpdateValuesDelay or 0.10
+    RuneReader.HelperSource = cfg.HelperSource
+    RuneReader.LastEncodedResult = ""
 
     -- Re-create visuals based on toggles
     RuneReader:DestroyQRWindow()
@@ -18,15 +26,13 @@ function RuneReader:ApplyConfig()
 
     if Hekili and cfgPerChar.HelperSource == 1 then
             RuneReader:CreateSpellIconFrame()
+    elseif ConRO and cfgPerChar.HelperSource == 2 then
+            RuneReader:CreateSpellIconFrame()
+    elseif (C_AssistedCombat  )    then
+            RuneReader:CreateSpellIconFrame()
+
     end
 
-    if ConRO and cfgPerChar.HelperSource == 3 then
-            RuneReader:CreateSpellIconFrame()
-    end
-
-    if C_AssistedCombat  then
-            RuneReader:CreateSpellIconFrame()
-    end
 
       if cfg.BarCodeMode == 0 then
         -- Note to future self:  This is a hack to force the barcode window to be recreated WITH the proper scale on inital load of the game.
@@ -54,7 +60,7 @@ function RuneReader:ApplyConfig()
 
     -- Save debug and helper source flags for logic use
     RuneReader.DEBUG = cfg.DEBUG
-    RuneReader.HelperSource = cfg.HelperSource
+
 end
   
 

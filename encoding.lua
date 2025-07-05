@@ -1,6 +1,16 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- encoding.lua: Encoding helpers for barcode/QR and check digits
 
 RuneReader = RuneReader or {}
+
+function RuneReader:Clamp(value, minVal, maxVal)
+    return math.max(minVal, math.min(value, maxVal))
+end
 
 function RuneReader:Pad_right(str1, len, pad)
     pad = pad or " "

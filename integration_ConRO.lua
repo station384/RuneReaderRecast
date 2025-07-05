@@ -1,3 +1,10 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+
 RuneReader = RuneReader or {}
 
 RuneReader.ConRO_haveUnitTargetAttackable = false
@@ -8,13 +15,23 @@ RuneReader.ConRO_GenerationDelayTimeStamp = time()
 RuneReader.ConRO_GenerationDelayAccumulator = 0
 
 
+function RuneReader:CleanConROHotKey(HotKeyText)
 
+            local keyText = HotKeyText
+            if not keyText then keyText = "" end
+            if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
+                keyText = keyText:gsub("CTRL", "C")
+                keyText = keyText:gsub("ALT", "A")
+                return keyText:gsub("-", ""):upper()
+            end
+
+end
 
 function RuneReader:ConRO_UpdateValues(mode)
-   local mode = mode or 0
+   local mode = mode or 1
 
     RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator + (time() - RuneReader.ConRO_GenerationDelayTimeStamp)
-    if RuneReader.ConRO_GenerationDelayAccumulator < RuneReaderRecastDB.UpdateValuesDelay  then
+    if RuneReader.ConRO_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay  then
         RuneReader.ConRO_GenerationDelayTimeStamp = time()
         return RuneReader.LastEncodedResult
     end
@@ -26,37 +43,10 @@ function RuneReader:ConRO_UpdateValues(mode)
     local curTime = GetTime()
     local _, _, _, latencyWorld = GetNetStats()
     local keyBind = ""
-    local SpellID  = ConRO.Spell
+    local SpellID  = ConRO.SuggestedSpells[1];
+
 -- ConRO Specfic 
-	--local oldSkill = self.Spell;
-
-
-
-
-	--local timeShift, currentSpell, gcd = ConRO:EndCast();
-	--local iterate = ConRO:NextSpell(timeShift, currentSpell, gcd, self.PlayerTalents, self.PvPTalents);
-	--ConRO.Spell = ConRO.SuggestedSpells[1];
-
-	--ConRO:GetTimeToDie();
---	ConRO:UpdateRotation();
---	ConRO:UpdateButtonGlow();
-
-	local spellName, spellTexture;
-	-- Get info for the first suggested spell
-	if SpellID then
-		if type(SpellID) == "string" then
-			ConRO.Spell = tonumber(SpellID)
-			--spellName, _, _, _, _, _, _, _, _, spellTexture = C_Item.GetItemInfo(SpellID);
-		else
-			local spellInfo1 = C_Spell.GetSpellInfo(SpellID);
-			--spellName = spellInfo1 and spellInfo1.name;
-			--spellTexture = spellInfo1 and spellInfo1.originalIconID;
-		end
-	end
-    keyBind =  ConRO:FindKeybinding(SpellID)
-
-
-
+    keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
 -- End ConRO Specific
 
 
@@ -73,18 +63,30 @@ function RuneReader:ConRO_UpdateValues(mode)
       RuneReader:SetSpellIconFrame(SpellID, keyBind) 
     end
    local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
-local spellInfo1 = C_Spell.GetSpellInfo(SpellID);
+--  local timeShift, spellId, gcd = ConRO:EndCast("player")
+   local spellInfo1 = C_Spell.GetSpellInfo(SpellID);
+   local delay = (spellInfo1.castTime/1000)
+   local duration = sCurrentSpellCooldown.duration
 
-   local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
+
+   local GCD = C_Spell.GetSpellCooldown(61304).duration -- find the GCD
+   if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
-    local wait = 0
-    if sCurrentSpellCooldown.startTime > 0 then
-        wait = sCurrentSpellCooldown.startTime + sCurrentSpellCooldown.duration - curTime  - (RuneReaderRecastDB.PrePressDelay or 0)
-        if wait < 0 then wait = 0 end
-        if wait > 9.99 then wait = 9.99 end
-    end
+    local wait =0--=timeShift
+    --if sCurrentSpellCooldown.startTime > 0 then
+
+       -- Works well wait = sCurrentSpellCooldown.startTime + (sCurrentSpellCooldown.duration+(spellInfo1.castTime/1000)) - curTime  - (RuneReaderRecastDB.PrePressDelay or 0)
+
+             sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime ) + duration  - (RuneReaderRecastDB.PrePressDelay or 0)
+            wait = sCurrentSpellCooldown.startTime  - curTime 
+       --wait = (wait-GCD) 
 
 
+    --end
+
+
+    wait = RuneReader:Clamp(wait, 0, 9.99)
+--print (sCurrentSpellCooldown.duration,(spellInfo1.castTime/1000),wait)
 
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(keyBind)  -- 2 digits

@@ -5,6 +5,7 @@
 ## Author: Michael Sutton
 ## SavedVariables: RuneReaderRecastDB
 ## SavedVariablesPerCharacter: RuneReaderRecastDBPerChar
+## License: GNU GPLv3 - See LICENSE.txt
 
 QRcodeEncoder.lua
 config.lua
@@ -14,6 +15,7 @@ frames_spellicon.lua
 integration_support.lua
 integration_hekili.lua
 integration_assistedcombat.lua
+integration_ConRO.lua
 frames_barcode.lua
 frames_qr.lua
 config_panel.lua

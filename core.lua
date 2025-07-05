@@ -1,3 +1,9 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
 -- core.lua: Main entry, global events, glue logic
 
 RuneReader = RuneReader or {}
@@ -72,9 +78,7 @@ function RuneReader:InitializeAddon()
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
-    end
-
-    if C_AssistedCombat and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+    elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
