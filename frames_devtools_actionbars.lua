@@ -39,15 +39,6 @@ local ConfirmDialogs = {
 StaticPopupDialogs["RUNE_READER_CONFIRM_CLEAR_SLOT"] = ConfirmDialogs.ClearSlot
 StaticPopupDialogs["RUNE_READER_CONFIRM_CLEAR_HOTKEY"] = ConfirmDialogs.ClearHotkey
 
--- function RuneReader:GetActionBindingKey(page, slot)
---     if page <= NUM_ACTIONBAR_PAGES then
---         return GetBindingKey("ACTIONBUTTON" .. slot)
---     else
---         local barIndex = page - NUM_ACTIONBAR_PAGES
---         return GetBindingKey("MULTIACTIONBAR" .. barIndex .. "BUTTON" .. slot)
---     end
--- end
-
 function RuneReader:GetActionBindingKey(page, slot, slotIndex)
     local actionType, id = GetActionInfo(slotIndex)
     if actionType == "spell" and id then
@@ -64,20 +55,24 @@ end
 
 function RuneReader:BuildAllSpellbookSpellMap()
     RuneReader.SpellbookSpellInfo = {}
-    local numSpells = C_SpellBook.GetNumSpells()
-    for spellIndex = 1, numSpells do
-        local spellID = C_SpellBook.GetSpellInfo(spellIndex)
-        if spellID then
-            local sSpellInfo = C_Spell.GetSpellInfo(spellID)
-            local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
-            local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-            RuneReader.SpellbookSpellInfo[spellID] = {
-                name = sSpellInfo.name or "",
-                cooldown = sSpellCoolDown.duration or 0,
-                castTime = (sSpellInfo.castTime or 0) / 1000,
-                startTime = sSpellCoolDown.startTime or 0,
-                hotkey = hotkey
-            }
+    for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+        local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
+        local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
+        for j = offset+1, offset+numSlots do
+            local name, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
+            local spellID = select(2, C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player))
+            if spellID then
+                local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+                local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
+                local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+                RuneReader.SpellbookSpellInfo[spellID] = {
+                    name = (sSpellInfo and sSpellInfo.name) or name or "",
+                    cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                    castTime = (sSpellInfo and sSpellInfo.castTime or 0) / 1000,
+                    startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
+                    hotkey = hotkey
+                }
+            end
         end
     end
     -- Add trinkets from player inventory
@@ -97,7 +92,6 @@ function RuneReader:BuildAllSpellbookSpellMap()
         end
     end
 end
-
 
 function RuneReader:ShowActionBarDebugWindow()
     if self.ActionBarDebugFrame then
@@ -121,11 +115,9 @@ function RuneReader:ShowActionBarDebugWindow()
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
-    -- Close button
     local closeButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     closeButton:SetPoint("TOPRIGHT", -5, -5)
 
-    -- ScrollFrame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, -30)
     scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
@@ -136,126 +128,26 @@ function RuneReader:ShowActionBarDebugWindow()
 
     local yOffset = -10
 
-    for page = 1, NUM_ACTIONBAR_PAGES + 4 do
-        local barName = page <= NUM_ACTIONBAR_PAGES and ("Action Bar " .. page) or ("MultiActionBar " .. (page - NUM_ACTIONBAR_PAGES))
-        local header = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        header:SetPoint("TOPLEFT", 10, yOffset)
-        header:SetText(barName)
-        yOffset = yOffset - 40
-
-        local xOffset = 10
-        for slot = 1, NUM_ACTIONBAR_BUTTONS do
-            local slotIndex
-            if page <= NUM_ACTIONBAR_PAGES then
-                slotIndex = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot
-            else
-                slotIndex = 120 + ((page - NUM_ACTIONBAR_PAGES - 1) * NUM_ACTIONBAR_BUTTONS) + slot
-            end
-
-            local iconTexture = GetActionTexture(slotIndex)
-            --local hotkey = GetBindingKey("ACTIONBUTTON" .. slot)
-             local hotkey = self:GetActionBindingKey(page, slot)
-
-            local icon = content:CreateTexture(nil, "ARTWORK")
-            icon:SetSize(36, 36)
-            icon:SetPoint("TOPLEFT", xOffset, yOffset)
-            icon:SetTexture(iconTexture or "Interface/Icons/INV_Misc_QuestionMark")
-
-            local hotkeyText = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            hotkeyText:SetPoint("BOTTOM", icon, "TOP", 0, 2)
-            hotkeyText:SetText(hotkey or "")
-
-            local iconFrame = CreateFrame("Frame", nil, content)
-            iconFrame:SetPoint("TOPLEFT", icon, "TOPLEFT")
-            iconFrame:SetSize(36, 36)
-            iconFrame:EnableMouse(true)
-            iconFrame:SetScript("OnEnter", function()
-                GameTooltip:SetOwner(iconFrame, "ANCHOR_RIGHT")
-                GameTooltip:SetText("Slot " .. slotIndex .. "\nHotkey: " .. (hotkey or "None"), 1, 1, 1)
-                GameTooltip:Show()
-            end)
-
-            iconFrame:SetScript("OnLeave", function()
-                GameTooltip:Hide()
-            end)
-
-            iconFrame:SetScript("OnMouseUp", function(_, button)
-                if button == "RightButton" then
-                    if IsAltKeyDown() then
-                        StaticPopup_Show("RUNE_READER_CONFIRM_CLEAR_HOTKEY", nil, nil, { slot = slot })
-                    else
-                        StaticPopup_Show("RUNE_READER_CONFIRM_CLEAR_SLOT", nil, nil, { slotIndex = slotIndex })
-                    end
-                end
-            end)
-
-            xOffset = xOffset + 42
-        end
-
-        yOffset = yOffset - 50
-    end
-
-    -- Pet Bar (Situational)
-    local headerPet = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    headerPet:SetPoint("TOPLEFT", 10, yOffset)
-    headerPet:SetText("Pet Bar (Situational)")
+    local header = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    header:SetPoint("TOPLEFT", 10, yOffset)
+    header:SetText("All Spells & Trinkets")
     yOffset = yOffset - 40
 
     local xOffset = 10
-    for slot = 1, NUM_PET_ACTION_SLOTS do
-        local name, texture = GetPetActionInfo(slot)
-
+    for spellID, info in pairs(RuneReader.SpellbookSpellInfo or {}) do
         local icon = content:CreateTexture(nil, "ARTWORK")
         icon:SetSize(36, 36)
         icon:SetPoint("TOPLEFT", xOffset, yOffset)
-        icon:SetTexture(texture or "Interface/Icons/INV_Misc_QuestionMark")
+        local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+        icon:SetTexture(sSpellInfo and sSpellInfo.iconID or "Interface/Icons/INV_Misc_QuestionMark")
 
-        local iconFrame = CreateFrame("Frame", nil, content)
-        iconFrame:SetPoint("TOPLEFT", icon, "TOPLEFT")
-        iconFrame:SetSize(36, 36)
-        iconFrame:EnableMouse(true)
-        iconFrame:SetScript("OnEnter", function()
-            GameTooltip:SetOwner(iconFrame, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Pet Slot " .. slot .. "\n" .. (name or "None"), 1, 1, 1)
-            GameTooltip:Show()
-        end)
-        iconFrame:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
+        local text = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        text:SetPoint("TOPLEFT", icon, "TOPRIGHT", 5, -5)
+        text:SetJustifyH("LEFT")
+        text:SetText((info.name or "Unknown") .. "\nHotkey: " .. (info.hotkey or "") .. "\nCooldown: " .. string.format("%.1f", info.cooldown))
 
-        xOffset = xOffset + 42
+        yOffset = yOffset - 50
     end
-    yOffset = yOffset - 50
-
-    -- Extra Action Button (Situational)
-    local headerExtra = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    headerExtra:SetPoint("TOPLEFT", 10, yOffset)
-    headerExtra:SetText("Extra Action Button (Situational)")
-    yOffset = yOffset - 40
-
-    local icon = content:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(36, 36)
-    icon:SetPoint("TOPLEFT", 10, yOffset)
-    if HasExtraActionBar() then
-        icon:SetTexture(ExtraActionButton1.icon:GetTexture())
-    else
-        icon:SetTexture("Interface/Icons/INV_Misc_QuestionMark")
-    end
-
-    local iconFrame = CreateFrame("Frame", nil, content)
-    iconFrame:SetPoint("TOPLEFT", icon, "TOPLEFT")
-    iconFrame:SetSize(36, 36)
-    iconFrame:EnableMouse(true)
-    iconFrame:SetScript("OnEnter", function()
-        GameTooltip:SetOwner(iconFrame, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Extra Action Button", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    iconFrame:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-
-    yOffset = yOffset - 50
 
     content:SetHeight(-yOffset + 10)
 
@@ -273,7 +165,6 @@ if not RuneReader.ActionBarSpellMapUpdater then
     end)
 end
 
--- Slash command for developer use
 SLASH_RuneReaderDevTools1 = "/rdev"
 SlashCmdList.RuneReaderDevTools = function()
     RuneReader:ShowActionBarDebugWindow()
