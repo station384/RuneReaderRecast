@@ -40,7 +40,10 @@
         "StaticPopupDialogs",
         "StaticPopup_Show",
         "NUM_PET_ACTION_SLOTS",
-        "ExtraActionButton1"
+        "ExtraActionButton1",
+        "PanelTemplates_SetNumTabs",
+        "PanelTemplates_EnableTab",
+        "PanelTemplates_SetTab"
     ],
     "Lua.type.weakUnionCheck": true
 }
