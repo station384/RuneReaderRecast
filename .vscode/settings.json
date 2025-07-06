@@ -34,7 +34,13 @@
         "SettingsPanel",
         "Settings",
         "MinimalSliderWithSteppersMixin",
-        "ConRO"
+        "ConRO",
+        "NUM_ACTIONBAR_PAGES",
+        "NUM_ACTIONBAR_BUTTONS",
+        "StaticPopupDialogs",
+        "StaticPopup_Show",
+        "NUM_PET_ACTION_SLOTS",
+        "ExtraActionButton1"
     ],
     "Lua.type.weakUnionCheck": true
 }
