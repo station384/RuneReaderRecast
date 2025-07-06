@@ -188,7 +188,7 @@ function RuneReader:Hekili_UpdateValues(mode)
     end
 
 --    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind)
-print(dataPacPrimary.actionID)
+--print(dataPacPrimary.actionID)
 local key = ""
 if ( RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID]) then
 key = RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID].hotkey
