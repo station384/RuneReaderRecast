@@ -24,11 +24,9 @@ function RuneReader:ApplyConfig()
      end
      
 
-    if Hekili and cfgPerChar.HelperSource == 1 then
+    if C_AssistedCombat and cfgPerChar.HelperSource == 1 then
             RuneReader:CreateSpellIconFrame()
     elseif ConRO and cfgPerChar.HelperSource == 2 then
-            RuneReader:CreateSpellIconFrame()
-    elseif (C_AssistedCombat  )    then
             RuneReader:CreateSpellIconFrame()
 
     end
