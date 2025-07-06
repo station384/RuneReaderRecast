@@ -44,14 +44,16 @@ function RuneReader:ConRO_UpdateValues(mode)
     local _, _, _, latencyWorld = GetNetStats()
     local keyBind = ""
     local SpellID  = ConRO.SuggestedSpells[1];
-
+   
+  if not SpellID then return RuneReader.ConRO_LastEncodedResult end
 -- ConRO Specfic 
-    keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
+  --  keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
+ --     print("ConRO SpellID", SpellID, "Keybind",  RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey or "No Keybind")
+  keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
 -- End ConRO Specific
 
 
-   
-  if not SpellID then return RuneReader.ConRO_LastEncodedResult end
+
 
     -- if not info then
     --     print("Building map")
@@ -60,6 +62,7 @@ function RuneReader:ConRO_UpdateValues(mode)
     --     if not info then return RuneReader.Assisted_LastEncodedResult end
     -- end
     if RuneReader.SpellIconFrame then
+
       RuneReader:SetSpellIconFrame(SpellID, keyBind) 
     end
    local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)

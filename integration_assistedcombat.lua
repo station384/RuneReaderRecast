@@ -87,29 +87,29 @@ The function iterates over each spell ID in `rotation`, which is obtained from a
 
 Note: Additional logic may need implementation regarding push/spike timing decisions based on GCD (Global Cooldown) considerations.
 ]]
-function RuneReader:BuildAssistedSpellMap()
-   -- RuneReader.AssistedCombatSpellInfo = {}
-    local rotation = C_AssistedCombat.GetRotationSpells()
-    if rotation then
-        for _, spellID in ipairs(rotation) do
-            local sSpellInfo = C_Spell.GetSpellInfo(spellID)
-            local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
-            local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+-- function RuneReader:BuildAssistedSpellMap()
+--    -- RuneReader.AssistedCombatSpellInfo = {}
+--     local rotation = C_AssistedCombat.GetRotationSpells()
+--     if rotation then
+--         for _, spellID in ipairs(rotation) do
+--             local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+--             local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
+--             local hotkey = RuneReader:GetHotkeyForSpell(spellID)
 
-            -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
-            -- Choosing the time will be a big deal as it will.
-            -- also have to take into account GCD.
+--             -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
+--             -- Choosing the time will be a big deal as it will.
+--             -- also have to take into account GCD.
 
-            RuneReader.AssistedCombatSpellInfo[spellID] = {
-                name = sSpellInfo.name or "",
-                cooldown = (sSpellCoolDown.duration or 0) ,
-                castTime = (sSpellInfo.castTime or 0) / 1000,
-                startTime = sSpellCoolDown.startTime or 0,
-                hotkey = hotkey
-            }
-        end
-    end
-end
+--             RuneReader.AssistedCombatSpellInfo[spellID] = {
+--                 name = sSpellInfo.name or "",
+--                 cooldown = (sSpellCoolDown.duration or 0) ,
+--                 castTime = (sSpellInfo.castTime or 0) / 1000,
+--                 startTime = sSpellCoolDown.startTime or 0,
+--                 hotkey = hotkey
+--             }
+--         end
+--     end
+-- end
 
 
 
@@ -162,8 +162,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
     local info = RuneReader.AssistedCombatSpellInfo[spellID]
     if not info then
-        print("Building map")
-        RuneReader:BuildAssistedSpellMap()
+        RuneReader:BuildAllSpellbookSpellMap()
         info = RuneReader.AssistedCombatSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end

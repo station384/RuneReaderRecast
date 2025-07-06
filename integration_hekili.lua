@@ -187,7 +187,15 @@ function RuneReader:Hekili_UpdateValues(mode)
         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
     end
 
-    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind)
+--    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind)
+print(dataPacPrimary.actionID)
+local key = ""
+if ( RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID]) then
+key = RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID].hotkey
+else
+    key = dataPacPrimary.keybind
+end
+ local keytranslate = RuneReader:RuneReaderEnv_translateKey(key )  -- 2 digits
 
     if AuraUtil and AuraUtil.FindAuraByName then
         if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then

@@ -142,19 +142,19 @@ function(self, event, addonName)
             if RuneReader.QRFrame then
                 RuneReader.QRFrame:Show()
             end
-
-    elseif event == "ACTIONBAR_PAGE_CHANGED" or
-    event == "UPDATE_BONUS_ACTIONBAR" or
-    event == "UPDATE_OVERRIDE_ACTIONBAR" or
-    event == "UPDATE_EXTRA_ACTIONBAR" or
-    event == "ACTIONBAR_SLOT_CHANGED" or
-    event == "UPDATE_SHAPESHIFT_FORM" or
-    event == "UPDATE_SHAPESHIFT_FORMS" or
-    event == "ACTIONBAR_SLOT_CHANGED" then
-        if RuneReaderRecastDB.HelperSource == 1 then
-            RuneReader:BuildAssistedSpellMap()
         end
-    end
+    -- elseif event == "ACTIONBAR_PAGE_CHANGED" or
+    -- event == "UPDATE_BONUS_ACTIONBAR" or
+    -- event == "UPDATE_OVERRIDE_ACTIONBAR" or
+    -- event == "UPDATE_EXTRA_ACTIONBAR" or
+    -- event == "ACTIONBAR_SLOT_CHANGED" or
+    -- event == "UPDATE_SHAPESHIFT_FORM" or
+    -- event == "UPDATE_SHAPESHIFT_FORMS" or
+    -- event == "ACTIONBAR_SLOT_CHANGED" then
+    --     if RuneReaderRecastDB.HelperSource == 1 then
+    --         RuneReader:BuildAssistedSpellMap()
+    --     end
+    -- end
 end
 )
 

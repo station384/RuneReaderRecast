@@ -114,9 +114,9 @@ function RuneReader:CreateConfigPanel()
     -- Add all your controls
     --  Settings.CreateCategory(category, "General Settings")
     Data = {}
-    if Hekili then table.insert(Data,"Hekili") end
-    if C_AssistedCombat then table.insert(Data,"WoW Assisted Combat") end
-    if ConRO then table.insert(Data,"ConRO") end
+    if Hekili then table.insert(Data,"Hekili") else table.insert(Data,"Hekili N/A") end
+    if C_AssistedCombat then table.insert(Data,"WoW Assisted Combat") else table.insert(Data,"WoW Assisted Combat N/A") end
+    if ConRO then table.insert(Data,"ConRO") else table.insert(Data,"ConRO N/A") end
     --Data = {"Hekili", "Assisted Combat"}
     AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 1)
 
