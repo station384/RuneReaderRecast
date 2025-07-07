@@ -13,6 +13,7 @@ RuneReader.ConRO_lastSpell = 61304
 RuneReader.ConRO_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.ConRO_GenerationDelayTimeStamp = time()
 RuneReader.ConRO_GenerationDelayAccumulator = 0
+-- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
 
 function RuneReader:CleanConROHotKey(HotKeyText)
@@ -103,11 +104,11 @@ function RuneReader:ConRO_UpdateValues(mode)
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
     local source = "3"  -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo
-
+--Just playing around going to base36 encode the numbers to save space
     local combinedValues =  mode 
-                            .. '/B' .. bitMask 
-                            .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "") 
-                            .. '/K' .. keytranslate 
+                            .. '/B' .. bitMask
+                            .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "")
+                            .. '/K' .. keytranslate
                             --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "") 
                             --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "") 
                             --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") 

@@ -65,38 +65,42 @@ function RuneReader:BuildAllSpellbookSpellMap()
     -- Add spellbook spells using modern Retail API
     for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
         local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
-
-        local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
-        for j = offset + 1, offset + numSlots do
-            local name, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
-            local itemtype,actionId,spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
-            local _, actionId, spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
-            spellID = spellID or actionId
---            local spellID =  spellID or actionId
-            if spellID then
-                local sSpellInfo = C_Spell.GetSpellInfo(spellID)
-                local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
-                local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-                if (  sSpellInfo and sSpellInfo.name) then
-                  RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =  
-                  { name   = (sSpellInfo and sSpellInfo.name ) or "",
-                    cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
-                    castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
-                    startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                    hotkey = hotkey
-                 }
-                end
-                RuneReader.SpellbookSpellInfo[spellID] = {
-                    name = (sSpellInfo and sSpellInfo.name or name) or "",
-                    cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
-                    castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
-                    startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                    hotkey = hotkey
-                }
-            end
-      
-        end 
-    end
+        if  skillLineInfo then
+            --print("No skill line info for index", i)
+       
+        
+          local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
+          for j = offset + 1, offset + numSlots do
+              local name, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
+              local itemtype,actionId,spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
+              local _, actionId, spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
+              spellID = spellID or actionId
+  --            local spellID =  spellID or actionId
+              if spellID then
+                  local sSpellInfo = C_Spell.GetSpellInfo(spellID)
+                  local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
+                  local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+                  if (  sSpellInfo and sSpellInfo.name) then
+                    RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =  
+                    { name   = (sSpellInfo and sSpellInfo.name ) or "",
+                      cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                      castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
+                      startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
+                      hotkey = hotkey
+                  }
+                  end
+                  RuneReader.SpellbookSpellInfo[spellID] = {
+                      name = (sSpellInfo and sSpellInfo.name or name) or "",
+                      cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                      castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
+                      startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
+                      hotkey = hotkey
+                  }
+              end
+        
+          end 
+        end
+      end
 end
 if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater = CreateFrame("Frame")
