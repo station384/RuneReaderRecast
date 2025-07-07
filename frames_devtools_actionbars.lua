@@ -31,7 +31,7 @@ local ConfirmDialogs = {
         button2 = "No",
         OnAccept = function(data)
             local slot = data.slot
-            SetBinding(nil, "ACTIONBUTTON" .. slot)
+            SetBinding("", "ACTIONBUTTON" .. slot)
             SaveBindings(GetCurrentBindingSet())
             print("Cleared hotkey for slot", slot)
         end,

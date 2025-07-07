@@ -12,6 +12,17 @@ function RuneReader:Clamp(value, minVal, maxVal)
     return math.max(minVal, math.min(value, maxVal))
 end
 
+function RuneReader:ToBase36(num)
+    local chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    local result = ''
+    repeat
+        local rem = (num % 36) + 1
+        result = chars:sub(rem, rem) .. result
+        num = math.floor(num / 36)
+    until num == 0
+    return result
+end
+
 function RuneReader:Pad_right(str1, len, pad)
     pad = pad or " "
     local pad_len = len - #str1

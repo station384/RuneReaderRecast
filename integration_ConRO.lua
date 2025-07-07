@@ -48,8 +48,8 @@ function RuneReader:ConRO_UpdateValues(mode)
   if not SpellID then return RuneReader.ConRO_LastEncodedResult end
 -- ConRO Specfic 
   --  keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
- --     print("ConRO SpellID", SpellID, "Keybind",  RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey or "No Keybind")
-  keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
+  --    print("ConRO SpellID", SpellID, "Keybind",  RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey or "No Keybind")
+  keyBind = (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) or ""
 -- End ConRO Specific
 
 

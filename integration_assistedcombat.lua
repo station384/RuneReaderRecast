@@ -160,6 +160,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 --        local NextSpellID = C_AssistedCombat.GetNextCastSpell(true)
 
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
+    if  not (RuneReader.SpellbookSpellInfo[spellID] and RuneReader.SpellbookSpellInfo[spellID].spellID) then return RuneReader.Assisted_LastEncodedResult end
     local info = RuneReader.AssistedCombatSpellInfo[spellID]
     if not info then
         RuneReader:BuildAllSpellbookSpellMap()
