@@ -39,6 +39,36 @@
     end
 end
 
+--[[
+    Function Name: RuneReader:GetHotkeyForSpell(spellID)
+
+    Description:
+        This function retrieves the hotkey associated with a given spell ID for use in assisted combat integration. It checks if there is an action button linked to that specific spell and then extracts its visible, non-empty text representation as the key.
+
+    Parameters:
+        - spellID (number): The unique identifier of the desired spell whose corresponding hotkey needs to be retrieved.
+    
+    Returns: 
+        A string representing the uppercase version of the extracted hotkey without any hyphens. If no valid button is found or if there are issues with visibility, it returns an empty string.
+
+    Usage Example:
+        local hotkey = RuneReader:GetHotkeyForSpell(12345)
+]]
+function RuneReader:GetHotkeyForSpell(spellID)
+    local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
+
+    if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
+        if button.HotKey then
+            local keyText = button.HotKey:GetText()
+            if not keyText then keyText = "" end
+            if keyText and keyText ~= "" then
+                return keyText:gsub("-", ""):upper()
+            end
+        end
+    end
+    return ""
+end
+
 -- Additional Item Mapping in Spellbook Map
 function RuneReader:BuildAllSpellbookSpellMap()
     RuneReader.SpellbookSpellInfo = RuneReader.SpellbookSpellInfo or {}
@@ -94,7 +124,8 @@ function RuneReader:BuildAllSpellbookSpellMap()
                       cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
                       castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
                       startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                      hotkey = hotkey
+                      hotkey = hotkey,
+                      spellID = spellID
                   }
               end
         

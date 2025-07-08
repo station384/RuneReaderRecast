@@ -98,14 +98,14 @@ RuneReaderInit:RegisterEvent("PLAYER_ENTERING_WORLD")
 RuneReaderInit:RegisterEvent("FIRST_FRAME_RENDERED")
 
 -- used to detect player bar changes
-RuneReaderInit:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-RuneReaderInit:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-RuneReaderInit:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
-RuneReaderInit:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
-RuneReaderInit:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-RuneReaderInit:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-RuneReaderInit:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
-RuneReaderInit:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+-- RuneReaderInit:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+-- RuneReaderInit:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+-- RuneReaderInit:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
+-- RuneReaderInit:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
+-- RuneReaderInit:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+-- RuneReaderInit:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+-- RuneReaderInit:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
+-- RuneReaderInit:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
 RuneReaderInit:SetScript("OnEvent",
 function(self, event, addonName) 
     if event == "ADDON_LOADED" then

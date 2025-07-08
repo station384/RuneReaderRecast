@@ -19,8 +19,14 @@ function RuneReader:CreateBarcodeWindow()
 
     RuneReader.lastC39EncodeResult = "1,B0,W0001,K00"
     if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame:IsShown() then
+        RuneReader.C39FrameDelayAccumulator = 0
+                   RuneReader.lastC39EncodeResult = ""
+           RuneReader.lastDisplayedC39Encode = ""
         return
     elseif RuneReader.BarcodeFrame then
+        RuneReader.C39FrameDelayAccumulator = 0
+           RuneReader.lastC39EncodeResult = ""
+           RuneReader.lastDisplayedC39Encode = ""
         RuneReader.BarcodeFrame:Show()
         return
     end
@@ -145,8 +151,11 @@ function RuneReader:CreateBarcodeWindow()
     --     f:ClearAllPoints()
     --     f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
     -- end
-
+        RuneReader.C39FrameDelayAccumulator = 0
+           RuneReader.lastC39EncodeResult = ""
+           RuneReader.lastDisplayedC39Encode = ""
     RuneReader:AddToInspector(220*50, "Value encoded Code39")
+
 
 end
 

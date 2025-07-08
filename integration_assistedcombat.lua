@@ -18,98 +18,31 @@ RuneReader.Assisted_GenerationDelayTimeStamp = time()
 RuneReader.Assisted_GenerationDelayAccumulator = 0
 
 
-function RuneReader:IsActionBarPageVisible(barIndex)
-    return GetActionBarPage() == barIndex
-end
-
--- Example: is bar 10 visible?
-if RuneReader:IsActionBarPageVisible(10) then
-    print("Bar 10 is currently visible")
-else
-    print("Bar 10 is not visible (swapped out)")
-end
-
-function RuneReader:GetVisibleActionBarSlotRange()
-    local page = GetActionBarPage()
-    local startSlot = ((page - 1) * 12) + 1
-    local endSlot = startSlot + 11
-    return startSlot, endSlot
-end
-
-
-
---[[
-    File Path: /d:/Games/Blizzard/World of Warcraft/_retail_/Interface/AddOns/RuneReaderRecast/assistedcombat_integration.lua
-
-    Function Name: RuneReader:GetHotkeyForSpell(spellID)
-
-    Description:
-        This function retrieves the hotkey associated with a given spell ID for use in assisted combat integration. It checks if there is an action button linked to that specific spell and then extracts its visible, non-empty text representation as the key.
-
-    Parameters:
-        - spellID (number): The unique identifier of the desired spell whose corresponding hotkey needs to be retrieved.
-    
-    Returns: 
-        A string representing the uppercase version of the extracted hotkey without any hyphens. If no valid button is found or if there are issues with visibility, it returns an empty string.
-
-    Usage Example:
-        local hotkey = RuneReader:GetHotkeyForSpell(12345)
-]]
-function RuneReader:GetHotkeyForSpell(spellID)
-    local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
-
-    if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
-        if button.HotKey then
-            local keyText = button.HotKey:GetText()
-            if not keyText then keyText = "" end
-            if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
-                return keyText:gsub("-", ""):upper()
-            end
-        end
-    end
-    return ""
-end
-
-
-
---[[
-This function builds an assisted combat spell map for RuneReader.
-
-It populates the `RuneReader.AssistedCombatSpellInfo` table by retrieving information about each 
-spell from C_AssistedCombat.GetRotationSpells() and C_Spell.GetSpellInfo(). The collected data includes:
-- Spell name (name)
-- Cooldown duration in seconds (cooldown, converted to float if necessary)
-- Cast time divided into milliseconds (castTime / 1000 for conversion), defaulting to zero
-- Start time of the cooldown period or a fallback value set as needed by C_Spell.GetSpellInfo() 
-- A hotkey assigned through RuneReader:GetHotkeyForSpell(spellID) 
-
-The function iterates over each spell ID in `rotation`, which is obtained from an external source, presumably representing spells that can be used assisted combat. The resulting table maps these IDs to their respective properties for easy access and manipulation.
-
-Note: Additional logic may need implementation regarding push/spike timing decisions based on GCD (Global Cooldown) considerations.
-]]
--- function RuneReader:BuildAssistedSpellMap()
---    -- RuneReader.AssistedCombatSpellInfo = {}
---     local rotation = C_AssistedCombat.GetRotationSpells()
---     if rotation then
---         for _, spellID in ipairs(rotation) do
---             local sSpellInfo = C_Spell.GetSpellInfo(spellID)
---             local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
---             local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-
---             -- This info is going to need alot of work.   Mainly for push and hold spells like the evoker.
---             -- Choosing the time will be a big deal as it will.
---             -- also have to take into account GCD.
-
---             RuneReader.AssistedCombatSpellInfo[spellID] = {
---                 name = sSpellInfo.name or "",
---                 cooldown = (sSpellCoolDown.duration or 0) ,
---                 castTime = (sSpellInfo.castTime or 0) / 1000,
---                 startTime = sSpellCoolDown.startTime or 0,
---                 hotkey = hotkey
---             }
---         end
---     end
+-- function RuneReader:IsActionBarPageVisible(barIndex)
+--     return GetActionBarPage() == barIndex
 -- end
+
+-- -- Example: is bar 10 visible?
+-- if RuneReader:IsActionBarPageVisible(10) then
+--     print("Bar 10 is currently visible")
+-- else
+--     print("Bar 10 is not visible (swapped out)")
+-- end
+
+-- function RuneReader:GetVisibleActionBarSlotRange()
+--     local page = GetActionBarPage()
+--     local startSlot = ((page - 1) * 12) + 1
+--     local endSlot = startSlot + 11
+--     return startSlot, endSlot
+-- end
+
+
+
+
+
+
+
+
 
 
 
@@ -153,25 +86,30 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     RuneReader.Assisted_GenerationDelayTimeStamp = time()
     local _, _, _, latencyWorld = GetNetStats()
     local curTime = GetTime()
-    local spellID = C_AssistedCombat.GetNextCastSpell(true)
+    local spellID = C_AssistedCombat.GetNextCastSpell(false)
 
        -- local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
       --  local spellID =  C_AssistedCombat.GetNextCastSpell(true)
 --        local NextSpellID = C_AssistedCombat.GetNextCastSpell(true)
 
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
-    if  not (RuneReader.SpellbookSpellInfo[spellID] and RuneReader.SpellbookSpellInfo[spellID].spellID) then return RuneReader.Assisted_LastEncodedResult end
-    local info = RuneReader.AssistedCombatSpellInfo[spellID]
+    if  not (RuneReader.SpellbookSpellInfo[spellID] and RuneReader.SpellbookSpellInfo[spellID].spellID) then
+       -- print ("RuneReader:AssistedCombat_UpdateValues - Spell ID not found in SpellbookSpellInfo. Building Spellbook Spell Map.", spellID) 
+        return RuneReader.Assisted_LastEncodedResult
+    end
+    local info = RuneReader.SpellbookSpellInfo[spellID]
     if not info then
+        print ("RuneReader:AssistedCombat_UpdateValues - Spell ID not found in AssistedCombatSpellInfo. Building Spellbook Spell Map.")
         RuneReader:BuildAllSpellbookSpellMap()
-        info = RuneReader.AssistedCombatSpellInfo[spellID]
+        info = RuneReader.SpellbookSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
     if RuneReader.SpellIconFrame then
-      RuneReader:SetSpellIconFrame(spellID, RuneReader.AssistedCombatSpellInfo[spellID].hotkey) 
+      RuneReader:SetSpellIconFrame(spellID, info.hotkey)
     end
+   -- print("RuneReader:AssistedCombat_UpdateValues - Spell ID: ", spellID, "Hotkey: ", info.hotkey, "Mode: ", mode)
    local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
-      local spellInfo1 = C_Spell.GetSpellInfo(spellID);
+   local spellInfo1 = C_Spell.GetSpellInfo(spellID);
    local delay = (spellInfo1.castTime/1000)
    local duration = sCurrentSpellCooldown.duration
 
@@ -214,7 +152,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
 
     local full = combinedValues
-
+    --print("RuneReader:AssistedCombat_UpdateValues - Full Encoded Result: ", full)
     RuneReader.Assisted_LastEncodedResult = full
     return full
 end
