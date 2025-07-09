@@ -110,7 +110,7 @@ function RuneReader:BuildAllSpellbookSpellMap()
                   local sSpellInfo = C_Spell.GetSpellInfo(spellID)
                   local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
                   local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-                  if (  sSpellInfo and sSpellInfo.name) then
+                  if (  sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
                     RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =  
                     { name   = (sSpellInfo and sSpellInfo.name ) or "",
                       cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
@@ -119,7 +119,8 @@ function RuneReader:BuildAllSpellbookSpellMap()
                       hotkey = hotkey
                   }
                   end
-                  RuneReader.SpellbookSpellInfo[spellID] = {
+                  if (hotkey and hotkey ~= "") then
+                            RuneReader.SpellbookSpellInfo[spellID] = {
                       name = (sSpellInfo and sSpellInfo.name or name) or "",
                       cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
                       castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
@@ -127,6 +128,8 @@ function RuneReader:BuildAllSpellbookSpellMap()
                       hotkey = hotkey,
                       spellID = spellID
                   }
+                  end
+
               end
         
           end 
