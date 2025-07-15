@@ -5,6 +5,15 @@
 -- See: https://www.gnu.org/licenses/gpl-3.0.en.html
 
   RuneReader = RuneReader or {}
+RuneReader.GetSpellInfo = C_Spell.GetSpellInfo
+RuneReader.GetSpellCooldown = C_Spell.GetSpellCooldown
+RuneReader.IsSpellHarmful = C_Spell.IsSpellHarmful
+RuneReader.UnitCanAttack = UnitCanAttack
+RuneReader.UnitAffectingCombat = UnitAffectingCombat
+RuneReader.GetRotationSpells = C_AssistedCombat.GetRotationSpells
+RuneReader.GetNextCastSpell = C_AssistedCombat.GetNextCastSpell
+RuneReader.GetTime = GetTime
+
 
 
 RuneReader.ChanneledSpells = {
