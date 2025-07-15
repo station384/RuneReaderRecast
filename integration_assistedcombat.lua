@@ -18,49 +18,21 @@ RuneReader.Assisted_GenerationDelayTimeStamp = time()
 RuneReader.Assisted_GenerationDelayAccumulator = 0
 
 
--- function RuneReader:IsActionBarPageVisible(barIndex)
---     return GetActionBarPage() == barIndex
--- end
-
--- -- Example: is bar 10 visible?
--- if RuneReader:IsActionBarPageVisible(10) then
---     print("Bar 10 is currently visible")
--- else
---     print("Bar 10 is not visible (swapped out)")
--- end
-
--- function RuneReader:GetVisibleActionBarSlotRange()
---     local page = GetActionBarPage()
---     local startSlot = ((page - 1) * 12) + 1
---     local endSlot = startSlot + 11
---     return startSlot, endSlot
--- end
-
-
-
-
-
-
-
 
 -- This just gets the first instant cast spell.  
 -- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
 function RuneReader:AssistedCombat_GetNextInstantCastSpell()
     --Bring the functions local for execution.  improves speed. (LUA thing)
-   local GetSpellInfo = C_Spell.GetSpellInfo
-   local GetSpellCooldown = C_Spell.GetSpellCooldown
-   local IsSpellHarmful = C_Spell.IsSpellHarmful
-
-    local spells = C_AssistedCombat.GetRotationSpells()
-   for index, value in ipairs(spells) do
-        local spellInfo = GetSpellInfo(value)
-        local sCurrentSpellCooldown = GetSpellCooldown(value)
+    local spells = RuneReader.GetRotationSpells()
+    for index, value in ipairs(spells) do
+        local spellInfo = RuneReader.GetSpellInfo(value)
+        local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
-            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and IsSpellHarmful(value) then
+            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
                 return value
             end
         end
-   end
+    end
 end
 
 
@@ -104,7 +76,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     end
     RuneReader.Assisted_GenerationDelayTimeStamp = time()
 
-    
+
  --   local _, _, _, latencyWorld = GetNetStats()
     local curTime = RuneReader.GetTime()
     local spellID = RuneReader.GetNextCastSpell(false)

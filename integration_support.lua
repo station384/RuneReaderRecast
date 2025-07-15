@@ -1,10 +1,11 @@
-  -- RuneReader Recast
+-- RuneReader Recast
 -- Copyright (c) Michael Sutton 2025
 -- Licensed under the GNU General Public License v3.0 (GPLv3)
 -- You may use, modify, and distribute this file under the terms of the GPLv3 license.
 -- See: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-  RuneReader = RuneReader or {}
+RuneReader = RuneReader or {}
+--#region Move globals to local for faster execution
 RuneReader.GetSpellInfo = C_Spell.GetSpellInfo
 RuneReader.GetSpellCooldown = C_Spell.GetSpellCooldown
 RuneReader.IsSpellHarmful = C_Spell.IsSpellHarmful
@@ -13,52 +14,69 @@ RuneReader.UnitAffectingCombat = UnitAffectingCombat
 RuneReader.GetRotationSpells = C_AssistedCombat.GetRotationSpells
 RuneReader.GetNextCastSpell = C_AssistedCombat.GetNextCastSpell
 RuneReader.GetTime = GetTime
-
-
+RuneReader.GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
+RuneReader.GetUnitSpeed = GetUnitSpeed
+RuneReader.UnitInVehicle = UnitInVehicle
+RuneReader.UnitClass = UnitClass
+RuneReader.GetShapeshiftForm = GetShapeshiftForm
+RuneReader.UnitHealth = UnitHealth
+RuneReader.UnitHealthMax = UnitHealthMax
+RuneReader.GetActionInfo = GetActionInfo
+RuneReader.GetBindingKey = GetBindingKey
+RuneReader.GetActionButtonBySpellID = ActionButtonUtil.GetActionButtonBySpellID
+RuneReader.GetInventoryItemID = GetInventoryItemID
+RuneReader.GetInventoryItemTexture = GetInventoryItemTexture
+RuneReader.GetInventoryItemCooldown = GetInventoryItemCooldown
+RuneReader.GetItemInfo = C_Item.GetItemInfo
+RuneReader.GetNumSpellBookSkillLines = C_SpellBook.GetNumSpellBookSkillLines
+RuneReader.GetSpellBookSkillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo
+RuneReader.GetSpellBookItemName = C_SpellBook.GetSpellBookItemName
+RuneReader.GetSpellBookItemType = C_SpellBook.GetSpellBookItemType
+--endregion
 
 RuneReader.ChanneledSpells = {
-  [5143] = true,     -- Arcane Missiles
-  [10] = true,       -- Blizzard
-  [12051] = true,    -- Evocation
-  [15407] = true,    -- Mind Flay
-  [605] = true,      -- Mind Control
-  [740] = true,      -- Tranquility
-  [205065] = true,   -- Void Torrent
-  [257044] = true,   -- Rapid Fire
-  [113656] = true,   -- Fists of Fury
-  [198590] = true,   -- Drain Soul
+    [5143] = true, -- Arcane Missiles
+    [10] = true,   -- Blizzard
+    [12051] = true, -- Evocation
+    [15407] = true, -- Mind Flay
+    [605] = true,  -- Mind Control
+    [740] = true,  -- Tranquility
+    [205065] = true, -- Void Torrent
+    [257044] = true, -- Rapid Fire
+    [113656] = true, -- Fists of Fury
+    [198590] = true, -- Drain Soul
 }
-
 RuneReader.MovementCastingBuffs = {
-  [263725] = true, -- Clearcasting (Arcane)
-  [79206] = true,  -- Spiritwalker's Grace
-  [108839] = true, -- Icy Floes
+    [263725] = true, -- Clearcasting (Arcane)
+    [79206] = true, -- Spiritwalker's Grace
+    [108839] = true, -- Icy Floes
 }
 
 -- This function will be going away in 12.0.0 of wow...    there eliminating the ability to read auras...
 function RuneReader:IsMovementAllowedForChanneledSpell(spellID)
-  if not RuneReader.ChanneledSpells[spellID] then return true end
-    local data = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+    if not RuneReader.ChanneledSpells[spellID] then return true end
+    local data = RuneReader.GetPlayerAuraBySpellID(spellID)
     if not data then return false end
 
     for i = 1, #data do
-    if RuneReader.MovementCastingBuffs[data.spellId] then
-      return true
+        if RuneReader.MovementCastingBuffs[data.spellId] then
+            return true
+        end
     end
-  end
-  return false
+    return false
 end
 
 
 
- function RuneReader:IsSpellIDInChanneling(SpellID)
+function RuneReader:IsSpellIDInChanneling(SpellID)
     if (RuneReader.ChanneledSpells[SpellID]) and RuneReader:IsMovementAllowedForChanneledSpell(SpellID) then
-      return false
+        return false
     elseif (RuneReader.ChanneledSpells[SpellID]) then
-      return true
+        return true
     end
     return false
- end 
+end
+
 --[[
     Function Name: RuneReader:IsPlayerMoving()
 
@@ -70,10 +88,10 @@ end
 --]]
 function RuneReader:IsPlayerMoving()
     -- Check if the player is moving
-    local currentSpeed, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed("player") 
-    local isMoving =  currentSpeed > 0 
+    local currentSpeed, runSpeed, flightSpeed, swimSpeed = RuneReader.GetUnitSpeed("player")
+    local isMoving = currentSpeed > 0
     -- Check if the player is in a vehicle
-    local isInVehicle = UnitInVehicle("player")
+    local isInVehicle = RuneReader.UnitInVehicle("player")
     -- Return true if the player is moving or in a vehicle, false otherwise
     return isMoving or isInVehicle
 end
@@ -100,7 +118,7 @@ end
 --]]
 function RuneReader:getPlayerClass()
   -- Get the player's class information
-  local localizedClassName, englishClassName, classID = UnitClass("player")
+  local localizedClassName, englishClassName, classID = RuneReader.UnitClass("player")
   -- Return the localized class name
   return classID
 end
@@ -141,7 +159,7 @@ Hunter
 --]]
 function RuneReader:GetPlayerForm()
     -- Get the player's current shapeshift form
-    local form = GetShapeshiftForm()
+    local form = RuneReader.GetShapeshiftForm()
     -- If the player is in a shapeshift form, return the form ID
     if form then
         return form
@@ -152,44 +170,44 @@ end
 
 function RuneReader:GetPlayerHealthPct()
     -- Get the player's current health and maximum health
-    local currentHealth = UnitHealth("player")
-    local maxHealth = UnitHealthMax("player")
+    local currentHealth = RuneReader.UnitHealth("player")
+    local maxHealth = RuneReader.UnitHealthMax("player")
     -- Calculate and return the player's health percentage
     return (currentHealth / maxHealth) * 100    
 end
 
 
 
-  function RuneReader:GetUpdatedValues()
-   local fullResult = ""
-    if  Hekili  and (RuneReaderRecastDBPerChar.HelperSource == 0) then
-      fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
-    --  print("from Hekili", fullResult)
-      return fullResult
+function RuneReader:GetUpdatedValues()
+    local fullResult = ""
+    if Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+        fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
+        --  print("from Hekili", fullResult)
+        return fullResult
     elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
-      fullResult = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
-     -- print("from ConRo", fullResult)
-      return fullResult
+        fullResult = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
+        -- print("from ConRo", fullResult)
+        return fullResult
     else
-    -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
-    fullResult = RuneReader:AssistedCombat_UpdateValues(1)
-       --   print("from Combat Assist", fullResult)
+        -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
+        fullResult = RuneReader:AssistedCombat_UpdateValues(1)
+        --   print("from Combat Assist", fullResult)
     end
 
     return fullResult
-  end
+end
 
-  function RuneReader:GetActionBindingKey(page, slot, slotIndex)
-    local actionType, id = GetActionInfo(slotIndex)
+function RuneReader:GetActionBindingKey(page, slot, slotIndex)
+    local actionType, id = RuneReader.GetActionInfo(slotIndex)
     if actionType == "spell" and id then
-        return self:GetHotkeyForSpell(id)
+        return RuneReader:GetHotkeyForSpell(id)
     end
 
     if page <= NUM_ACTIONBAR_PAGES then
-        return GetBindingKey("ACTIONBUTTON" .. slot)
+        return RuneReader.GetBindingKey("ACTIONBUTTON" .. slot)
     else
         local barIndex = page - NUM_ACTIONBAR_PAGES
-        return GetBindingKey("MULTIACTIONBAR" .. barIndex .. "BUTTON" .. slot)
+        return RuneReader.GetBindingKey("MULTIACTIONBAR" .. barIndex .. "BUTTON" .. slot)
     end
 end
 
@@ -209,7 +227,7 @@ end
         local hotkey = RuneReader:GetHotkeyForSpell(12345)
 ]]
 function RuneReader:GetHotkeyForSpell(spellID)
-    local button = ActionButtonUtil.GetActionButtonBySpellID(spellID)
+    local button = RuneReader.GetActionButtonBySpellID(spellID)
 
     if button then --and button:IsVisible() and button.HotKey and button.HotKey:IsVisible() then
         if button.HotKey then
@@ -228,16 +246,16 @@ end
 function RuneReader:BuildAllSpellbookSpellMap()
     RuneReader.SpellbookSpellInfo = RuneReader.SpellbookSpellInfo or {}
     RuneReader.SpellbookSpellInfoByName = RuneReader.SpellbookSpellInfoByName or {}
-   -- print ("Building Spellbook Spell Map...")
+    -- print ("Building Spellbook Spell Map...")
     -- Add equipped items to SpellbookSpellInfo
     for slotID = INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED do
-        local itemID = GetInventoryItemID("player", slotID)
+        local itemID = RuneReader.GetInventoryItemID("player", slotID)
         if itemID then
-            local itemIcon = GetInventoryItemTexture("player", slotID)
-            local startTime, duration = GetInventoryItemCooldown("player", slotID)
+            local itemIcon = RuneReader.GetInventoryItemTexture("player", slotID)
+            local startTime, duration = RuneReader.GetInventoryItemCooldown("player", slotID)
 
             RuneReader.SpellbookSpellInfo[-slotID] = {
-                name = C_Item.GetItemInfo(itemID) or ("Item " .. slotID),
+                name = RuneReader.GetItemInfo(itemID) or ("Item " .. slotID),
                 cooldown = duration or 0,
                 castTime = 0,
                 startTime = startTime or 0,
@@ -248,50 +266,45 @@ function RuneReader:BuildAllSpellbookSpellMap()
     end
 
     -- Add spellbook spells using modern Retail API
-    for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
-        local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
-        if  skillLineInfo then
-            --print("No skill line info for index", i)
-       
-        
-          local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
-          for j = offset + 1, offset + numSlots do
-              local name, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
-              local itemtype,actionId,spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
-              local _, actionId, spellID = C_SpellBook.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
-              spellID = spellID or actionId
-  --            local spellID =  spellID or actionId
-              if spellID then
-                  local sSpellInfo = C_Spell.GetSpellInfo(spellID)
-                  local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
-                  local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-                 -- print("Spellbook Spell ID:", spellID, "Name:", name, "Hotkey:", hotkey)
-                  if (  sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
-                    RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =  
-                    { name   = (sSpellInfo and sSpellInfo.name ) or "",
-                      cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
-                      castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
-                      startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                      hotkey = hotkey
-                  }
-                  end
-                  if (hotkey and hotkey ~= "") then
-                            RuneReader.SpellbookSpellInfo[spellID] = {
-                      name = (sSpellInfo and sSpellInfo.name or name) or "",
-                      cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
-                      castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
-                      startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                      hotkey = hotkey,
-                      spellID = spellID
-                  }
-                  end
-
-              end
-        
-          end 
+    for i = 1, RuneReader.GetNumSpellBookSkillLines() do
+        local skillLineInfo = RuneReader.GetSpellBookSkillLineInfo(i)
+        if skillLineInfo then
+            local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
+            for j = offset + 1, offset + numSlots do
+                local name, subName = RuneReader.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
+                local _, actionId, spellID = RuneReader.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
+                spellID = spellID or actionId
+                if spellID then
+                    local sSpellInfo = RuneReader.GetSpellInfo(spellID)
+                    local sSpellCoolDown = RuneReader.GetSpellCooldown(spellID)
+                    local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+                    if (sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
+                        RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =
+                        {
+                            name      = (sSpellInfo and sSpellInfo.name) or "",
+                            cooldown  = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                            castTime  = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
+                            startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
+                            hotkey    = hotkey
+                        }
+                    end
+                    if (hotkey and hotkey ~= "") then
+                        RuneReader.SpellbookSpellInfo[spellID] = {
+                            name = (sSpellInfo and sSpellInfo.name or name) or "",
+                            cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                            castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
+                            startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
+                            hotkey = hotkey,
+                            spellID = spellID
+                        }
+                    end
+                end
+            end
         end
-      end
+    end
 end
+
+
 if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater = CreateFrame("Frame")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
