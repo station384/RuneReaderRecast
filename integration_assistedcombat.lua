@@ -43,7 +43,25 @@ RuneReader.Assisted_GenerationDelayAccumulator = 0
 
 
 
+-- This just gets the first instant cast spell.  
+-- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
+function RuneReader:AssistedCombat_GetNextInstantCastSpell()
+    --Bring the functions local for execution.  improves speed. (LUA thing)
+   local GetSpellInfo = C_Spell.GetSpellInfo
+   local GetSpellCooldown = C_Spell.GetSpellCooldown
+   local IsSpellHarmful = C_Spell.IsSpellHarmful
 
+    local spells = C_AssistedCombat.GetRotationSpells()
+   for index, value in ipairs(spells) do
+        local spellInfo = GetSpellInfo(value)
+        local sCurrentSpellCooldown = GetSpellCooldown(value)
+        if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
+            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and IsSpellHarmful(value) then
+                return value
+            end
+        end
+   end
+end
 
 
 --This is the format for code39
@@ -76,6 +94,7 @@ RuneReader.Assisted_GenerationDelayAccumulator = 0
 --S (N) Source 0 - Hekili, 1 - Combat Assist
 --C (A) Keymapping Checksum quick calculation of Keymapping values, this will be "unique" to the total values in the keymapping parameter
 
+
 function RuneReader:AssistedCombat_UpdateValues(mode)
     local mode = mode or 1
     RuneReader.Assisted_GenerationDelayAccumulator = RuneReader.Assisted_GenerationDelayAccumulator + (time() - RuneReader.Assisted_GenerationDelayTimeStamp)
@@ -84,13 +103,23 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         return RuneReader.Assisted_LastEncodedResult
     end
     RuneReader.Assisted_GenerationDelayTimeStamp = time()
-    local _, _, _, latencyWorld = GetNetStats()
-    local curTime = GetTime()
-    local spellID = C_AssistedCombat.GetNextCastSpell(false)
 
-       -- local spellID = AssistedCombatManager.lastNextCastSpellID or C_AssistedCombat.GetNextCastSpell(true)
-      --  local spellID =  C_AssistedCombat.GetNextCastSpell(true)
---        local NextSpellID = C_AssistedCombat.GetNextCastSpell(true)
+    
+ --   local _, _, _, latencyWorld = GetNetStats()
+    local curTime = RuneReader.GetTime()
+    local spellID = RuneReader.GetNextCastSpell(false)
+    local spellInfo1 = RuneReader.GetSpellInfo(spellID);
+   
+
+    -- Very dirty implementation.   
+    if RuneReaderRecastDB.UseInstantWhenMoving == true then
+        if (spellInfo1.castTime > 0  or  RuneReader:IsSpellIDInChanneling(spellID)) and RuneReader:IsPlayerMoving()  then
+            spellID  = RuneReader:AssistedCombat_GetNextInstantCastSpell() or spellID
+            spellInfo1 = RuneReader.GetSpellInfo(spellID)
+        end
+    end
+
+
 
     if not spellID then return RuneReader.Assisted_LastEncodedResult end
     if  not (RuneReader.SpellbookSpellInfo[spellID] and RuneReader.SpellbookSpellInfo[spellID].spellID) then
@@ -99,7 +128,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     end
     local info = RuneReader.SpellbookSpellInfo[spellID]
     if not info then
-        print ("RuneReader:AssistedCombat_UpdateValues - Spell ID not found in AssistedCombatSpellInfo. Building Spellbook Spell Map.")
+--        print ("RuneReader:AssistedCombat_UpdateValues - Spell ID not found in AssistedCombatSpellInfo. Building Spellbook Spell Map.")
         RuneReader:BuildAllSpellbookSpellMap()
         info = RuneReader.SpellbookSpellInfo[spellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
@@ -108,14 +137,14 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
       RuneReader:SetSpellIconFrame(spellID, info.hotkey)
     end
    -- print("RuneReader:AssistedCombat_UpdateValues - Spell ID: ", spellID, "Hotkey: ", info.hotkey, "Mode: ", mode)
-   local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(spellID)
-   local spellInfo1 = C_Spell.GetSpellInfo(spellID);
-   local delay = (spellInfo1.castTime/1000)
+   local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(spellID)
+    spellInfo1 = RuneReader.GetSpellInfo(spellID);
+   --local delay = (spellInfo1.castTime/1000)
    local duration = sCurrentSpellCooldown.duration
 
 
 
-   local GCD = C_Spell.GetSpellCooldown(61304).duration -- find the GCD
+   local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
 
 
 
@@ -132,10 +161,10 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local cooldownEnc = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10)))  -- 4 digits
     local castTimeEnc = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10)))  -- 4 digits
     local bitMask = 0
-    if UnitCanAttack("player", "target") then
+    if RuneReader.UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
     end
-    if UnitAffectingCombat("player") then
+    if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili

@@ -15,9 +15,24 @@ RuneReader.ConRO_GenerationDelayTimeStamp = time()
 RuneReader.ConRO_GenerationDelayAccumulator = 0
 -- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
+-- This just gets the first instant cast spell.  
+-- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
+-- And cheating here..  Since I don't know.  I'll just use Combat Assist for help heh
+function RuneReader:ConRO_GetNextInstantCastSpell()
+    --Bring the functions local for execution.  improves speed. (LUA thing)
+    local spells = RuneReader.GetRotationSpells()
+   for index, value in ipairs(spells) do
+        local spellInfo = RuneReader.GetSpellInfo(value)
+        local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
+        if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
+            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
+                return value
+            end
+        end
+   end
+end
 
 function RuneReader:CleanConROHotKey(HotKeyText)
-
             local keyText = HotKeyText
             if not keyText then keyText = "" end
             if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
@@ -25,7 +40,6 @@ function RuneReader:CleanConROHotKey(HotKeyText)
                 keyText = keyText:gsub("ALT", "A")
                 return keyText:gsub("-", ""):upper()
             end
-
 end
 
 function RuneReader:ConRO_UpdateValues(mode)
@@ -41,30 +55,29 @@ function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO then return end --ConRO Doesn't exists just exit
 
 
-    local curTime = GetTime()
+    local curTime = RuneReader.GetTime()
     local _, _, _, latencyWorld = GetNetStats()
     local keyBind = ""
     local SpellID  = ConRO.SuggestedSpells[1] 
-    local spellInfo1 = C_Spell.GetSpellInfo(SpellID)
-       local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
+    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+
    
     --#region Check for fallback on movement
     -- Check if were moving,  if we are we can't cast a spell with a cast time.  So lets check if any are in queue that are instant cast and use that instead.
     -- This is a totally dumb segment,  it doesn't check for any conditions,  it just checks if the spell is instant cast and uses that.
 
     if RuneReaderRecastDB.UseInstantWhenMoving == true then
-      --  print(spellInfo1.castTime, RuneReader:IsSpellIDInChanneling(SpellID) )
         if (spellInfo1.castTime > 0  or  RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
             SpellID  = ConRO.SuggestedSpells[2] or ConRO.SuggestedSpells[1]
-            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
         if (spellInfo1.castTime > 0 or  RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
             SpellID  = ConRO.SuggestedSpells[3] or ConRO.SuggestedSpells[1]
-            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
-            if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
-            SpellID  = ConRO.SuggestedSpells[4] or ConRO.SuggestedSpells[1]
-            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+        if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
+            SpellID  = RuneReader:ConRO_GetNextInstantCastSpell() or ConRO.SuggestedSpells[1]
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
     end
   --#endregion
@@ -77,46 +90,32 @@ function RuneReader:ConRO_UpdateValues(mode)
   --#endregion
 
   if not SpellID then return RuneReader.ConRO_LastEncodedResult end
--- ConRO Specfic 
-  --  keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
-  --    print("ConRO SpellID", SpellID, "Keybind",  RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey or "No Keybind")
   keyBind = (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) or ""
--- End ConRO Specific
 
 
 
 
-    -- if not info then
-    --     print("Building map")
-    --     RuneReader:BuildAssistedSpellMap()
-    --     info = RuneReader.AssistedCombatSpellInfo[spellID]
-    --     if not info then return RuneReader.Assisted_LastEncodedResult end
-    -- end
     if RuneReader.SpellIconFrame then
-
       RuneReader:SetSpellIconFrame(SpellID, keyBind) 
     end
 
 --  local timeShift, spellId, gcd = ConRO:EndCast("player")
-sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
+    local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
    local delay = (spellInfo1.castTime/1000)
    local duration = sCurrentSpellCooldown.duration
 
 
-   local GCD = C_Spell.GetSpellCooldown(61304).duration -- find the GCD
+   local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
    if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
-    -- Wait time until cooldown ends
+
     local wait =0--=timeShift
-    --if sCurrentSpellCooldown.startTime > 0 then
 
-       -- Works well wait = sCurrentSpellCooldown.startTime + (sCurrentSpellCooldown.duration+(spellInfo1.castTime/1000)) - curTime  - (RuneReaderRecastDB.PrePressDelay or 0)
-
-             sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime ) + duration  - (RuneReaderRecastDB.PrePressDelay or 0)
-            wait = sCurrentSpellCooldown.startTime  - curTime 
-       --wait = (wait-GCD) 
+    sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime ) + duration  - (RuneReaderRecastDB.PrePressDelay or 0)
+    wait = sCurrentSpellCooldown.startTime  - curTime 
 
 
-    --end
+
+
 
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
@@ -127,10 +126,10 @@ sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
     local cooldownEnc = string.format("%04d", math.min(9999, math.floor((sCurrentSpellCooldown.duration or 0) * 10)))  -- 4 digits
     local castTimeEnc = string.format("%04d", math.min(9999, math.floor(((spellInfo1.castTime or 0) / 1000 or 0) * 10)))  -- 4 digits
     local bitMask = 0
-    if UnitCanAttack("player", "target") then
+    if RuneReader.UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
     end
-    if UnitAffectingCombat("player") then
+    if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
     local source = "3"  -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo
