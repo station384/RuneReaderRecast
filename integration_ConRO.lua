@@ -44,8 +44,38 @@ function RuneReader:ConRO_UpdateValues(mode)
     local curTime = GetTime()
     local _, _, _, latencyWorld = GetNetStats()
     local keyBind = ""
-    local SpellID  = ConRO.SuggestedSpells[1];
+    local SpellID  = ConRO.SuggestedSpells[1] 
+    local spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+       local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
    
+    --#region Check for fallback on movement
+    -- Check if were moving,  if we are we can't cast a spell with a cast time.  So lets check if any are in queue that are instant cast and use that instead.
+    -- This is a totally dumb segment,  it doesn't check for any conditions,  it just checks if the spell is instant cast and uses that.
+
+    if RuneReaderRecastDB.UseInstantWhenMoving == true then
+      --  print(spellInfo1.castTime, RuneReader:IsSpellIDInChanneling(SpellID) )
+        if (spellInfo1.castTime > 0  or  RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
+            SpellID  = ConRO.SuggestedSpells[2] or ConRO.SuggestedSpells[1]
+            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+        end
+        if (spellInfo1.castTime > 0 or  RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
+            SpellID  = ConRO.SuggestedSpells[3] or ConRO.SuggestedSpells[1]
+            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+        end
+            if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving()  then
+            SpellID  = ConRO.SuggestedSpells[4] or ConRO.SuggestedSpells[1]
+            spellInfo1 = C_Spell.GetSpellInfo(SpellID)
+        end
+    end
+  --#endregion
+  
+  --#region Should we self heal segment
+  -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
+  -- So we will add some.    I am starting with the druid for now.   More will be added later.
+    if RuneReaderRecastDB.UseSelfHealing == true then
+    end
+  --#endregion
+
   if not SpellID then return RuneReader.ConRO_LastEncodedResult end
 -- ConRO Specfic 
   --  keyBind =  RuneReader:CleanConROHotKey(ConRO:FindKeybinding(SpellID))
@@ -66,9 +96,9 @@ function RuneReader:ConRO_UpdateValues(mode)
 
       RuneReader:SetSpellIconFrame(SpellID, keyBind) 
     end
-   local sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
+
 --  local timeShift, spellId, gcd = ConRO:EndCast("player")
-   local spellInfo1 = C_Spell.GetSpellInfo(SpellID);
+sCurrentSpellCooldown = C_Spell.GetSpellCooldown(SpellID)
    local delay = (spellInfo1.castTime/1000)
    local duration = sCurrentSpellCooldown.duration
 

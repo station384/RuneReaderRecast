@@ -6,6 +6,151 @@
 
   RuneReader = RuneReader or {}
 
+
+RuneReader.ChanneledSpells = {
+  [5143] = true,     -- Arcane Missiles
+  [10] = true,       -- Blizzard
+  [12051] = true,    -- Evocation
+  [15407] = true,    -- Mind Flay
+  [605] = true,      -- Mind Control
+  [740] = true,      -- Tranquility
+  [205065] = true,   -- Void Torrent
+  [257044] = true,   -- Rapid Fire
+  [113656] = true,   -- Fists of Fury
+  [198590] = true,   -- Drain Soul
+}
+
+RuneReader.MovementCastingBuffs = {
+  [263725] = true, -- Clearcasting (Arcane)
+  [79206] = true,  -- Spiritwalker's Grace
+  [108839] = true, -- Icy Floes
+}
+
+-- This function will be going away in 12.0.0 of wow...    there eliminating the ability to read auras...
+function RuneReader:IsMovementAllowedForChanneledSpell(spellID)
+  if not RuneReader.ChanneledSpells[spellID] then return true end
+    local data = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+    if not data then return false end
+
+    for i = 1, #data do
+    if RuneReader.MovementCastingBuffs[data.spellId] then
+      return true
+    end
+  end
+  return false
+end
+
+
+
+ function RuneReader:IsSpellIDInChanneling(SpellID)
+    if (RuneReader.ChanneledSpells[SpellID]) and RuneReader:IsMovementAllowedForChanneledSpell(SpellID) then
+      return false
+    elseif (RuneReader.ChanneledSpells[SpellID]) then
+      return true
+    end
+    return false
+ end 
+--[[
+    Function Name: RuneReader:IsPlayerMoving()
+
+    Description:
+        This function checks if the player is currently moving or in a vehicle. It returns true if the player is moving or in a vehicle, and false otherwise.
+
+    Returns:
+        - boolean: true if the player is moving or in a vehicle, false otherwise.
+--]]
+function RuneReader:IsPlayerMoving()
+    -- Check if the player is moving
+    local currentSpeed, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed("player") 
+    local isMoving =  currentSpeed > 0 
+    -- Check if the player is in a vehicle
+    local isInVehicle = UnitInVehicle("player")
+    -- Return true if the player is moving or in a vehicle, false otherwise
+    return isMoving or isInVehicle
+end
+
+--[[
+    Function Name: RuneReader:getPlayerClass()
+
+    Description:
+        This function retrieves the player's class information, including the localized class name, English class name, and class ID. 
+    Returns:
+    1 =	Warrior	WARRIOR	
+    2 =	Paladin	PALADIN	
+    3 =	Hunter	HUNTER	
+    4 =	Rogue	ROGUE	
+    5 =	Priest	PRIEST	
+    6 =	Death Knight	DEATHKNIGHT	Added in 3.0.2
+    7 =	Shaman	SHAMAN	
+    8 =	Mage	MAGE	
+    9 =	Warlock	WARLOCK	
+    10 =	Monk	MONK	Added in 5.0.4
+    11 =	Druid	DRUID	
+    12 =	Demon Hunter	DEMONHUNTER	Added in 7.0.3
+    13 =	Evoker	EVOKER	Added in 10.0.0
+--]]
+function RuneReader:getPlayerClass()
+  -- Get the player's class information
+  local localizedClassName, englishClassName, classID = UnitClass("player")
+  -- Return the localized class name
+  return classID
+end
+
+--[[
+    Function Name: RuneReader:GetPlayerForm()
+
+    Description:
+        This function retrieves the player's current shapeshift form. It returns the form ID if the player is in a shapeshift form, or 0 if not.
+
+    Returns:
+        - number: The ID of the player's current shapeshift form, or 0 if not in a shapeshift form.
+
+    Note: The form IDs correspond to specific forms for different classes as follows:
+All classes
+  0. humanoid form
+  Druid
+    1 = Bear Form
+    2 = Cat Form
+    3 = Travel Form / Aquatic Form / Flight Form (all 3 location-dependent versions of Travel Form count as Form 3)
+    4 = The first known of: Moonkin Form, Treant Form, Stag Form (in order)
+    5 = The second known of: Moonkin Form, Treant Form, Stag Form (in order)
+    6 = The third known of: Moonkin Form, Treant Form, Stag Form (in order)
+    Note: The last 3 are ordered. For example, if you know Stag Form only, it is form 4. If you know both Treant and Stag, Treant is 4 and Stag is 5. If you know all 3, Moonkin is 4, Treant 5, and Stag 6.
+Priest
+    1 = Shadowform
+Rogue
+    1 = Stealth
+    2 = Vanish / Shadow Dance (for Subtlety rogues, both Vanish and Shadow Dance return as Form 1)
+Shaman
+    1 = Ghost Wolf
+Warrior 
+    1 = Battle Stance
+    2 = Defensive Stance
+    3 = Beserker Stance
+Hunter  
+    1 = Aspect of the Hawk
+--]]
+function RuneReader:GetPlayerForm()
+    -- Get the player's current shapeshift form
+    local form = GetShapeshiftForm()
+    -- If the player is in a shapeshift form, return the form ID
+    if form then
+        return form
+    end
+    -- If not in a shapeshift form, return 0
+    return 0
+end
+
+function RuneReader:GetPlayerHealthPct()
+    -- Get the player's current health and maximum health
+    local currentHealth = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    -- Calculate and return the player's health percentage
+    return (currentHealth / maxHealth) * 100    
+end
+
+
+
   function RuneReader:GetUpdatedValues()
    local fullResult = ""
     if  Hekili  and (RuneReaderRecastDBPerChar.HelperSource == 0) then
@@ -61,6 +206,7 @@ function RuneReader:GetHotkeyForSpell(spellID)
         if button.HotKey then
             local keyText = button.HotKey:GetText()
             if not keyText then keyText = "" end
+            if keyText and keyText == RANGE_INDICATOR  then keyText = "" end
             if keyText and keyText ~= "" then
                 return keyText:gsub("-", ""):upper()
             end
@@ -110,6 +256,7 @@ function RuneReader:BuildAllSpellbookSpellMap()
                   local sSpellInfo = C_Spell.GetSpellInfo(spellID)
                   local sSpellCoolDown = C_Spell.GetSpellCooldown(spellID)
                   local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+                 -- print("Spellbook Spell ID:", spellID, "Name:", name, "Hotkey:", hotkey)
                   if (  sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
                     RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =  
                     { name   = (sSpellInfo and sSpellInfo.name ) or "",

@@ -138,7 +138,10 @@ function RuneReader:CreateConfigPanel()
     -- AddCheckbox("UseQRCode",     "Use QR Code",       "Enable QR code output",     true)
     -- AddCheckbox("UseCode39",     "Use Code39",        "Enable Code39 barcodes",    false)
      --  Settings.CreateCategory(category, "Engine Settings")
-    AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
+         AddCheckbox("UseInstantWhenMoving",         "Use Instant Cast When moving", "If char is moving instant cast spell will be preferered",      true)
+         AddCheckbox("UseSelfHealing",         "Use Self-Heal", "If char is below 40% health they will attempt to self heal if available",      true)
+
+         AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
 
 
 

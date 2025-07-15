@@ -20,7 +20,9 @@ RuneReader.defaultConfig = {
     DEBUG=false,
     ScaleCode39 = 1.0,  -- Scale for the barcode frame
     ScaleQR = 1.0,  -- Scale for the barcode frame
-    Code39Size = 40
+    Code39Size = 40,
+    UseInstantWhenMoving = true, -- Use instant cast spells when moving
+    UseSelfHealing = true, -- Use self healing spells when available
 }
 RuneReader.defaultConfigPerChar = {
     HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist
