@@ -17,19 +17,19 @@ RuneReader.ConRO_GenerationDelayAccumulator = 0
 -- This just gets the first instant cast spell.
 -- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
 -- And cheating here..  Since I don't know.  I'll just use Combat Assist for help heh
-function RuneReader:ConRO_GetNextInstantCastSpell()
-    --Bring the functions local for execution.  improves speed. (LUA thing)
-    local spells = RuneReader.GetRotationSpells()
-    for index, value in ipairs(spells) do
-        local spellInfo = RuneReader.GetSpellInfo(value)
-        local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
-        if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
-            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
-                return value
-            end
-        end
-    end
-end
+-- function RuneReader:GetNextInstantCastSpell()
+--     --Bring the functions local for execution.  improves speed. (LUA thing)
+--     local spells = RuneReader.GetRotationSpells()
+--     for index, value in ipairs(spells) do
+--         local spellInfo = RuneReader.GetSpellInfo(value)
+--         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
+--         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
+--             if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
+--                 return value
+--             end
+--         end
+--     end
+-- end
 
 function RuneReader:CleanConROHotKey(HotKeyText)
     local keyText = HotKeyText
@@ -59,6 +59,7 @@ function RuneReader:ConRO_UpdateValues(mode)
     --    local _, _, _, latencyWorld = GetNetStats()
     local keyBind                             = ""
     local SpellID                             = ConRO.SuggestedSpells[1]
+    if not SpellID then return RuneReader.ConRO_LastEncodedResult end
     local spellInfo1                          = RuneReader.GetSpellInfo(SpellID)
 
 
@@ -76,7 +77,7 @@ function RuneReader:ConRO_UpdateValues(mode)
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
         if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = RuneReader:ConRO_GetNextInstantCastSpell() or SpellID
+            SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
     end
@@ -88,10 +89,41 @@ function RuneReader:ConRO_UpdateValues(mode)
     if RuneReaderRecastDB.UseSelfHealing == true then
         -- Hunter Pet healing
         -- print("Self Healding is enabled")
+        
+        --Hunter check
         local ShouldHealPet = RuneReader:ShouldCastMendPet()
         local ShouldRevivePet = RuneReader:ShouldCastRevivePet()
+        local ShouldCastExhilaration = RuneReader:ShouldCastExhilaration()
+        --Druid check
         local ShouldBearHeal = RuneReader:ShouldCastBearOrRegen()
         local ShouldCastRejuvenationIfNeeded = RuneReader:ShouldCastRejuvenationIfNeeded()
+        local ShouldCastIronfur = RuneReader:ShouldCastIronfur()
+        local ShouldCastNaturesVigil = RuneReader:ShouldCastNaturesVigil()
+        local ShouldCastBarkskin = RuneReader:ShouldCastBarkskin()
+        --Paladin check
+        local ShouldCastWordOfGlory = RuneReader:ShouldCastWordOfGlory()
+        --Death Knight check
+        local ShouldCastDeathStrike = RuneReader:ShouldCastDeathStrike()
+        local ShouldCastMarrowrend = RuneReader:ShouldCastMarrowrend()
+        --Mage check
+        local ShouldCastMageDefensive = RuneReader:ShouldCastMageDefensive()
+        --Monk check
+        local ShouldCastExpelHarm = RuneReader:ShouldCastExpelHarm()
+        local ShouldCastPurifyingBrew = RuneReader:ShouldCastPurifyingBrew()
+        local ShouldCastVivifyBrewmaster = RuneReader:ShouldCastVivifyBrewmaster()
+        -- Rogue check
+        local ShouldCastCrimsonVial = RuneReader:ShouldCastCrimsonVial()
+        -- Warrior check
+        local ShouldCastImpendingVictory = RuneReader:ShouldCastImpendingVictory()
+        -- Priest check
+        local ShouldCastPowerWordShield = RuneReader:ShouldCastPowerWordShield()
+        -- Shaman check
+        local ShouldCastHealingSurge = RuneReader:ShouldCastHealingSurge()
+        -- Evoker check
+        local ShouldCastObsidianScales = RuneReader:ShouldCastObsidianScales()
+
+
+
         -- print("ShouldHealPet", ShouldHealPet, "ShouldRevivePet", ShouldRevivePet, "ShouldBearHeal", ShouldBearHeal)
         if ShouldHealPet then
             SpellID    = ShouldHealPet or SpellID
@@ -99,17 +131,66 @@ function RuneReader:ConRO_UpdateValues(mode)
         elseif ShouldRevivePet then
             SpellID    = ShouldRevivePet or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastExhilaration then
+            SpellID    = ShouldCastExhilaration or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldBearHeal then
             SpellID    = ShouldBearHeal or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastRejuvenationIfNeeded then
             SpellID    = ShouldCastRejuvenationIfNeeded or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastWordOfGlory then
+            SpellID    = ShouldCastWordOfGlory or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastDeathStrike then
+            SpellID    = ShouldCastDeathStrike or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastMarrowrend then
+            SpellID = ShouldCastMarrowrend
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastMageDefensive then
+            SpellID    = ShouldCastMageDefensive or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastExpelHarm then
+            SpellID    = ShouldCastExpelHarm or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastCrimsonVial then
+            SpellID    = ShouldCastCrimsonVial or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastImpendingVictory then
+            SpellID = ShouldCastImpendingVictory or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastPowerWordShield then
+            SpellID = ShouldCastPowerWordShield or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastHealingSurge then
+            SpellID = ShouldCastHealingSurge or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastObsidianScales then
+            SpellID = ShouldCastObsidianScales or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastIronfur then
+            SpellID = ShouldCastIronfur or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastNaturesVigil then
+            SpellID = ShouldCastNaturesVigil or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastBarkskin then
+            SpellID = ShouldCastBarkskin or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+       elseif ShouldCastPurifyingBrew then
+            SpellID = ShouldCastPurifyingBrew or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastVivifyBrewmaster then
+            SpellID = ShouldCastVivifyBrewmaster or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
+
     end
     --#endregion
 
-    if not SpellID then return RuneReader.ConRO_LastEncodedResult end
+
     keyBind = (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) or ""
 
 
