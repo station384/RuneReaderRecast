@@ -32,6 +32,7 @@ RuneReader.GetNumSpellBookSkillLines = C_SpellBook.GetNumSpellBookSkillLines
 RuneReader.GetSpellBookSkillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo
 RuneReader.GetSpellBookItemName = C_SpellBook.GetSpellBookItemName
 RuneReader.GetSpellBookItemType = C_SpellBook.GetSpellBookItemType
+RuneReader.GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
 --endregion
 
 RuneReader.ChanneledSpells = {
@@ -51,6 +52,89 @@ RuneReader.MovementCastingBuffs = {
     [79206] = true, -- Spiritwalker's Grace
     [108839] = true, -- Icy Floes
 }
+
+function RuneReader:HasTalentBySpellID(spellID)
+    local configID = C_ClassTalents.GetActiveConfigID()
+    if not configID then return false end
+
+    local configInfo = C_Traits.GetConfigInfo(configID)
+    if not configInfo or not configInfo.treeIDs then return false end
+
+    for _, treeID in ipairs(configInfo.treeIDs) do
+        local nodes = C_Traits.GetTreeNodes(treeID)
+        for _, nodeID in ipairs(nodes) do
+            local nodeInfo = C_Traits.GetNodeInfo(configID, nodeID)
+            if nodeInfo and nodeInfo.activeEntry and nodeInfo.activeEntry.entryID then
+                local entryInfo = C_Traits.GetEntryInfo(configID, nodeInfo.activeEntry.entryID)
+                if entryInfo and entryInfo.definitionID then
+                    local defInfo = C_Traits.GetDefinitionInfo(entryInfo.definitionID)
+                    if defInfo and defInfo.spellID == spellID then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+function RuneReader:ShouldCastRevivePet()
+    -- Only apply to hunters
+    local _, class = UnitClass("player")
+    if class ~= "HUNTER" then return nil end
+
+    -- Pet must exist and be dead
+    if not UnitExists("pet") or not UnitIsDead("pet") then return nil end
+
+    local revivePetID = 982  -- Retail spell ID for Revive Pet
+
+    -- Check cooldown
+    local cd = C_Spell.GetSpellCooldown(revivePetID)
+    if not cd or cd.startTime == 0 or cd.duration == 0 then
+        return revivePetID  -- Spell is ready
+    end
+    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    -- Still on cooldown?
+    local remaining = cd.startTime + cd.duration - GetTime()
+    if remaining <= GCD then
+        return revivePetID
+    end
+
+    return nil
+end
+
+function RuneReader:ShouldCastMendPet()
+    -- Only apply to hunters
+    local _, class = UnitClass("player")
+    if class ~= "HUNTER" then return nil end
+
+    -- Pet must exist and be alive
+    if not UnitExists("pet") or UnitIsDead("pet") then return nil end
+
+    -- Pet health must be ≤ 40%
+    local health = UnitHealth("pet")
+    local maxHealth = UnitHealthMax("pet")
+    if maxHealth == 0 or (health / maxHealth) > 0.40 then return nil end
+
+    -- Mend Pet spell info
+    local mendPetID = 136  -- Retail spell ID for Mend Pet
+
+    -- Check cooldown
+    local cd = RuneReader.GetSpellCooldown(mendPetID)
+    if not cd or cd.startTime == 0 or cd.duration == 0 then
+        return mendPetID  -- Spell is ready to cast
+    end
+    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    -- Spell is on cooldown
+    local remaining = cd.startTime + cd.duration - GetTime()
+    if remaining <= GCD then
+        return mendPetID
+    end
+
+    return nil
+end
+
 
 -- This function will be going away in 12.0.0 of wow...    there eliminating the ability to read auras...
 function RuneReader:IsMovementAllowedForChanneledSpell(spellID)
@@ -177,6 +261,70 @@ function RuneReader:GetPlayerHealthPct()
 end
 
 
+function RuneReader:ShouldCastBearOrRegen()
+    local _, class = UnitClass("player")
+    if class ~= "DRUID" then return nil end
+
+    local frenziedRegenID = 22842      -- Frenzied Regeneration
+    local bearFormID = 5487            -- Bear Form
+    local bearForm = 1                 -- FORM index for Bear (see below)
+
+    -- Health check
+    local health = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    if maxHealth == 0 or (health / maxHealth) > 0.70 then return nil end
+
+    -- Has Frenzied Regeneration talent?
+    if not RuneReader:HasTalentBySpellID(frenziedRegenID) then return nil end
+
+    -- Is Frenzied Regeneration ready?
+    local regenCD = C_Spell.GetSpellCooldown(frenziedRegenID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    local regenReady = regenCD and (regenCD.startTime == 0 or regenCD.duration == 0 or (regenCD.startTime + regenCD.duration - GetTime()) <= GCD)
+--print("Frenzied Regen CD", regenCD and regenCD.startTime or "No CD")
+    if not regenReady then return nil end
+
+    -- Check if player is in Bear Form
+    if GetShapeshiftForm() == bearForm then
+        return frenziedRegenID
+    else
+        return bearFormID
+    end
+end
+
+
+function RuneReader:ShouldCastRejuvenationIfNeeded()
+    local _, class = UnitClass("player")
+    if class ~= "DRUID" then return nil end
+
+    local rejuvenationID = 774
+
+    -- Health threshold (adjustable if needed)
+    local health = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    if maxHealth == 0 or (health / maxHealth) > 0.70 then return nil end
+
+    -- Check for existing Rejuvenation aura on player
+    for i = 1, 40 do
+        local aura = RuneReader.GetPlayerAuraBySpellID(rejuvenationID)
+        if not aura then break end
+        if aura.spellId == rejuvenationID then
+            return nil -- Already has Rejuvenation active
+        end
+    end
+
+    -- Has Rejuvenation in talent tree?
+    if not RuneReader:HasTalentBySpellID(rejuvenationID) then return nil end
+
+    -- Check cooldown (though Rejuvenation usually has no CD, this is for completeness)
+    local cd = C_Spell.GetSpellCooldown(rejuvenationID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    local ready = cd and (cd.startTime == 0 or cd.duration == 0 or (cd.startTime + cd.duration) <= GCD)
+    if not ready then return nil end
+
+    return rejuvenationID
+end
+
 
 function RuneReader:GetUpdatedValues()
     local fullResult = ""
@@ -272,7 +420,62 @@ function RuneReader:BuildAllSpellbookSpellMap()
             local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
             for j = offset + 1, offset + numSlots do
                 local name, subName = RuneReader.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
-                local _, actionId, spellID = RuneReader.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
+        
+                local itemType, actionId, spellID = RuneReader.GetSpellBookItemType(j, Enum.SpellBookSpellBank.Player)
+
+                if itemType == Enum.SpellBookItemType.Flyout and actionId then
+                    local flyoutID = actionId
+                    local _, _, numSlots, isKnown = GetFlyoutInfo(flyoutID)
+
+                    if isKnown and numSlots and numSlots > 0 then
+                        for slot = 1, numSlots do
+                            local spellID, overrideSpellID, isKnownSlot, spellName = GetFlyoutSlotInfo(flyoutID, slot)
+                            spellID = overrideSpellID or spellID
+                            if spellID and isKnownSlot then
+                                local sSpellInfo = RuneReader.GetSpellInfo(spellID)
+                                local sSpellCoolDown = RuneReader.GetSpellCooldown(spellID)
+                                local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+
+                                if sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "" then
+                                    RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] = {
+                                        name = sSpellInfo.name,
+                                        cooldown = sSpellCoolDown and sSpellCoolDown.duration or 0,
+                                        castTime = (sSpellInfo.castTime or 0) / 1000,
+                                        startTime = sSpellCoolDown and sSpellCoolDown.startTime or 0,
+                                        hotkey = hotkey,
+                                        spellID = spellID
+                                    }
+                                end
+
+                                if hotkey and hotkey ~= "" then
+                                    RuneReader.SpellbookSpellInfo[spellID] = {
+                                        name = sSpellInfo and sSpellInfo.name or spellName or ("Flyout Spell " .. slot),
+                                        cooldown = sSpellCoolDown and sSpellCoolDown.duration or 0,
+                                        castTime = (sSpellInfo.castTime or 0) / 1000,
+                                        startTime = sSpellCoolDown and sSpellCoolDown.startTime or 0,
+                                        hotkey = hotkey,
+                                        spellID = spellID
+                                    }
+                                end
+                            end
+                        end
+                    end
+                end
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+ 
                 spellID = spellID or actionId
                 if spellID then
                     local sSpellInfo = RuneReader.GetSpellInfo(spellID)
@@ -285,7 +488,8 @@ function RuneReader:BuildAllSpellbookSpellMap()
                             cooldown  = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
                             castTime  = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
                             startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
-                            hotkey    = hotkey
+                            hotkey    = hotkey,
+                            spellID   = (sSpellInfo and sSpellInfo.name),
                         }
                     end
                     if (hotkey and hotkey ~= "") then
