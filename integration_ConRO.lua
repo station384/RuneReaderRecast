@@ -105,22 +105,27 @@ function RuneReader:ConRO_UpdateValues(mode)
         --Death Knight check
         local ShouldCastDeathStrike = RuneReader:ShouldCastDeathStrike()
         local ShouldCastMarrowrend = RuneReader:ShouldCastMarrowrend()
+        local ShouldCastRuneTap = RuneReader:ShouldCastRuneTap()
         --Mage check
         local ShouldCastMageDefensive = RuneReader:ShouldCastMageDefensive()
         --Monk check
         local ShouldCastExpelHarm = RuneReader:ShouldCastExpelHarm()
         local ShouldCastPurifyingBrew = RuneReader:ShouldCastPurifyingBrew()
         local ShouldCastVivifyBrewmaster = RuneReader:ShouldCastVivifyBrewmaster()
+        local ShouldCastCelestialBrew = RuneReader:ShouldCastCelestialBrew()
         -- Rogue check
         local ShouldCastCrimsonVial = RuneReader:ShouldCastCrimsonVial()
         -- Warrior check
         local ShouldCastImpendingVictory = RuneReader:ShouldCastImpendingVictory()
+        local ShouldCastShieldBlock = RuneReader:ShouldCastShieldBlock()
         -- Priest check
         local ShouldCastPowerWordShield = RuneReader:ShouldCastPowerWordShield()
         -- Shaman check
         local ShouldCastHealingSurge = RuneReader:ShouldCastHealingSurge()
         -- Evoker check
         local ShouldCastObsidianScales = RuneReader:ShouldCastObsidianScales()
+
+
 
 
 
@@ -149,17 +154,26 @@ function RuneReader:ConRO_UpdateValues(mode)
         elseif ShouldCastMarrowrend then
             SpellID = ShouldCastMarrowrend
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastRuneTap then
+            SpellID = ShouldCastRuneTap
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastMageDefensive then
             SpellID    = ShouldCastMageDefensive or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastExpelHarm then
             SpellID    = ShouldCastExpelHarm or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastCelestialBrew then
+            SpellID = ShouldCastCelestialBrew
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastCrimsonVial then
             SpellID    = ShouldCastCrimsonVial or SpellID
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastImpendingVictory then
             SpellID = ShouldCastImpendingVictory or SpellID
+            spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+        elseif ShouldCastShieldBlock then
+            SpellID = ShouldCastShieldBlock
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         elseif ShouldCastPowerWordShield then
             SpellID = ShouldCastPowerWordShield or SpellID

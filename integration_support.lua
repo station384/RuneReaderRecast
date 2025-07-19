@@ -589,6 +589,28 @@ function RuneReader:ShouldCastMarrowrend()
 
     return marrowrendID
 end
+function RuneReader:ShouldCastRuneTap()
+    local _, class = UnitClass("player")
+    if class ~= "DEATHKNIGHT" then return nil end
+
+    local specID = GetSpecialization()
+    if specID ~= 1 then return nil end -- Blood
+
+    local spellID = 194679 -- Rune Tap
+
+    local health = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
+
+    local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
+    if aura then return nil end
+
+    local cd = C_Spell.GetSpellCooldown(spellID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+
+    return spellID
+end
 
 -- function RuneReader:ShouldCastMarrowrend()
 --     local _, class = UnitClass("player")
@@ -759,6 +781,24 @@ function RuneReader:ShouldCastVivifyBrewmaster()
 
     return spellID
 end
+function RuneReader:ShouldCastCelestialBrew()
+    local _, class = UnitClass("player")
+    if class ~= "MONK" then return nil end
+
+    local specID = GetSpecialization()
+    if specID ~= 1 then return nil end -- Brewmaster
+
+    local spellID = 322507 -- Celestial Brew
+
+    local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
+    if aura then return nil end
+
+    local cd = C_Spell.GetSpellCooldown(spellID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+
+    return spellID
+end
 
 --#endregion
 
@@ -815,6 +855,27 @@ function RuneReader:ShouldCastImpendingVictory()
 
     return spellID
 end
+function RuneReader:ShouldCastShieldBlock()
+    local _, class = UnitClass("player")
+    if class ~= "WARRIOR" then return nil end
+
+    local specID = GetSpecialization()
+    if specID ~= 3 then return nil end -- Protection
+
+    local spellID = 2565 -- Shield Block
+
+    -- Avoid casting if already active
+    local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
+    if aura then return nil end
+
+    -- Check spell cooldown (Shield Block is 2 charges, but check CD)
+    local cd = C_Spell.GetSpellCooldown(spellID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+
+    return spellID
+end
+
 --#endregion
 --#region Priest Self Healing Functions
 function RuneReader:ShouldCastPowerWordShield()
