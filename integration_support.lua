@@ -326,9 +326,8 @@ function RuneReader:ShouldCastRejuvenationIfNeeded()
 
     -- Check cooldown (though Rejuvenation usually has no CD, this is for completeness)
     local cd = C_Spell.GetSpellCooldown(rejuvenationID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
-    local ready = cd and (cd.startTime == 0 or cd.duration == 0 or (cd.startTime + cd.duration) <= GCD)
-    if not ready then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return rejuvenationID
 end
@@ -354,8 +353,8 @@ function RuneReader:ShouldCastIronfur()
     if stacks >= 3 then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -375,8 +374,8 @@ function RuneReader:ShouldCastNaturesVigil()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -394,8 +393,8 @@ function RuneReader:ShouldCastBarkskin()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -429,10 +428,8 @@ function RuneReader:ShouldCastWordOfGlory()
 
     -- Cooldown check
     local cd = C_Spell.GetSpellCooldown(wordOfGloryID)
-     local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then
-        return nil
-    end
+     --local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     -- Ret or Prot: Check Holy Power
     if isRet or isProt then
@@ -465,7 +462,7 @@ function RuneReader:ShouldCastRevivePet()
     local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
     -- Still on cooldown?
     local remaining = cd.startTime + cd.duration - GetTime()
-    if remaining <= GCD then
+    if remaining <= 0 then
         return revivePetID
     end
 
@@ -493,10 +490,10 @@ function RuneReader:ShouldCastMendPet()
     if not cd or cd.startTime == 0 or cd.duration == 0 then
         return mendPetID  -- Spell is ready to cast
     end
-    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
     -- Spell is on cooldown
     local remaining = cd.startTime + cd.duration - GetTime()
-    if remaining <= GCD then
+    if remaining <= 0 then
         return mendPetID
     end
 
@@ -528,10 +525,8 @@ function RuneReader:ShouldCastExhilaration()
 
     -- Cooldown check with GCD buffer
     local cd = C_Spell.GetSpellCooldown(exhilarationID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then
-        return nil
-    end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return exhilarationID
 end
@@ -558,10 +553,8 @@ function RuneReader:ShouldCastDeathStrike()
     end
 
     local cd = C_Spell.GetSpellCooldown(deathStrikeID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and cd.duration >= GCD then
-        return nil
-    end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     if UnitPower("player", Enum.PowerType.RunicPower) < 35 then
         return nil
@@ -608,8 +601,8 @@ function RuneReader:ShouldCastMarrowrend()
 
     -- Cooldown + GCD gate
     local cd = C_Spell.GetSpellCooldown(marrowrendID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+   -- local GCD = RuneReader.GetSpellCooldown(61304).duration
+     if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return marrowrendID
 end
@@ -630,8 +623,9 @@ function RuneReader:ShouldCastRuneTap()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    --if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > 0) then return nil end
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -702,18 +696,19 @@ function RuneReader:ShouldCastMageDefensive()
         local aura = RuneReader.GetPlayerAuraBySpellID(shieldID)
         if not aura then
             local cd = C_Spell.GetSpellCooldown(shieldID)
-            local GCD = RuneReader.GetSpellCooldown(61304).duration
-            if cd and (cd.startTime == 0 or cd.duration == 0 or (cd.startTime + cd.duration) <= GCD) then
+            --local GCD = RuneReader.GetSpellCooldown(61304).duration
+            --print("Shield CD", cd and cd.startTime or "No CD")
+            if cd and (cd.startTime <= 0 and (cd.startTime + cd.duration) <= GetTime()) then
                 return shieldID
             end
         end
     end
 
-    -- Cold Snap: trigger at 40% health, Frost only
-    if specID == 3 and healthPct <= 0.40 and RuneReader:HasTalentBySpellID(coldSnapID) then
+    -- Cold Snap: trigger at 30% health, Frost only
+    if specID == 3 and healthPct <= 0.30 and RuneReader:HasTalentBySpellID(coldSnapID) then
         local cd = C_Spell.GetSpellCooldown(coldSnapID)
-        local GCD = RuneReader.GetSpellCooldown(61304).duration
-        if cd and (cd.startTime == 0 or cd.duration == 0 or (cd.startTime + cd.duration) <= GCD) then
+        --local GCD = RuneReader.GetSpellCooldown(61304).duration
+            if cd and (cd.startTime <= 0 and (cd.startTime + cd.duration) <= GetTime()) then
             return coldSnapID
         end
     end
@@ -753,9 +748,7 @@ function RuneReader:ShouldCastExpelHarm()
     local cd = C_Spell.GetSpellCooldown(expelHarmID)
     local GCD = RuneReader.GetSpellCooldown(61304).duration
     --print("Expel Harm CD", cd and cd.startTime or "No CD")
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then
-        return nil
-    end
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     -- Optional: Brewmaster chi check (if you want to avoid overcapping)
     -- local chi = UnitPower("player", Enum.PowerType.Chi)
@@ -781,8 +774,8 @@ function RuneReader:ShouldCastPurifyingBrew()
     if not IsSpellKnown(spellID) then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -804,8 +797,8 @@ function RuneReader:ShouldCastVivifyBrewmaster()
      if not IsSpellKnown(spellID) then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -823,8 +816,8 @@ function RuneReader:ShouldCastCelestialBrew()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -856,10 +849,8 @@ function RuneReader:ShouldCastCrimsonVial()
 
     -- GCD-aware cooldown check
     local cd = C_Spell.GetSpellCooldown(crimsonVialID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then
-        return nil
-    end
+   -- local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return crimsonVialID
 end
@@ -882,8 +873,8 @@ function RuneReader:ShouldCastImpendingVictory()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+     if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -902,8 +893,8 @@ function RuneReader:ShouldCastShieldBlock()
 
     -- Check spell cooldown (Shield Block is 2 charges, but check CD)
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+       if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -926,8 +917,8 @@ function RuneReader:ShouldCastPowerWordShield()
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
@@ -952,8 +943,8 @@ function RuneReader:ShouldCastHealingSurge()
     if not aura or (aura.applications or 0) < 5 then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
 
     return spellID
 end
