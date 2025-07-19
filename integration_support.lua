@@ -5,6 +5,7 @@
 -- See: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 RuneReader = RuneReader or {}
+RuneReader.HealthHistory = {}
 --#region Move globals to local for faster execution
 RuneReader.GetSpellInfo = C_Spell.GetSpellInfo
 RuneReader.GetSpellCooldown = C_Spell.GetSpellCooldown
@@ -78,6 +79,20 @@ RuneReader.MovementCastingBuffs = {
 
 --     return false
 -- end
+function RuneReader:GetHealthLostInLast5Seconds()
+    local currentHP = UnitHealth("player")
+    local maxHP = UnitHealthMax("player")
+    if maxHP == 0 then return 0 end
+
+    local oldest = RuneReader.HealthHistory[1]
+    if oldest then
+        local delta = math.max(0, oldest.hp - currentHP)
+        return delta / maxHP -- Returns fraction (e.g., 0.12 = 12%)
+    end
+
+    return 0
+end
+
 function RuneReader:HasTalentBySpellID(spellID)
     local configID = C_ClassTalents.GetActiveConfigID()
     if not configID then return false end
@@ -266,7 +281,8 @@ function RuneReader:ShouldCastBearOrRegen()
     if maxHealth == 0 or (health / maxHealth) > 0.70 then return nil end
 
     -- Has Frenzied Regeneration talent?
-    if not RuneReader:HasTalentBySpellID(frenziedRegenID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(frenziedRegenID) then return nil end
+    if not IsSpellKnown(frenziedRegenID) then return nil end
 
     -- Is Frenzied Regeneration ready?
     local regenCD = C_Spell.GetSpellCooldown(frenziedRegenID)
@@ -305,7 +321,8 @@ function RuneReader:ShouldCastRejuvenationIfNeeded()
     end
 
     -- Has Rejuvenation in talent tree?
-    if not RuneReader:HasTalentBySpellID(rejuvenationID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(rejuvenationID) then return nil end
+    if not IsSpellKnown(rejuvenationID) then return nil end
 
     -- Check cooldown (though Rejuvenation usually has no CD, this is for completeness)
     local cd = C_Spell.GetSpellCooldown(rejuvenationID)
@@ -406,7 +423,9 @@ function RuneReader:ShouldCastWordOfGlory()
     if healthPct > threshold then return nil end
 
     -- Already have talent?
-    if not RuneReader:HasTalentBySpellID(wordOfGloryID) then return nil end
+--    if not RuneReader:HasTalentBySpellID(wordOfGloryID) then return nil end
+    if not IsSpellKnown(wordOfGloryID) then return nil end
+
 
     -- Cooldown check
     local cd = C_Spell.GetSpellCooldown(wordOfGloryID)
@@ -500,7 +519,8 @@ function RuneReader:ShouldCastExhilaration()
     if healthPct > 0.50 then return nil end
 
     -- Check if the talent/spell is known
-    if not RuneReader:HasTalentBySpellID(exhilarationID) then return nil end
+   -- if not RuneReader:HasTalentBySpellID(exhilarationID) then return nil end
+    if not IsSpellKnown(exhilarationID) then return nil end
 
     -- Check if aura is already active (Exhilaration does not apply a long buff, but include for safety)
     local aura = RuneReader.GetPlayerAuraBySpellID(exhilarationID)
@@ -524,22 +544,25 @@ function RuneReader:ShouldCastDeathStrike()
     if class ~= "DEATHKNIGHT" then return nil end
 
     local specID = GetSpecialization()
-    if specID ~= 1 then return nil end  -- Only apply to Blood spec
+    if specID ~= 1 then return nil end  -- Blood only
 
     local deathStrikeID = 49998
 
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
-    if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
+    if maxHealth == 0 then return nil end
 
-    -- Death Strike doesn't have a cooldown, but we still want to avoid calling it during GCD
-    local cd = C_Spell.GetSpellCooldown(deathStrikeID)
-    local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then
+    -- Trigger if we lost ≥10% HP recently OR are under 60% HP
+    if RuneReader:GetHealthLostInLast5Seconds() < 0.10 and (health / maxHealth) > 0.60 then
         return nil
     end
 
-    -- Must have 35 Runic Power to cast Death Strike
+    local cd = C_Spell.GetSpellCooldown(deathStrikeID)
+    local GCD = RuneReader.GetSpellCooldown(61304).duration
+    if cd and cd.duration >= GCD then
+        return nil
+    end
+
     if UnitPower("player", Enum.PowerType.RunicPower) < 35 then
         return nil
     end
@@ -580,7 +603,8 @@ function RuneReader:ShouldCastMarrowrend()
     if readyRunes < 4 then return nil end
 
     -- Talent check
-    if not RuneReader:HasTalentBySpellID(marrowrendID) then return nil end
+   -- if not RuneReader:HasTalentBySpellID(marrowrendID) then return nil end
+         if not IsSpellKnown(marrowrendID) then return nil end
 
     -- Cooldown + GCD gate
     local cd = C_Spell.GetSpellCooldown(marrowrendID)
@@ -597,7 +621,7 @@ function RuneReader:ShouldCastRuneTap()
     if specID ~= 1 then return nil end -- Blood
 
     local spellID = 194679 -- Rune Tap
-
+    if not IsSpellKnown(spellID) then return nil end
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
@@ -672,9 +696,9 @@ function RuneReader:ShouldCastMageDefensive()
     else
         return nil -- Unknown spec
     end
-
+     if not IsSpellKnown(shieldID) then return nil end
     -- Barrier: trigger at 50% health
-    if healthPct <= 0.70 and RuneReader:HasTalentBySpellID(shieldID) then
+    if healthPct <= 0.70  then
         local aura = RuneReader.GetPlayerAuraBySpellID(shieldID)
         if not aura then
             local cd = C_Spell.GetSpellCooldown(shieldID)
@@ -717,10 +741,10 @@ function RuneReader:ShouldCastExpelHarm()
     if maxHealth == 0 then return nil end
 
     local healthPct = health / maxHealth
-    if healthPct > 0.60 then return nil end
+    if healthPct > 0.45 then return nil end
 
     -- Confirm the spell is available (talented / known)
-    if not RuneReader:HasTalentBySpellID(expelHarmID) then return nil end
+    if not IsSpellKnown(expelHarmID) then return nil end
 
     -- Optional: ensure no active absorb/heal aura already on the player (Expel Harm doesn't persist)
     -- You may skip this if Expel Harm has no aura
@@ -728,16 +752,18 @@ function RuneReader:ShouldCastExpelHarm()
     -- GCD-aware cooldown check
     local cd = C_Spell.GetSpellCooldown(expelHarmID)
     local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then
+    --print("Expel Harm CD", cd and cd.startTime or "No CD")
+    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then
         return nil
     end
 
     -- Optional: Brewmaster chi check (if you want to avoid overcapping)
     -- local chi = UnitPower("player", Enum.PowerType.Chi)
     -- if isBrew and chi >= 5 then return nil end
-
+    --print("Expel Harm CD", cd and cd.startTime or "No CD")
     return expelHarmID
 end
+
 function RuneReader:ShouldCastPurifyingBrew()
     local _, class = UnitClass("player")
     if class ~= "MONK" then return nil end
@@ -751,11 +777,12 @@ function RuneReader:ShouldCastPurifyingBrew()
     local maxHealth = UnitHealthMax("player") or 1
     if (stagger / maxHealth) < 0.30 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    -- if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not IsSpellKnown(spellID) then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
     local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
 
     return spellID
 end
@@ -773,14 +800,16 @@ function RuneReader:ShouldCastVivifyBrewmaster()
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+   -- if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+     if not IsSpellKnown(spellID) then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
     local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    if cd and (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
 
     return spellID
 end
+
 function RuneReader:ShouldCastCelestialBrew()
     local _, class = UnitClass("player")
     if class ~= "MONK" then return nil end
@@ -789,13 +818,13 @@ function RuneReader:ShouldCastCelestialBrew()
     if specID ~= 1 then return nil end -- Brewmaster
 
     local spellID = 322507 -- Celestial Brew
-
+     if not IsSpellKnown(spellID) then return nil end
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
 
     local cd = C_Spell.GetSpellCooldown(spellID)
     local GCD = RuneReader.GetSpellCooldown(61304).duration
-    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) > GCD) then return nil end
+    if not cd or (cd.startTime > 0 and (cd.startTime + cd.duration) >= GCD) then return nil end
 
     return spellID
 end
@@ -818,7 +847,8 @@ function RuneReader:ShouldCastCrimsonVial()
     if healthPct > 0.60 then return nil end
 
     -- Must know the spell
-    if not RuneReader:HasTalentBySpellID(crimsonVialID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(crimsonVialID) then return nil end
+    if not IsSpellKnown(crimsonVialID) then return nil end
 
     -- Check if it's already active
     local aura = RuneReader.GetPlayerAuraBySpellID(crimsonVialID)
@@ -844,7 +874,9 @@ function RuneReader:ShouldCastImpendingVictory()
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not IsSpellKnown(spellID) then return nil end
+
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
@@ -887,7 +919,8 @@ function RuneReader:ShouldCastPowerWordShield()
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not IsSpellKnown(spellID) then return nil end
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
@@ -912,8 +945,8 @@ function RuneReader:ShouldCastHealingSurge()
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
-
+    --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not IsSpellKnown(spellID) then return nil end
     -- Check for Maelstrom Weapon buff with 5+ stacks
     local aura = RuneReader.GetPlayerAuraBySpellID(344179) -- "Maelstrom Weapon"
     if not aura or (aura.applications or 0) < 5 then return nil end
@@ -935,14 +968,15 @@ function RuneReader:ShouldCastObsidianScales()
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
-    if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not IsSpellKnown(spellID) then return nil end
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
 
     -- Obsidian Scales has 2 charges — ensure at least one is usable
-    local charges, maxCharges, started, duration = GetSpellCharges(spellID)
-    if not charges or charges < 1 then return nil end
+    local charges = C_Spell.GetSpellCharges(spellID)
+    if not charges or charges.currentCharges < 1 then return nil end
 
     return spellID
 end
@@ -1148,3 +1182,15 @@ if not RuneReader.ActionBarSpellMapUpdater then
         RuneReader:BuildAllSpellbookSpellMap()
     end)
 end
+C_Timer.NewTicker(0.5, function()
+    local now = GetTime()
+    local health = UnitHealth("player")
+    table.insert(RuneReader.HealthHistory, { time = now, hp = health })
+
+    -- Keep only the last 5 seconds of data
+    for i = #RuneReader.HealthHistory, 1, -1 do
+        if now - RuneReader.HealthHistory[i].time > 5 then
+            table.remove(RuneReader.HealthHistory, i)
+        end
+    end
+end)
