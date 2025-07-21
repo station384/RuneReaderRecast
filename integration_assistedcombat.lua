@@ -85,6 +85,13 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if not SpellID then return RuneReader.Assisted_LastEncodedResult end
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID);
 
+    --#region Spell Exlude checks
+    if RuneReader:IsSpellExcluded(SpellID) then
+        SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
+        spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+    end
+    --#endregion
+
 
     -- Very dirty implementation.
     if RuneReaderRecastDB.UseInstantWhenMoving == true then

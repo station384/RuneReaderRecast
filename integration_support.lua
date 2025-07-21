@@ -265,6 +265,14 @@ function RuneReader:GetNextInstantCastSpell()
     end
 end
 
+function RuneReader:IsSpellExcluded(SpellID)
+    if SpellID == 198793 then
+        return true -- Exclude "Vengful Retreat" for all classes
+    elseif SpellID == 195072 then
+            return true -- Exclude "Felrush" for all classes
+    end
+    return false
+end
 
 --#region Druid Self Healing Functions
 function RuneReader:ShouldCastBearOrRegen()
