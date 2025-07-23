@@ -17,7 +17,7 @@ RuneReader.hekili_GenerationDelayTimeStamp = time()
 RuneReader.hekili_GenerationDelayAccumulator = 0
 RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
-
+ 
 function RuneReader:Hekili_RuneReaderEnv_hasSpell(tbl, x)
     for _, v in ipairs(tbl) do
         if v == x then return true end

@@ -13,6 +13,9 @@ encoding.lua
 keymapping.lua
 frames_spellicon.lua
 integration_support.lua
+Integration_Overrides_Healing.lua
+Integration_Overrides_Defensive.lua
+Integration_Overrides_Movement.lua
 integration_hekili.lua
 integration_assistedcombat.lua
 integration_ConRO.lua
