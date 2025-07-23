@@ -85,12 +85,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if not SpellID then return RuneReader.Assisted_LastEncodedResult end
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID);
 
-    --#region Spell Exlude checks
-    if RuneReader:IsSpellExcluded(SpellID) then
-        SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
-        spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-    end
-    --#endregion
+
 
 
     -- Very dirty implementation.
@@ -100,6 +95,15 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
             spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         end
     end
+
+
+    --#region Spell Exlude checks
+    if RuneReader:IsSpellExcluded(SpellID) then
+        SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
+        spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+    end
+    --#endregion
+
 
         --#region Should we self heal segment
     -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
