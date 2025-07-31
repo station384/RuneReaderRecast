@@ -71,7 +71,16 @@ function RuneReader:ShouldCastIronfur()
     local specID = GetSpecialization()
     if specID ~= 3 then return nil end -- Guardian
 
+    -- Only suggest if already in Bear Form (form index 1)
+    if GetShapeshiftForm() ~= 1 then
+        return nil
+    end
+
+
     local spellID = 192081 -- Ironfur
+
+
+
     local rage = UnitPower("player", Enum.PowerType.Rage)
     if rage < 60 then return nil end
 

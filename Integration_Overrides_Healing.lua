@@ -34,7 +34,7 @@ function RuneReader:ShouldCastBearOrRegen()
     -- Health check
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
-    if maxHealth == 0 or (health / maxHealth) > 0.70 then return nil end
+    if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
 
     -- Has Frenzied Regeneration talent?
     --if not RuneReader:HasTalentBySpellID(frenziedRegenID) then return nil end
@@ -96,7 +96,10 @@ function RuneReader:ShouldCastNaturesVigil()
 
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
-    if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
+    if RuneReader:GetHealthLostInLast5Seconds() < 0.10 and (health / maxHealth) > 0.60 then
+        return nil
+    end
+    -- if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end

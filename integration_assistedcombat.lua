@@ -257,9 +257,11 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
     local wait = 0
-
+local queueMS = tonumber(GetCVar("SpellQueueWindow")) or 50
+local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
-    (RuneReaderRecastDB.PrePressDelay or 0)
+    ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
+
     wait = sCurrentSpellCooldown.startTime - curTime
 
     wait = RuneReader:Clamp(wait, 0, 9.99)

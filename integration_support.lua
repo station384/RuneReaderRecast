@@ -47,6 +47,7 @@ RuneReader.ChanneledSpells = {
     [257044] = true, -- Rapid Fire
     [113656] = true, -- Fists of Fury
     [198590] = true, -- Drain Soul
+    [445468] = true, -- Unstable Affliction
 }
 
 RuneReader.MovementCastingBuffs = {
