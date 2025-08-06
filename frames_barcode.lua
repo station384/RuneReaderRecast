@@ -154,7 +154,7 @@ function RuneReader:CreateBarcodeWindow()
         RuneReader.C39FrameDelayAccumulator = 0
            RuneReader.lastC39EncodeResult = ""
            RuneReader.lastDisplayedC39Encode = ""
-    RuneReader:AddToInspector(220*50, "Value encoded Code39")
+ --   RuneReader:AddToInspector(220*50, "Value encoded Code39")
 
 
 end

@@ -87,6 +87,10 @@ end
 
 function RuneReader:SetSpellIconFrame(spellID, labelText)
     if not self.SpellIconFrame then return end
+    --print(labelText, spellID)
+    if labelText == nil then
+        labelText = "N/A"
+    end
 
     local data = C_Spell.GetSpellInfo(spellID)
     if data.iconID then

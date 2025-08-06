@@ -28,6 +28,8 @@ function RuneReader:ApplyConfig()
             RuneReader:CreateSpellIconFrame()
     elseif ConRO and cfgPerChar.HelperSource == 2 then
             RuneReader:CreateSpellIconFrame()
+    elseif MaxDps and cfgPerChar.HelperSource == 3 then
+            RuneReader:CreateSpellIconFrame()
 
     end
 
@@ -117,6 +119,7 @@ function RuneReader:CreateConfigPanel()
     if Hekili then table.insert(Data,"Hekili") else table.insert(Data,"Hekili N/A") end
     if C_AssistedCombat then table.insert(Data,"WoW Assisted Combat") else table.insert(Data,"WoW Assisted Combat N/A") end
     if ConRO then table.insert(Data,"ConRO") else table.insert(Data,"ConRO N/A") end
+    if MaxDps then table.insert(Data,"MaxDps") else table.insert(Data,"MaxDps N/A") end
     --Data = {"Hekili", "Assisted Combat"}
     AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 1)
 

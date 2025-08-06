@@ -233,12 +233,22 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         return RuneReader.Assisted_LastEncodedResult
     end
     local info = RuneReader.SpellbookSpellInfo[SpellID]
+   
     if not info then
         --        print ("RuneReader:AssistedCombat_UpdateValues - Spell ID not found in AssistedCombatSpellInfo. Building Spellbook Spell Map.")
         RuneReader:BuildAllSpellbookSpellMap()
         info = RuneReader.SpellbookSpellInfo[SpellID]
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
+
+    if info.hotkey or info.hotkey == "" then
+        info.hotkey = RuneReader.SpellbookSpellInfo[spellInfo1.spellID].hotkey or ""
+    end 
+    if not info.hotkey or info.hotkey == "" then
+        info.hotkey = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
+    end
+
+
     if RuneReader.SpellIconFrame then
         RuneReader:SetSpellIconFrame(SpellID, info.hotkey)
     end
@@ -257,7 +267,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
     local wait = 0
-local queueMS = tonumber(GetCVar("SpellQueueWindow")) or 50
+local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
 local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)

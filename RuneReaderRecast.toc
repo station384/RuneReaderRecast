@@ -20,6 +20,7 @@ Integration_Overrides_Excluded.lua
 integration_hekili.lua
 integration_assistedcombat.lua
 integration_ConRO.lua
+integration_MaxDps.lua
 frames_barcode.lua
 frames_qr.lua
 config_panel.lua

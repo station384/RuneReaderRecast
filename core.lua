@@ -82,6 +82,12 @@ function RuneReader:InitializeAddon()
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
+    elseif MaxDps and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+         RuneReader:CreateSpellIconFrame()
+         RuneReader:DestroySpellIconFrame()
+         RuneReader:CreateSpellIconFrame()
+         
+
     end
 
     addonInitalized =true

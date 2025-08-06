@@ -169,7 +169,7 @@ function RuneReader:Hekili_UpdateValues(mode)
     else
         RuneReader.hekili_inCombat = false
     end
-local queueMS = tonumber(GetCVar("SpellQueueWindow")) or 50
+local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
 local queueSec = queueMS / 1000
 
     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)

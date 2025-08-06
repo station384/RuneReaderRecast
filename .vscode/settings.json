@@ -45,7 +45,8 @@
         "PanelTemplates_EnableTab",
         "PanelTemplates_SetTab",
         "INVSLOT_FIRST_EQUIPPED",
-        "INVSLOT_LAST_EQUIPPED"
+        "INVSLOT_LAST_EQUIPPED",
+        "MaxDps"
     ],
     "Lua.type.weakUnionCheck": true
 }

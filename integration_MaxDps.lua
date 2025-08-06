@@ -7,31 +7,16 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.ConRO_haveUnitTargetAttackable = false
-RuneReader.ConRO_inCombat = false
-RuneReader.ConRO_lastSpell = 61304
-RuneReader.ConRO_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
-RuneReader.ConRO_GenerationDelayTimeStamp = time()
-RuneReader.ConRO_GenerationDelayAccumulator = 0
+RuneReader.MaxDps_haveUnitTargetAttackable = false
+RuneReader.MaxDps_inCombat = false
+RuneReader.MaxDps_lastSpell = 61304
+RuneReader.MaxDps_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
+RuneReader.MaxDps_GenerationDelayTimeStamp = time()
+RuneReader.MaxDps_GenerationDelayAccumulator = 0
 -- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
--- This just gets the first instant cast spell.
--- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
--- And cheating here..  Since I don't know.  I'll just use Combat Assist for help heh
--- function RuneReader:GetNextInstantCastSpell()
---     --Bring the functions local for execution.  improves speed. (LUA thing)
---     local spells = RuneReader.GetRotationSpells()
---     for index, value in ipairs(spells) do
---         local spellInfo = RuneReader.GetSpellInfo(value)
---         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
---         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
---             if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
---                 return value
---             end
---         end
---     end
--- end
 
-function RuneReader:CleanConROHotKey(HotKeyText)
+
+function RuneReader:CleanMaxDpsHotKey(HotKeyText)
     local keyText = HotKeyText
     if not keyText then keyText = "" end
     if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
@@ -41,25 +26,38 @@ function RuneReader:CleanConROHotKey(HotKeyText)
     end
 end
 
-function RuneReader:ConRO_UpdateValues(mode)
-    if not ConRO then return end --ConRO Doesn't exists just exit
+function RuneReader:MaxDps_GetSpell(item)
 
-    local mode = mode or 1
+   local result = nil
+   result = MaxDps.Spell or RuneReader.GetNextCastSpell(false)
+   local intCount = 1
+    for index, value in pairs(MaxDps.SpellsGlowing) do
+        if (intCount == item and value == 1) then
+            result = index
+        end
+        intCount = intCount + 1
+    end
+    return result
+end
 
-    RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator +
-    (time() - RuneReader.ConRO_GenerationDelayTimeStamp)
-    if RuneReader.ConRO_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
-        RuneReader.ConRO_GenerationDelayTimeStamp = time()
+function RuneReader:MaxDps_UpdateValues(mode)
+    if not MaxDps then return end --MaxDps Doesn't exists just exit
+
+    mode = mode or 1
+
+    RuneReader.MaxDps_GenerationDelayAccumulator = RuneReader.MaxDps_GenerationDelayAccumulator + (time() - RuneReader.MaxDps_GenerationDelayTimeStamp)
+    if RuneReader.MaxDps_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
+        RuneReader.MaxDps_GenerationDelayTimeStamp = time()
         return RuneReader.LastEncodedResult
     end
 
-    RuneReader.ConRO_GenerationDelayTimeStamp = time()
+    RuneReader.MaxDps_GenerationDelayTimeStamp = time()
 
     local curTime                             = RuneReader.GetTime()
     --    local _, _, _, latencyWorld = GetNetStats()
     local keyBind                             = ""
-    local SpellID                             = ConRO.SuggestedSpells[1]
-    if not SpellID then return nil end --sRuneReader.ConRO_LastEncodedResult end
+    local SpellID                             = RuneReader:MaxDps_GetSpell(1)
+    if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
 
 
 
@@ -72,10 +70,10 @@ function RuneReader:ConRO_UpdateValues(mode)
 
     if RuneReaderRecastDB.UseInstantWhenMoving == true then
         if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = ConRO.SuggestedSpells[2] or SpellID
+            SpellID    = RuneReader:MaxDps_GetSpell(2) or SpellID
         end
         if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = ConRO.SuggestedSpells[3] or SpellID
+            SpellID    = RuneReader:MaxDps_GetSpell(3) or SpellID
         end
         if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
             SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
@@ -87,9 +85,9 @@ function RuneReader:ConRO_UpdateValues(mode)
 
     --#region Spell Exlude checks
     if RuneReader:IsSpellExcluded(SpellID) then
-        SpellID = ConRO.SuggestedSpells[2] or SpellID
+        SpellID = RuneReader:MaxDps_GetSpell(2) or SpellID
         if RuneReader:IsSpellExcluded(SpellID) then
-            SpellID = ConRO.SuggestedSpells[3] or SpellID
+            SpellID = RuneReader:MaxDps_GetSpell(3) or SpellID
             if RuneReader:IsSpellExcluded(SpellID) then
                 SpellID = RuneReader:GetNextInstantCastSpell() or SpellID
             end
@@ -99,7 +97,7 @@ function RuneReader:ConRO_UpdateValues(mode)
 
 
     --#region Should we self heal segment
-    -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
+    -- MaxDps doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
     -- So we will add some.    I am starting with the druid for now.   More will be added later.
     if RuneReaderRecastDB.UseSelfHealing == true then
         -- Hunter Pet healing
@@ -211,7 +209,7 @@ function RuneReader:ConRO_UpdateValues(mode)
         RuneReader:SetSpellIconFrame(SpellID, keyBind)
     end
 
-    --  local timeShift, spellId, gcd = ConRO:EndCast("player")
+    
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
     local delay = (spellInfo1.castTime / 1000)
     local duration = sCurrentSpellCooldown.duration
@@ -221,8 +219,8 @@ function RuneReader:ConRO_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
 
     local wait = 0 --=timeShift
-local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
-local queueSec = (queueMS / 1000) 
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
+    local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
     wait = sCurrentSpellCooldown.startTime - curTime
@@ -246,7 +244,7 @@ local queueSec = (queueMS / 1000)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
-    local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo
+    local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo, 4 = MaxDps
     --Just playing around going to base36 encode the numbers to save space
     local combinedValues = mode
         .. '/B' .. bitMask
@@ -261,6 +259,6 @@ local queueSec = (queueMS / 1000)
 
     local full = combinedValues
 
-    RuneReader.ConRO_LastEncodedResult = full
+    RuneReader.MaxDps_LastEncodedResult = full
     return full
 end

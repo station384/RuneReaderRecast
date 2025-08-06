@@ -223,6 +223,10 @@ function RuneReader:GetUpdatedValues()
         fullResult = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
         -- print("from ConRo", fullResult)
         return fullResult
+    elseif MaxDps and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+        fullResult = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
+        -- print("from ConRo", fullResult)
+        return fullResult
     else
         -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
         fullResult = RuneReader:AssistedCombat_UpdateValues(1)
@@ -354,20 +358,12 @@ function RuneReader:BuildAllSpellbookSpellMap()
 
 
 
-
-
-
-
-
-
-
-                
- 
                 spellID = spellID or actionId
                 if spellID then
                     local sSpellInfo = RuneReader.GetSpellInfo(spellID)
                     local sSpellCoolDown = RuneReader.GetSpellCooldown(spellID)
                     local hotkey = RuneReader:GetHotkeyForSpell(spellID)
+                    
                     if (sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
                         RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =
                         {
@@ -376,9 +372,10 @@ function RuneReader:BuildAllSpellbookSpellMap()
                             castTime  = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
                             startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
                             hotkey    = hotkey,
-                            spellID   = (sSpellInfo and sSpellInfo.name),
+                            spellID   = (sSpellInfo and sSpellInfo.name) or spellID,
                         }
                     end
+
                     if (hotkey and hotkey ~= "") then
                         RuneReader.SpellbookSpellInfo[spellID] = {
                             name = (sSpellInfo and sSpellInfo.name or name) or "",

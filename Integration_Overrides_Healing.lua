@@ -191,10 +191,14 @@ function RuneReader:ShouldCastMendPet()
     -- Pet health must be ≤ 40%
     local health = UnitHealth("pet")
     local maxHealth = UnitHealthMax("pet")
+    local revivePet = 982  -- Retail spell ID for Revive Pet
+    if maxHealth == 0  then return revivePet end
+
     if maxHealth == 0 or (health / maxHealth) > 0.40 then return nil end
 
     -- Mend Pet spell info
     local mendPetID = 136  -- Retail spell ID for Mend Pet
+
 
     -- Check cooldown
     local cd = RuneReader.GetSpellCooldown(mendPetID)
