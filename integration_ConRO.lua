@@ -196,6 +196,7 @@ function RuneReader:ConRO_UpdateValues(mode)
     end
     --#endregion
      spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+     
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
     else
