@@ -93,6 +93,7 @@ function RuneReader:SetSpellIconFrame(spellID, labelText)
     end
 
     local data = C_Spell.GetSpellInfo(spellID)
+    if not data then return end
     if data.iconID then
         self.SpellIconFrame.Icon:SetTexture(data.iconID)
     else

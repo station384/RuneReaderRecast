@@ -42,7 +42,7 @@ end
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps then return end --MaxDps Doesn't exists just exit
-
+    if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return end
     mode = mode or 1
 
     RuneReader.MaxDps_GenerationDelayAccumulator = RuneReader.MaxDps_GenerationDelayAccumulator + (time() - RuneReader.MaxDps_GenerationDelayTimeStamp)
@@ -59,11 +59,9 @@ function RuneReader:MaxDps_UpdateValues(mode)
     local SpellID                             = RuneReader:MaxDps_GetSpell(1)
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
 
-
+    if not SpellID then SpellID = 0 end
 
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-
-
     --#region Check for fallback on movement
     -- Check if were moving,  if we are we can't cast a spell with a cast time.  So lets check if any are in queue that are instant cast and use that instead.
     -- This is a totally dumb segment,  it doesn't check for any conditions,  it just checks if the spell is instant cast and uses that.
@@ -219,7 +217,7 @@ function RuneReader:MaxDps_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
 
     local wait = 0 --=timeShift
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
     local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)

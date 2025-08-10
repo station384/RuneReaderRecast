@@ -43,7 +43,7 @@ end
 
 function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO then return end --ConRO Doesn't exists just exit
-
+    if RuneReaderRecastDBPerChar.HelperSource ~= 2 then return end
     local mode = mode or 1
 
     RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator +
@@ -56,10 +56,9 @@ function RuneReader:ConRO_UpdateValues(mode)
     RuneReader.ConRO_GenerationDelayTimeStamp = time()
 
     local curTime                             = RuneReader.GetTime()
-    --    local _, _, _, latencyWorld = GetNetStats()
     local keyBind                             = ""
     local SpellID                             = ConRO.SuggestedSpells[1]
-    if not SpellID then return nil end --sRuneReader.ConRO_LastEncodedResult end
+    if not SpellID then return nil end
 
 
 
@@ -222,8 +221,8 @@ function RuneReader:ConRO_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
 
     local wait = 0 --=timeShift
-local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
-local queueSec = (queueMS / 1000) 
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
+    local queueSec = (queueMS / 1000) 
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
     wait = sCurrentSpellCooldown.startTime - curTime

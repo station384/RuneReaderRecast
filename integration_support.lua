@@ -45,7 +45,6 @@ RuneReader.ChanneledSpells = {
     [740] = true,  -- Tranquility
     [205065] = true, -- Void Torrent
     [257044] = true, -- Rapid Fire
-    [113656] = true, -- Fists of Fury
     [198590] = true, -- Drain Soul
     [445468] = true, -- Unstable Affliction
 }
@@ -352,11 +351,6 @@ function RuneReader:BuildAllSpellbookSpellMap()
                         end
                     end
                 end
-
-
-
-
-
 
                 spellID = spellID or actionId
                 if spellID then

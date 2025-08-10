@@ -86,6 +86,10 @@ function RuneReader:InitializeAddon()
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
+    elseif Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+         RuneReader:CreateSpellIconFrame()
+         RuneReader:DestroySpellIconFrame()
+         RuneReader:CreateSpellIconFrame()
          
 
     end

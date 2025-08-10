@@ -68,6 +68,7 @@ RuneReader.Assisted_GenerationDelayAccumulator = 0
 
 
 function RuneReader:AssistedCombat_UpdateValues(mode)
+    if RuneReaderRecastDBPerChar.HelperSource ~= 1 then return end
     local mode = mode or 1
     RuneReader.Assisted_GenerationDelayAccumulator = RuneReader.Assisted_GenerationDelayAccumulator +
     (time() - RuneReader.Assisted_GenerationDelayTimeStamp)
@@ -267,8 +268,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
     local wait = 0
-local queueMS = tonumber(GetCVar("SpellQueueWindow") / 2) or 50
-local queueSec = queueMS / 1000
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
+    local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
 

@@ -30,6 +30,8 @@ function RuneReader:ApplyConfig()
             RuneReader:CreateSpellIconFrame()
     elseif MaxDps and cfgPerChar.HelperSource == 3 then
             RuneReader:CreateSpellIconFrame()
+    elseif Hekili and cfgPerChar.HelperSource == 0 then
+            RuneReader:CreateSpellIconFrame()
 
     end
 
