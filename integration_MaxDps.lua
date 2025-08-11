@@ -41,7 +41,7 @@ function RuneReader:MaxDps_GetSpell(item)
 end
 
 function RuneReader:MaxDps_UpdateValues(mode)
-    if not MaxDps then return end --MaxDps Doesn't exists just exit
+    if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
     if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return end
     mode = mode or 1
 

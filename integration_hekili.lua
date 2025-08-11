@@ -98,6 +98,19 @@ end
 
 
 function RuneReader:Hekili_UpdateValues(mode)
+    if not Hekili or not Hekili.baseName then return nil end
+
+    if not RuneReaderRecastDB.UpdateValuesDelay then
+        RuneReaderRecastDB.UpdateValuesDelay = 0.1 -- Default to 100ms
+    end
+
+    if not RuneReaderRecastDBPerChar then
+        RuneReaderRecastDBPerChar = {}
+    end
+
+    if not RuneReaderRecastDBPerChar.HelperSource then
+        RuneReaderRecastDBPerChar.HelperSource = 0 -- Default to Hekili
+    end
    local mode = mode or 0
 
     RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)

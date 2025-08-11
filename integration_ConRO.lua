@@ -42,7 +42,7 @@ function RuneReader:CleanConROHotKey(HotKeyText)
 end
 
 function RuneReader:ConRO_UpdateValues(mode)
-    if not ConRO then return end --ConRO Doesn't exists just exit
+    if not ConRO or not ConRO.Version then return nil end --ConRO Doesn't exists just exit
     if RuneReaderRecastDBPerChar.HelperSource ~= 2 then return end
     local mode = mode or 1
 

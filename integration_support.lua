@@ -214,15 +214,15 @@ end
 
 function RuneReader:GetUpdatedValues()
     local fullResult = ""
-    if Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+    if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
         fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
         --  print("from Hekili", fullResult)
         return fullResult
-    elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
+    elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
         fullResult = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
         -- print("from ConRo", fullResult)
         return fullResult
-    elseif MaxDps and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+    elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
         fullResult = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
         -- print("from ConRo", fullResult)
         return fullResult
