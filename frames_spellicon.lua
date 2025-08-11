@@ -91,7 +91,14 @@ function RuneReader:SetSpellIconFrame(spellID, labelText)
     if labelText == nil then
         labelText = "N/A"
     end
-
+    
+    if spellID == nil or spellID == 0 then
+        self.SpellIconFrame.Icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+        self.SpellIconFrame.Label:SetText(labelText or "")
+        self.SpellIconFrame.spellID = nil
+        return
+    end
+    
     local data = C_Spell.GetSpellInfo(spellID)
     if not data then return end
     if data.iconID then
