@@ -399,6 +399,7 @@ if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
+    RuneReader.ActionBarSpellMapUpdater:RegisterEvent("PLAYER_TALENT_UPDATE")
     RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", function()
         RuneReader:BuildAllSpellbookSpellMap()
     end)
