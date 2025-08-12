@@ -36,6 +36,7 @@ RuneReader.GetSpellBookItemType = C_SpellBook.GetSpellBookItemType
 RuneReader.GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
 --endregion
 
+-- Known channel Spells
 RuneReader.ChanneledSpells = {
     [5143] = true, -- Arcane Missiles
     [10] = true,   -- Blizzard
@@ -47,12 +48,18 @@ RuneReader.ChanneledSpells = {
     [257044] = true, -- Rapid Fire
     [198590] = true, -- Drain Soul
     [445468] = true, -- Unstable Affliction
+    --Evoker
+    [356995] = true,  -- Disintegrate
+    [357208] = true, -- Fire Breath
+    [359072] = true -- Eternity Surge
 }
 
+-- Known Auras that allow casting during movement
 RuneReader.MovementCastingBuffs = {
     [263725] = true, -- Clearcasting (Arcane)
     [79206] = true, -- Spiritwalker's Grace
     [108839] = true, -- Icy Floes
+    [358267] = true, -- Hover
 }
 
 
@@ -89,7 +96,7 @@ end
 
 
 function RuneReader:IsSpellIDInChanneling(SpellID)
-    if (RuneReader.ChanneledSpells[SpellID]) and RuneReader:IsMovementAllowedForChanneledSpell(SpellID) then
+    if RuneReader.ChanneledSpells[SpellID] and RuneReader:IsMovementAllowedForChanneledSpell(SpellID) then
         return false
     elseif (RuneReader.ChanneledSpells[SpellID]) then
         return true
@@ -204,7 +211,8 @@ function RuneReader:GetNextInstantCastSpell()
         local spellInfo = RuneReader.GetSpellInfo(value)
         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
-            if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
+            if spellInfo and (spellInfo.castTime == 0 and not RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
+       
                 return value
             end
         end
@@ -400,6 +408,7 @@ if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("PLAYER_TALENT_UPDATE")
+    RuneReader.ActionBarSpellMapUpdater:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
     RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", function()
         RuneReader:BuildAllSpellbookSpellMap()
     end)

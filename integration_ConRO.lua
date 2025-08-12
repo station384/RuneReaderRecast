@@ -217,20 +217,30 @@ function RuneReader:ConRO_UpdateValues(mode)
     local duration = sCurrentSpellCooldown.duration
 
 
+
+
     --  local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
-    if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
+    if duration == 0 or not duration then GCD = 0 end
+
+    local emportTime = 0
+    if (ConROEmpoweredFrame) and (SpellID == 357208 or SpellID == 359073)  then
+        local label = ConROEmpoweredFrame.font 
+        emportTime =  (label:GetText()-0.5   or 0)
+         duration = emportTime
+    end
+
 
     local wait = 0 --=timeShift
     local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
     local queueSec = (queueMS / 1000) 
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
-    wait = sCurrentSpellCooldown.startTime - curTime
 
 
 
-
-
+ wait = sCurrentSpellCooldown.startTime - curTime 
+--print ( "wait", wait, "duration", duration, "emportTime", emportTime)
+    
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
     --print (sCurrentSpellCooldown.duration,(spellInfo1.castTime/1000),wait)

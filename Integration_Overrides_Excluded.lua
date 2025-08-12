@@ -12,6 +12,8 @@ function RuneReader:IsSpellExcluded(SpellID)
         return true -- Exclude "Vengful Retreat" for all classes
     elseif SpellID == 195072 then
             return true -- Exclude "Felrush" for all classes
+    elseif SpellID == 433874 then
+            return true -- Exclude "Felrush" for all classes
     end
     return false
 end
