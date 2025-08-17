@@ -105,6 +105,11 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     end
     --#endregion
 
+    --#region Check if correct form is active
+if RuneReaderRecastDB.UseFormCheck == true then
+    SpellID    = RuneReader:ShouldEnterShadowform() or SpellID
+end
+--#endregion
 
         --#region Should we self heal segment
     -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
@@ -265,10 +270,10 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
 
 
-    if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
+    --if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
     -- Wait time until cooldown ends
     local wait = 0
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
+    local queueMS = tonumber(GetCVar("SpellQueueWindow")  ) or 50
     local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)

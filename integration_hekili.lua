@@ -174,8 +174,11 @@ function RuneReader:Hekili_UpdateValues(mode)
         --#endregion
 
 
-
-
+--#region Check if correct form is active
+if RuneReaderRecastDB.UseFormCheck == true then
+    SpellID    = RuneReader:ShouldEnterShadowform() or SpellID
+end
+--#endregion
 
 
         --#region Should we self heal segment

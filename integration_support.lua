@@ -51,7 +51,13 @@ RuneReader.ChanneledSpells = {
     --Evoker
     [356995] = true,  -- Disintegrate
     [357208] = true, -- Fire Breath
-    [359072] = true -- Eternity Surge
+    [359072] = true, -- Eternity Surge
+    --Druid
+    [190984] = true, --Wrath
+    [194153] = true, --Starfire
+    [8936] = true, -- Regrowth
+    [274281] = true, -- Moon
+    
 }
 
 -- Known Auras that allow casting during movement
@@ -392,6 +398,61 @@ function RuneReader:BuildAllSpellbookSpellMap()
             end
         end
     end
+end
+
+
+--[[
+    Function: ShouldEnterShadowform
+    Goal: If the player is a Shadow-spec Priest and NOT already in Shadowform,
+          recommend casting Shadowform (return its spellID). Otherwise return nil.
+
+    Notes:
+      - Uses C_UnitAuras to check the Shadowform aura by spellID first (localization-safe).
+      - Falls back to name-based lookup if the spellID aura isn't found.
+      - Uses same cooldown pattern as your other helpers.
+--]]
+function RuneReader:ShouldEnterShadowform()
+    -- Ensure player is a Priest
+    local _, class = UnitClass("player")
+    if class ~= "PRIEST" then return nil end
+
+    -- Ensure Shadow specialization (1=Disc, 2=Holy, 3=Shadow)
+    local specID = GetSpecialization()
+    if specID ~= 3 then return nil end
+
+    -- Shadowform spell (cast) ID. (Works fine in Retail.)
+    local SHADOWFORM_ID = 15473
+
+    -- Helper: is a spell ready to cast given your cooldown wrapper?
+    local function IsSpellReady(spellID)
+        if not spellID then return false end
+        local cd = RuneReader.GetSpellCooldown(spellID)
+        if not cd then return false end
+        if cd.startTime == 0 or cd.duration == 0 then return true end
+        return (cd.startTime + cd.duration - GetTime()) <= 0
+    end
+
+    -- 1) Check if Shadowform aura is already active by spellID (best/fastest).
+    local hasShadow = false
+    if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(SHADOWFORM_ID)
+        hasShadow = aura ~= nil
+    end
+
+    -- 2) Fallback: check by localized name (if ID-based check didn’t work).
+    if not hasShadow then
+        local info = C_Spell.GetSpellInfo(SHADOWFORM_ID)
+        if info and info.name and AuraUtil and AuraUtil.FindAuraByName then
+            hasShadow = AuraUtil.FindAuraByName(info.name, "player") ~= nil
+        end
+    end
+
+    -- If not in Shadowform and the spell is ready, recommend Shadowform.
+    if not hasShadow and IsSpellReady(SHADOWFORM_ID) then
+        return SHADOWFORM_ID
+    end
+
+    return nil
 end
 
 

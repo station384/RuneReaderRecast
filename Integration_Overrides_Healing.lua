@@ -156,23 +156,47 @@ end
 
 --#region Hunter Pet Self Healing Functions
 function RuneReader:ShouldCastRevivePet()
-    -- Only apply to hunters
+    -- Hunters only
     local _, class = UnitClass("player")
     if class ~= "HUNTER" then return nil end
 
-    -- Pet must exist and be dead
+    -- Spec gating:
+    -- 1 = Beast Mastery, 2 = Marksmanship, 3 = Survival
+    local specID = GetSpecialization()
+    if not specID then return nil end
+
+    -- If Marksmanship, only recommend if NOT using Lone Wolf (i.e., playing with pets)
+    if specID == 2 then
+        -- Lone Wolf passive (Marksmanship, "no pet" playstyle)
+        local LONE_WOLF_SPELLID = 155228  -- Passive spell; tweak if your build uses a different ID
+        local hasLoneWolf = IsPlayerSpell and IsPlayerSpell(LONE_WOLF_SPELLID)
+                           or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(LONE_WOLF_SPELLID))
+        if hasLoneWolf then
+            return nil
+        end
+        -- To gate by another tablet instead, invert this check:
+        -- local PET_TALENT_ID = 000000 -- TODO: set correct ID
+        -- local hasPetTalent = IsPlayerSpell(PET_TALENT_ID) or (C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(PET_TALENT_ID))
+        -- if not hasPetTalent then return nil end
+    else
+        -- BM (1) and Survival (3) are fine
+        if specID ~= 1 and specID ~= 3 then
+            return nil
+        end
+    end
+
+    -- Need a dead pet to revive
     if not UnitExists("pet") or not UnitIsDead("pet") then return nil end
 
-    local revivePetID = 982  -- Retail spell ID for Revive Pet
+    local revivePetID = 982 -- Revive Pet
 
-    -- Check cooldown
-    local cd = C_Spell.GetSpellCooldown(revivePetID)
+    -- Cooldown check
+    local cd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(revivePetID)
     if not cd or cd.startTime == 0 or cd.duration == 0 then
-        return revivePetID  -- Spell is ready
+        return revivePetID
     end
-    local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
-    -- Still on cooldown?
-    local remaining = cd.startTime + cd.duration - GetTime()
+
+    local remaining = (cd.startTime + cd.duration) - GetTime()
     if remaining <= 0 then
         return revivePetID
     end
@@ -181,32 +205,33 @@ function RuneReader:ShouldCastRevivePet()
 end
 
 function RuneReader:ShouldCastMendPet()
-    -- Only apply to hunters
     local _, class = UnitClass("player")
     if class ~= "HUNTER" then return nil end
 
-    -- Pet must exist and be alive
-    if not UnitExists("pet") or UnitIsDead("pet") then return nil end
+    local mendPetID = 136    -- Mend Pet
+    local revivePetID = 982  -- Revive Pet
 
-    -- Pet health must be ≤ 40%
+    -- If no pet or pet is dead, suggest revive
+    if not UnitExists("pet") or UnitIsDead("pet") then
+        local cd = RuneReader.GetSpellCooldown(revivePetID)
+        if cd and (cd.startTime == 0 or cd.duration == 0) then
+            return revivePetID
+        end
+        local remaining = cd.startTime + cd.duration - GetTime()
+        if remaining <= 0 then
+            return revivePetID
+        end
+        return nil
+    end
+
+    -- If pet is alive, check health threshold
     local health = UnitHealth("pet")
     local maxHealth = UnitHealthMax("pet")
-    local revivePet = 982  -- Retail spell ID for Revive Pet
-    if maxHealth == 0  then return revivePet end
+    if maxHealth == 0 or (health / maxHealth) > 0.80 then return nil end
 
-    if maxHealth == 0 or (health / maxHealth) > 0.40 then return nil end
-
-    -- Mend Pet spell info
-    local mendPetID = 136  -- Retail spell ID for Mend Pet
-
-
-    -- Check cooldown
+    -- Check cooldown for Mend Pet
     local cd = RuneReader.GetSpellCooldown(mendPetID)
-    if not cd or cd.startTime == 0 or cd.duration == 0 then
-        return mendPetID  -- Spell is ready to cast
-    end
-    --local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
-    -- Spell is on cooldown
+
     local remaining = cd.startTime + cd.duration - GetTime()
     if remaining <= 0 then
         return mendPetID
@@ -214,6 +239,7 @@ function RuneReader:ShouldCastMendPet()
 
     return nil
 end
+
 --#endregion
 
 --#region Hunter Self Healing Functions

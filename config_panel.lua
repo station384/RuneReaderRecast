@@ -145,8 +145,9 @@ function RuneReader:CreateConfigPanel()
      --  Settings.CreateCategory(category, "Engine Settings")
          AddCheckbox("UseInstantWhenMoving",         "Use Instant Cast When moving", "If char is moving instant cast spell will be preferered",      true)
          AddCheckbox("UseSelfHealing",         "Use Self-Heal", "If char is below 40% health they will attempt to self heal if available",      true)
+        AddCheckbox("UseUseFormCheck",         "Use Form check", "If char Has different forms suggest moving to that form (priest/shadow form etc)",      true)
 
-         AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
+    AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
 
 
 

@@ -82,7 +82,11 @@ function RuneReader:ConRO_UpdateValues(mode)
     end
     --#endregion
 
-
+--#region Check if correct form is active
+if RuneReaderRecastDB.UseFormCheck == true then
+    SpellID    = RuneReader:ShouldEnterShadowform() or SpellID
+end
+--#endregion
 
     --#region Spell Exlude checks
     if RuneReader:IsSpellExcluded(SpellID) then
