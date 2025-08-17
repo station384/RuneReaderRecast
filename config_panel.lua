@@ -78,14 +78,25 @@ function RuneReader:CreateConfigPanel()
         RuneReader:ApplyConfig()
     end
 
-    local function AddCheckbox(key, label, tooltip, default)
-        local setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
-        setting:SetValueChangedCallback(Config_OnChanged)
+    local function AddCheckbox(key, label, tooltip, default, Perchar)
+        local setting = {}
+        if (Perchar == 1 or not Perchar) then
+         setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
+        
+       else
+             setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
+       end
+       setting:SetValueChangedCallback(Config_OnChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
-    local function AddSlider(key, label, tooltip, default, min, max, step, format)
-        local setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
+    local function AddSlider(key, label, tooltip, default, min, max, step, format, Perchar)
+         local setting = {}
+         if (Perchar == 1 or not Perchar) then
+           setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
+         else
+           setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
+         end
         setting:SetValueChangedCallback(Config_OnChanged)
         local opts = Settings.CreateSliderOptions(min, max, step)
         opts:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right,
@@ -112,7 +123,6 @@ function RuneReader:CreateConfigPanel()
             end
             return container:GetData()
         end, tooltip)
-
     end
 
     -- Add all your controls
@@ -145,7 +155,7 @@ function RuneReader:CreateConfigPanel()
      --  Settings.CreateCategory(category, "Engine Settings")
          AddCheckbox("UseInstantWhenMoving",         "Use Instant Cast When moving", "If char is moving instant cast spell will be preferered",      true)
          AddCheckbox("UseSelfHealing",         "Use Self-Heal", "If char is below 40% health they will attempt to self heal if available",      true)
-        AddCheckbox("UseUseFormCheck",         "Use Form check", "If char Has different forms suggest moving to that form (priest/shadow form etc)",      true)
+        AddCheckbox("UseUseFormCheck",         "Use Form check", "If char Has different forms suggest moving to that form (priest/shadow form etc)",      true, 1)
 
     AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
 

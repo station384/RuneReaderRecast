@@ -175,9 +175,9 @@ function RuneReader:ShouldCastRevivePet()
             return nil
         end
         -- To gate by another tablet instead, invert this check:
-        -- local PET_TALENT_ID = 000000 -- TODO: set correct ID
-        -- local hasPetTalent = IsPlayerSpell(PET_TALENT_ID) or (C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(PET_TALENT_ID))
-        -- if not hasPetTalent then return nil end
+         local PET_TALENT_ID = 1223323 -- TODO: set correct ID
+         local hasPetTalent = IsPlayerSpell(PET_TALENT_ID) or (C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(PET_TALENT_ID))
+         if not hasPetTalent then return nil end
     else
         -- BM (1) and Survival (3) are fine
         if specID ~= 1 and specID ~= 3 then

@@ -175,7 +175,7 @@ function RuneReader:Hekili_UpdateValues(mode)
 
 
 --#region Check if correct form is active
-if RuneReaderRecastDB.UseFormCheck == true then
+if RuneReaderRecastDBPerChar.UseFormCheck == true then
     SpellID    = RuneReader:ShouldEnterShadowform() or SpellID
 end
 --#endregion
@@ -189,7 +189,7 @@ end
             -- print("Self Healding is enabled")
             
             --Hunter check
-            local ShouldHealPet = RuneReader:ShouldCastMendPet()
+           -- local ShouldHealPet = RuneReader:ShouldCastMendPet()
             local ShouldRevivePet = RuneReader:ShouldCastRevivePet()
             local ShouldCastExhilaration = RuneReader:ShouldCastExhilaration()
             --Druid check

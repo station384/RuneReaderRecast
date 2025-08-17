@@ -23,10 +23,11 @@ RuneReader.defaultConfig = {
     Code39Size = 40,
     UseInstantWhenMoving = true, -- Use instant cast spells when moving
     UseSelfHealing = true, -- Use self healing spells when available
-    UseFormCheck = true -- Check if the player is in the correct form for the spell
+
 }
 RuneReader.defaultConfigPerChar = {
-    HelperSource = 0 -- 0 =  Hekili, 1 = Commbat Assist, 2 = ConRO, 3 = MaxDps
+    HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist, 2 = ConRO, 3 = MaxDps
+        UseFormCheck = true -- Check if the player is in the correct form for the spell
 
 }
 

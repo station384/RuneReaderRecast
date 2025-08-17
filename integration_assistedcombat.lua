@@ -114,7 +114,7 @@ end
         --#region Should we self heal segment
     -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
     -- So we will add some.    I am starting with the druid for now.   More will be added later.
-    if RuneReaderRecastDB.UseSelfHealing == true then
+    if RuneReaderRecastDBPerChar.UseSelfHealing == true then
         -- Hunter Pet healing
         -- print("Self Healding is enabled")
         
