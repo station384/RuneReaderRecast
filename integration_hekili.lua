@@ -159,146 +159,29 @@ function RuneReader:Hekili_UpdateValues(mode)
     local delay = dataPacPrimary.delay
     local wait = dataPacPrimary.wait
    
-    -- Going to try and insert overrides I provide in recast
-      local  SpellID = dataPacPrimary.actionID or 0
-      local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-      -- print("SpellID", SpellID, "spellInfo1", spellInfo1.castTime)
-      if spellInfo1 then
+-- Going to try and insert overrides I provide in recast
+    local  SpellID = dataPacPrimary.actionID or 0
+    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+    -- print("SpellID", SpellID, "spellInfo1", spellInfo1.castTime)
+ 
 
-        --#region Check for fallback on movement
-        if RuneReaderRecastDB.UseInstantWhenMoving == true then
-            if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-                SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
-            end
-        end
-        --#endregion
+    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
 
-
---#region Check if correct form is active
-if RuneReaderRecastDBPerChar.UseFormCheck == true then
-    SpellID    = RuneReader:ShouldEnterShadowform() or SpellID
-end
---#endregion
-
-
-        --#region Should we self heal segment
-        -- ConRO doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
-        -- So we will add some.    I am starting with the druid for now.   More will be added later.
-        if RuneReaderRecastDB.UseSelfHealing == true then
-            -- Hunter Pet healing
-            -- print("Self Healding is enabled")
-            
-            --Hunter check
-           -- local ShouldHealPet = RuneReader:ShouldCastMendPet()
-            local ShouldRevivePet = RuneReader:ShouldCastRevivePet()
-            local ShouldCastExhilaration = RuneReader:ShouldCastExhilaration()
-            --Druid check
-            local ShouldBearHeal = RuneReader:ShouldCastBearOrRegen()
-            local ShouldCastRejuvenationIfNeeded = RuneReader:ShouldCastRejuvenationIfNeeded()
-            local ShouldCastIronfur = RuneReader:ShouldCastIronfur()
-            local ShouldCastNaturesVigil = RuneReader:ShouldCastNaturesVigil()
-            local ShouldCastBarkskin = RuneReader:ShouldCastBarkskin()
-            --Paladin check
-            local ShouldCastWordOfGlory = RuneReader:ShouldCastWordOfGlory()
-            --Death Knight check
-            local ShouldCastDeathStrike = RuneReader:ShouldCastDeathStrike()
-            local ShouldCastMarrowrend = RuneReader:ShouldCastMarrowrend()
-            local ShouldCastRuneTap = RuneReader:ShouldCastRuneTap()
-            --Mage check
-            local ShouldCastMageDefensive = RuneReader:ShouldCastMageDefensive()
-            --Monk check
-            local ShouldCastExpelHarm = RuneReader:ShouldCastExpelHarm()
-            local ShouldCastPurifyingBrew = RuneReader:ShouldCastPurifyingBrew()
-            local ShouldCastVivifyBrewmaster = RuneReader:ShouldCastVivifyBrewmaster()
-            local ShouldCastCelestialBrew = RuneReader:ShouldCastCelestialBrew()
-            -- Rogue check
-            local ShouldCastCrimsonVial = RuneReader:ShouldCastCrimsonVial()
-            -- Warrior check
-            local ShouldCastImpendingVictory = RuneReader:ShouldCastImpendingVictory()
-            local ShouldCastShieldBlock = RuneReader:ShouldCastShieldBlock()
-            -- Priest check
-            local ShouldCastPowerWordShield = RuneReader:ShouldCastPowerWordShield()
-            -- Shaman check
-            local ShouldCastHealingSurge = RuneReader:ShouldCastHealingSurge()
-            -- Evoker check
-            local ShouldCastObsidianScales = RuneReader:ShouldCastObsidianScales()
-
-
-
-
-
-            -- print("ShouldHealPet", ShouldHealPet, "ShouldRevivePet", ShouldRevivePet, "ShouldBearHeal", ShouldBearHeal)
-            if ShouldHealPet then
-                SpellID    = ShouldHealPet or SpellID
-            elseif ShouldRevivePet then
-                SpellID    = ShouldRevivePet or SpellID
-            elseif ShouldCastExhilaration then
-                SpellID    = ShouldCastExhilaration or SpellID
-            elseif ShouldBearHeal then
-                SpellID    = ShouldBearHeal or SpellID
-            elseif ShouldCastRejuvenationIfNeeded then
-                SpellID    = ShouldCastRejuvenationIfNeeded or SpellID
-            elseif ShouldCastWordOfGlory then
-                SpellID    = ShouldCastWordOfGlory or SpellID
-            elseif ShouldCastDeathStrike then
-                SpellID    = ShouldCastDeathStrike or SpellID
-            elseif ShouldCastMarrowrend then
-                SpellID = ShouldCastMarrowrend
-            elseif ShouldCastRuneTap then
-                SpellID = ShouldCastRuneTap
-            elseif ShouldCastMageDefensive then
-                SpellID    = ShouldCastMageDefensive or SpellID
-            elseif ShouldCastExpelHarm then
-                SpellID    = ShouldCastExpelHarm or SpellID
-            elseif ShouldCastCelestialBrew then
-                SpellID = ShouldCastCelestialBrew
-            elseif ShouldCastCrimsonVial then
-                SpellID    = ShouldCastCrimsonVial or SpellID
-            elseif ShouldCastImpendingVictory then
-                SpellID = ShouldCastImpendingVictory or SpellID
-            elseif ShouldCastShieldBlock then
-                SpellID = ShouldCastShieldBlock
-            elseif ShouldCastPowerWordShield then
-                SpellID = ShouldCastPowerWordShield or SpellID
-            elseif ShouldCastHealingSurge then
-                SpellID = ShouldCastHealingSurge or SpellID
-            elseif ShouldCastObsidianScales then
-                SpellID = ShouldCastObsidianScales or SpellID
-            elseif ShouldCastIronfur then
-                SpellID = ShouldCastIronfur or SpellID
-            elseif ShouldCastNaturesVigil then
-                SpellID = ShouldCastNaturesVigil or SpellID
-            elseif ShouldCastBarkskin then
-                SpellID = ShouldCastBarkskin or SpellID
-        elseif ShouldCastPurifyingBrew then
-                SpellID = ShouldCastPurifyingBrew or SpellID
-            elseif ShouldCastVivifyBrewmaster then
-                SpellID = ShouldCastVivifyBrewmaster or SpellID
-            end
-
-        end
-        --#endregion
         
-        if SpellID ~= dataPacPrimary.actionID then
-            local  spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-
-            if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
-                dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
-            else
-                if (RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
-                    dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
-                end
+    if SpellID ~= dataPacPrimary.actionID then
+        if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
+            dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
+        else
+            if (RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
+                dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
             end
-                dataPacPrimary.delay = 0
-                dataPacPrimary.wait = spellInfo1.castTime or 0
-                dataPacPrimary.keybind = nil
-                dataPacPrimary.actionID = SpellID
         end
+        dataPacPrimary.delay = 0
+        dataPacPrimary.wait = spellInfo1.castTime or 0
+        dataPacPrimary.keybind = nil
+        dataPacPrimary.actionID = SpellID
     end
-
-
-
-
+ 
 
     if wait == 0 then dataPacPrimary.exact_time = curTime end
 

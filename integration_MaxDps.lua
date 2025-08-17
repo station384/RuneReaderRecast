@@ -60,138 +60,13 @@ function RuneReader:MaxDps_UpdateValues(mode)
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
 
     if not SpellID then SpellID = 0 end
-
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-    --#region Check for fallback on movement
-    -- Check if were moving,  if we are we can't cast a spell with a cast time.  So lets check if any are in queue that are instant cast and use that instead.
-    -- This is a totally dumb segment,  it doesn't check for any conditions,  it just checks if the spell is instant cast and uses that.
-
-    if RuneReaderRecastDB.UseInstantWhenMoving == true then
-        if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = RuneReader:MaxDps_GetSpell(2) or SpellID
-        end
-        if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = RuneReader:MaxDps_GetSpell(3) or SpellID
-        end
-        if (spellInfo1.castTime > 0 or RuneReader:IsSpellIDInChanneling(SpellID)) and RuneReader:IsPlayerMoving() then
-            SpellID    = RuneReader:GetNextInstantCastSpell() or SpellID
-        end
-    end
-    --#endregion
 
 
 
-    --#region Spell Exlude checks
-    if RuneReader:IsSpellExcluded(SpellID) then
-        SpellID = RuneReader:MaxDps_GetSpell(2) or SpellID
-        if RuneReader:IsSpellExcluded(SpellID) then
-            SpellID = RuneReader:MaxDps_GetSpell(3) or SpellID
-            if RuneReader:IsSpellExcluded(SpellID) then
-                SpellID = RuneReader:GetNextInstantCastSpell() or SpellID
-            end
-        end
-    end
-    --#endregion
+    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
 
 
-    --#region Should we self heal segment
-    -- MaxDps doesn't have any self healing routines,  so we will just check if we are below 50% health and use a self heal if we are.
-    -- So we will add some.    I am starting with the druid for now.   More will be added later.
-    if RuneReaderRecastDB.UseSelfHealing == true then
-        -- Hunter Pet healing
-        -- print("Self Healding is enabled")
-        
-        --Hunter check
-        local ShouldHealPet = RuneReader:ShouldCastMendPet()
-        local ShouldRevivePet = RuneReader:ShouldCastRevivePet()
-        local ShouldCastExhilaration = RuneReader:ShouldCastExhilaration()
-        --Druid check
-        local ShouldBearHeal = RuneReader:ShouldCastBearOrRegen()
-        local ShouldCastRejuvenationIfNeeded = RuneReader:ShouldCastRejuvenationIfNeeded()
-        local ShouldCastIronfur = RuneReader:ShouldCastIronfur()
-        local ShouldCastNaturesVigil = RuneReader:ShouldCastNaturesVigil()
-        local ShouldCastBarkskin = RuneReader:ShouldCastBarkskin()
-        --Paladin check
-        local ShouldCastWordOfGlory = RuneReader:ShouldCastWordOfGlory()
-        --Death Knight check
-        local ShouldCastDeathStrike = RuneReader:ShouldCastDeathStrike()
-        local ShouldCastMarrowrend = RuneReader:ShouldCastMarrowrend()
-        local ShouldCastRuneTap = RuneReader:ShouldCastRuneTap()
-        --Mage check
-        local ShouldCastMageDefensive = RuneReader:ShouldCastMageDefensive()
-        --Monk check
-        local ShouldCastExpelHarm = RuneReader:ShouldCastExpelHarm()
-        local ShouldCastPurifyingBrew = RuneReader:ShouldCastPurifyingBrew()
-        local ShouldCastVivifyBrewmaster = RuneReader:ShouldCastVivifyBrewmaster()
-        local ShouldCastCelestialBrew = RuneReader:ShouldCastCelestialBrew()
-        -- Rogue check
-        local ShouldCastCrimsonVial = RuneReader:ShouldCastCrimsonVial()
-        -- Warrior check
-        local ShouldCastImpendingVictory = RuneReader:ShouldCastImpendingVictory()
-        local ShouldCastShieldBlock = RuneReader:ShouldCastShieldBlock()
-        -- Priest check
-        local ShouldCastPowerWordShield = RuneReader:ShouldCastPowerWordShield()
-        -- Shaman check
-        local ShouldCastHealingSurge = RuneReader:ShouldCastHealingSurge()
-        -- Evoker check
-        local ShouldCastObsidianScales = RuneReader:ShouldCastObsidianScales()
-
-
-
-
-
-        -- print("ShouldHealPet", ShouldHealPet, "ShouldRevivePet", ShouldRevivePet, "ShouldBearHeal", ShouldBearHeal)
-        if ShouldHealPet then
-            SpellID    = ShouldHealPet or SpellID
-        elseif ShouldRevivePet then
-            SpellID    = ShouldRevivePet or SpellID
-        elseif ShouldCastExhilaration then
-            SpellID    = ShouldCastExhilaration or SpellID
-        elseif ShouldBearHeal then
-            SpellID    = ShouldBearHeal or SpellID
-        elseif ShouldCastRejuvenationIfNeeded then
-            SpellID    = ShouldCastRejuvenationIfNeeded or SpellID
-        elseif ShouldCastWordOfGlory then
-            SpellID    = ShouldCastWordOfGlory or SpellID
-        elseif ShouldCastDeathStrike then
-            SpellID    = ShouldCastDeathStrike or SpellID
-        elseif ShouldCastMarrowrend then
-            SpellID = ShouldCastMarrowrend
-        elseif ShouldCastRuneTap then
-            SpellID = ShouldCastRuneTap
-        elseif ShouldCastMageDefensive then
-            SpellID    = ShouldCastMageDefensive or SpellID
-        elseif ShouldCastExpelHarm then
-            SpellID    = ShouldCastExpelHarm or SpellID
-        elseif ShouldCastCelestialBrew then
-            SpellID = ShouldCastCelestialBrew
-        elseif ShouldCastCrimsonVial then
-            SpellID    = ShouldCastCrimsonVial or SpellID
-        elseif ShouldCastImpendingVictory then
-            SpellID = ShouldCastImpendingVictory or SpellID
-        elseif ShouldCastShieldBlock then
-            SpellID = ShouldCastShieldBlock
-        elseif ShouldCastPowerWordShield then
-            SpellID = ShouldCastPowerWordShield or SpellID
-        elseif ShouldCastHealingSurge then
-            SpellID = ShouldCastHealingSurge or SpellID
-        elseif ShouldCastObsidianScales then
-            SpellID = ShouldCastObsidianScales or SpellID
-        elseif ShouldCastIronfur then
-            SpellID = ShouldCastIronfur or SpellID
-        elseif ShouldCastNaturesVigil then
-            SpellID = ShouldCastNaturesVigil or SpellID
-        elseif ShouldCastBarkskin then
-            SpellID = ShouldCastBarkskin or SpellID
-       elseif ShouldCastPurifyingBrew then
-            SpellID = ShouldCastPurifyingBrew or SpellID
-        elseif ShouldCastVivifyBrewmaster then
-            SpellID = ShouldCastVivifyBrewmaster or SpellID
-        end
-
-    end
-    --#endregion
-     spellInfo1 = RuneReader.GetSpellInfo(SpellID)
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
     else
@@ -199,6 +74,7 @@ function RuneReader:MaxDps_UpdateValues(mode)
             keyBind = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
       end
     end
+
 
 
 
@@ -229,7 +105,7 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
-    --print (sCurrentSpellCooldown.duration,(spellInfo1.castTime/1000),wait)
+
 
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(keyBind) -- 2 digits

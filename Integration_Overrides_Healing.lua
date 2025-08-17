@@ -155,90 +155,269 @@ end
 --#endregion
 
 --#region Hunter Pet Self Healing Functions
-function RuneReader:ShouldCastRevivePet()
-    -- Hunters only
-    local _, class = UnitClass("player")
-    if class ~= "HUNTER" then return nil end
+-- 
+-- Helper: check Lone Wolf for MM
+-- local function HasLoneWolf()
+--     local LONE_WOLF_SPELLID = 155228
+--     return (IsPlayerSpell and IsPlayerSpell(LONE_WOLF_SPELLID))
+--         or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(LONE_WOLF_SPELLID)) or false
+-- end
 
-    -- Spec gating:
-    -- 1 = Beast Mastery, 2 = Marksmanship, 3 = Survival
+-- -- Helper: pick a Call Pet spell that you know and is ready
+-- local function GetAvailableCallPetSpell()
+--     -- Call Pet 1..5
+--     local CALL_PET_IDS = { 883, 83242, 83243, 83244, 83245 }
+--     for _, sid in ipairs(CALL_PET_IDS) do
+--         local known = (IsPlayerSpell and IsPlayerSpell(sid))
+--                   or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(sid))
+--         if known then
+--             local cd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(sid)
+--             if not cd or cd.duration == 0 or cd.startTime == 0 then
+--                 return sid
+--             end
+--         end
+--     end
+--     return nil
+-- end
+
+-- function RuneReader:ShouldCastRevivePet()
+--     -- Hunters only
+--     local _, class = UnitClass("player")
+--     if class ~= "HUNTER" then return nil end
+
+--     -- Spec gating: 1 = BM, 2 = MM, 3 = SV
+--     local specID = GetSpecialization()
+--     if not specID then return nil end
+
+--     if specID == 2 then
+--         -- Marksmanship: do nothing if Lone Wolf is active (no-pet playstyle)
+--         if HasLoneWolf() then return nil end
+
+--         -- OPTIONAL: also require a “pet-enabled” talent if you want (replace with real ID)
+--         local PET_TALENT_ID = nil -- e.g., 123456 (set to your chosen talent or leave nil to skip)
+--         if PET_TALENT_ID then
+--             local hasPetTalent = (IsPlayerSpell and IsPlayerSpell(PET_TALENT_ID))
+--                               or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(PET_TALENT_ID))
+--             if not hasPetTalent then return nil end
+--         end
+--     else
+--         -- Only BM (1) and SV (3)
+--         if specID ~= 1 and specID ~= 3 then return nil end
+--     end
+
+--     -- If there is NO pet unit, it’s dismissed/missing. Prefer calling a pet, not reviving.
+--     if not UnitExists("pet") then
+--         return GetAvailableCallPetSpell() -- may return nil if none known/ready
+--     end
+
+--     -- If a pet exists but is dead, recommend Revive Pet.
+--     if UnitIsDead("pet") then
+--         local REVIVE_PET_ID = 982
+--         local cd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(REVIVE_PET_ID)
+--         if not cd or cd.duration == 0 or cd.startTime == 0 then
+--             return REVIVE_PET_ID
+--         end
+--         local remaining = (cd.startTime + cd.duration) - GetTime()
+--         if remaining <= 0 then
+--             return REVIVE_PET_ID
+--         end
+--         return nil
+--     end
+
+--     -- Pet exists and isn’t dead -> no revive needed.
+--     return nil
+-- end
+
+-- -- Helpers
+-- local function HasTalent(spellID)
+--     if not spellID then return false end
+--     return (IsPlayerSpell and IsPlayerSpell(spellID))
+--         or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(spellID)) or false
+-- end
+
+-- local function HasLoneWolf()
+--     local LONE_WOLF_SPELLID = 155228 -- MM "no-pet" playstyle
+--     return HasTalent(LONE_WOLF_SPELLID)
+-- end
+
+-- local function GetAvailableCallPetSpell()
+--     -- Call Pet 1..5
+--     local CALL_PET_IDS = { 883, 83242, 83243, 83244, 83245 }
+--     for _, sid in ipairs(CALL_PET_IDS) do
+--         if HasTalent(sid) then
+--             local cd = RuneReader.GetSpellCooldown and RuneReader.GetSpellCooldown(sid)
+--             if not cd or cd.startTime == 0 or cd.duration == 0 or ((cd.startTime + cd.duration - GetTime()) <= 0) then
+--                 return sid
+--             end
+--         end
+--     end
+--     return nil
+-- end
+
+-- function RuneReader:ShouldCastMendPet()
+--     local _, class = UnitClass("player")
+--     if class ~= "HUNTER" then return nil end
+
+--     -- Spec: 1=BM, 2=MM, 3=SV
+--     local specID = GetSpecialization()
+--     if not specID then return nil end
+
+--     -- Only return something if player actually uses/has pets.
+--     -- BM and SV always allow pets. MM requires "pet-enabled" (not Lone Wolf, or a specific pet talent).
+--     -- If you want to *require* a specific MM talent to allow pets, set PET_TALENT_ID to that spell ID.
+--     local PET_TALENT_ID = nil -- e.g., 123456; leave nil to just use Lone Wolf gating
+--     if specID == 2 then
+--         local mm_no_pet = HasLoneWolf() and (not PET_TALENT_ID or not HasTalent(PET_TALENT_ID))
+--         if mm_no_pet then return nil end
+--     elseif specID ~= 1 and specID ~= 3 then
+--         return nil
+--     end
+
+--     local mendPetID   = 136  -- Mend Pet (cast)
+--     local revivePetID = 982  -- Revive Pet
+
+--     -- If NO pet unit => dismissed/missing. Only suggest something if pet playstyle is allowed.
+--     if not UnitExists("pet") then
+--         -- Prefer calling a pet, not reviving
+--         return GetAvailableCallPetSpell()
+--     end
+
+--     -- If pet is dead => revive
+--     if UnitIsDead("pet") then
+--         local cd = RuneReader.GetSpellCooldown and RuneReader.GetSpellCooldown(revivePetID)
+--         if not cd or cd.startTime == 0 or cd.duration == 0 or ((cd.startTime + cd.duration - GetTime()) <= 0) then
+--             return revivePetID
+--         end
+--         return nil
+--     end
+
+--     -- Pet is alive: Mend if under threshold
+--     local health    = UnitHealth("pet")
+--     local maxHealth = UnitHealthMax("pet")
+--     if maxHealth == 0 or (health / maxHealth) >= 0.80 then return nil end
+
+--     local cd = RuneReader.GetSpellCooldown and RuneReader.GetSpellCooldown(mendPetID)
+--     if not cd or cd.startTime == 0 or cd.duration == 0 or ((cd.startTime + cd.duration - GetTime()) <= 0) then
+--         return mendPetID
+--     end
+
+--     return nil
+-- end
+
+-- =========================
+-- Shared config & helpers
+-- =========================
+
+local REVIVE_PET_ID = 982
+local MEND_PET_ID   = 136
+local CALL_PET_IDS  = { 883, 83242, 83243, 83244, 83245 } -- Call Pet 1..5
+
+-- OPTIONAL: if you want MM to require a specific “pet-enabled” talent, set this to that spell ID
+local PET_TALENT_ID = nil -- e.g., 123456; leave nil to disable this extra gate
+
+local function IsHunter()
+    local _, class = UnitClass("player")
+    return class == "HUNTER"
+end
+
+local function HasTalent(spellID)
+    if not spellID then return false end
+    return (IsPlayerSpell and IsPlayerSpell(spellID))
+        or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(spellID))
+        or false
+end
+
+local function HasLoneWolf()
+    local LONE_WOLF_SPELLID = 155228 -- Marksmanship “no pet” passive
+    return HasTalent(LONE_WOLF_SPELLID)
+end
+
+local function GetSpellCooldownSafe(spellID)
+    if C_Spell and C_Spell.GetSpellCooldown then
+        return C_Spell.GetSpellCooldown(spellID)
+    end
+    if RuneReader and RuneReader.GetSpellCooldown then
+        return RuneReader.GetSpellCooldown(spellID)
+    end
+    return nil
+end
+
+local function SpellReady(spellID)
+    local cd = GetSpellCooldownSafe(spellID)
+    if not cd then return true end                    -- assume ready if API not available
+    if cd.startTime == 0 or cd.duration == 0 then
+        return true
+    end
+    return (cd.startTime + cd.duration - GetTime()) <= 0
+end
+
+-- Single place to decide if this player *uses pets*.
+-- BM (1) & SV (3) always true. MM (2) only if not Lone Wolf and (optionally) has PET_TALENT_ID.
+local function UsesPets()
+    if not IsHunter() then return false end
     local specID = GetSpecialization()
-    if not specID then return nil end
+    if not specID then return false end
 
-    -- If Marksmanship, only recommend if NOT using Lone Wolf (i.e., playing with pets)
-    if specID == 2 then
-        -- Lone Wolf passive (Marksmanship, "no pet" playstyle)
-        local LONE_WOLF_SPELLID = 155228  -- Passive spell; tweak if your build uses a different ID
-        local hasLoneWolf = IsPlayerSpell and IsPlayerSpell(LONE_WOLF_SPELLID)
-                           or (C_Spell and C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(LONE_WOLF_SPELLID))
-        if hasLoneWolf then
-            return nil
-        end
-        -- To gate by another tablet instead, invert this check:
-         local PET_TALENT_ID = 1223323 -- TODO: set correct ID
-         local hasPetTalent = IsPlayerSpell(PET_TALENT_ID) or (C_Spell.IsSpellKnown and C_Spell.IsSpellKnown(PET_TALENT_ID))
-         if not hasPetTalent then return nil end
-    else
-        -- BM (1) and Survival (3) are fine
-        if specID ~= 1 and specID ~= 3 then
-            return nil
+    if specID == 1 or specID == 3 then
+        return true
+    elseif specID == 2 then
+        if HasLoneWolf() then return false end
+        if PET_TALENT_ID and not HasTalent(PET_TALENT_ID) then return false end
+        return true
+    end
+    return false
+end
+
+local function GetAvailableCallPetSpell()
+    for _, sid in ipairs(CALL_PET_IDS) do
+        if HasTalent(sid) and SpellReady(sid) then
+            return sid
         end
     end
+    return nil
+end
 
-    -- Need a dead pet to revive
+-- ==================================
+-- Separate, single-responsibility APIs
+-- ==================================
+
+-- 1) CALL PET: Only when pet is missing/dismissed (no unit)
+function RuneReader:ShouldCallPet()
+    if not UsesPets() then return nil end
+    if UnitExists("pet") then return nil end
+    return GetAvailableCallPetSpell()
+end
+
+-- 2) REVIVE PET: Only when pet exists and is dead
+function RuneReader:ShouldCastRevivePet()
+    if not UsesPets() then return nil end
     if not UnitExists("pet") or not UnitIsDead("pet") then return nil end
-
-    local revivePetID = 982 -- Revive Pet
-
-    -- Cooldown check
-    local cd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(revivePetID)
-    if not cd or cd.startTime == 0 or cd.duration == 0 then
-        return revivePetID
+    if SpellReady(REVIVE_PET_ID) then
+        return REVIVE_PET_ID
     end
-
-    local remaining = (cd.startTime + cd.duration) - GetTime()
-    if remaining <= 0 then
-        return revivePetID
-    end
-
     return nil
 end
 
+-- 3) MEND PET: Only when pet exists, is alive, and under health threshold
 function RuneReader:ShouldCastMendPet()
-    local _, class = UnitClass("player")
-    if class ~= "HUNTER" then return nil end
+    if not UsesPets() then return nil end
+    if not UnitExists("pet") or UnitIsDead("pet") then return nil end
 
-    local mendPetID = 136    -- Mend Pet
-    local revivePetID = 982  -- Revive Pet
-
-    -- If no pet or pet is dead, suggest revive
-    if not UnitExists("pet") or UnitIsDead("pet") then
-        local cd = RuneReader.GetSpellCooldown(revivePetID)
-        if cd and (cd.startTime == 0 or cd.duration == 0) then
-            return revivePetID
-        end
-        local remaining = cd.startTime + cd.duration - GetTime()
-        if remaining <= 0 then
-            return revivePetID
-        end
-        return nil
-    end
-
-    -- If pet is alive, check health threshold
-    local health = UnitHealth("pet")
+    local health    = UnitHealth("pet")
     local maxHealth = UnitHealthMax("pet")
-    if maxHealth == 0 or (health / maxHealth) > 0.80 then return nil end
+    if maxHealth == 0 then return nil end
 
-    -- Check cooldown for Mend Pet
-    local cd = RuneReader.GetSpellCooldown(mendPetID)
+    -- Heal if below 80% (tweak as desired)
+    if (health / maxHealth) >= 0.80 then return nil end
 
-    local remaining = cd.startTime + cd.duration - GetTime()
-    if remaining <= 0 then
-        return mendPetID
+    if SpellReady(MEND_PET_ID) then
+        return MEND_PET_ID
     end
-
     return nil
 end
+
+
+
 
 --#endregion
 

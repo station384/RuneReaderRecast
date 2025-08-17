@@ -455,6 +455,93 @@ function RuneReader:ShouldEnterShadowform()
     return nil
 end
 
+-- One-stop spell override: movement -> exclude -> form -> self-preservation
+function RuneReader:ResolveOverrides(SpellID)
+    -- fetch info safely
+    local function GetInfo(id)
+        return (RuneReader.GetSpellInfo and RuneReader.GetSpellInfo(id)) or {}
+    end
+
+    local spellInfo1 = GetInfo(SpellID)
+
+    -- ===== Movement: prefer instant while moving =====
+    if RuneReaderRecastDB and RuneReaderRecastDB.UseInstantWhenMoving == true then
+        local castTime = (spellInfo1.castTime or 0)
+        if (castTime > 0 or (self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(SpellID)))
+           and (self.IsPlayerMoving and self:IsPlayerMoving()) then
+            local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
+            if inst then
+                SpellID    = inst
+                spellInfo1 = GetInfo(SpellID)
+            end
+        end
+    end
+
+    -- ===== Exclude list: swap to next instant if excluded =====
+    if self.IsSpellExcluded and self:IsSpellExcluded(SpellID) then
+        local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
+        if inst then
+            SpellID    = inst
+            spellInfo1 = GetInfo(SpellID)
+        end
+    end
+
+    -- ===== Form check (e.g., Shadowform) =====
+    if RuneReaderRecastDB and RuneReaderRecastDB.UseFormCheck == true then
+        local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
+        if formSpell then
+            SpellID    = formSpell
+            spellInfo1 = GetInfo(SpellID)
+        end
+    end
+
+    -- ===== Self-preservation / defensives (priority order) =====
+    if RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.UseSelfHealing == true then
+        -- Priority list by function name; first non-nil wins.
+        local priority = {
+            "ShouldCastRevivePet",
+            "ShouldCallPet",
+            "ShouldCastMendPet",
+            "ShouldCastExhilaration",
+            "ShouldCastBearOrRegen",
+            "ShouldCastRejuvenationIfNeeded",
+            "ShouldCastWordOfGlory",
+            "ShouldCastDeathStrike",
+            "ShouldCastMarrowrend",
+            "ShouldCastRuneTap",
+            "ShouldCastMageDefensive",
+            "ShouldCastExpelHarm",
+            "ShouldCastCelestialBrew",
+            "ShouldCastCrimsonVial",
+            "ShouldCastImpendingVictory",
+            "ShouldCastShieldBlock",
+            "ShouldCastPowerWordShield",
+            "ShouldCastHealingSurge",
+            "ShouldCastObsidianScales",
+            "ShouldCastIronfur",
+            "ShouldCastNaturesVigil",
+            "ShouldCastBarkskin",
+            "ShouldCastPurifyingBrew",
+            "ShouldCastVivifyBrewmaster",
+        }
+
+        for _, fname in ipairs(priority) do
+            local fn = self[fname]
+            if type(fn) == "function" then
+                local id = fn(self)
+                if id then
+                    SpellID    = id
+                    spellInfo1 = GetInfo(SpellID)
+                    break
+                end
+            end
+        end
+    end
+
+    return SpellID, spellInfo1
+end
+
+
 
 if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater = CreateFrame("Frame")
