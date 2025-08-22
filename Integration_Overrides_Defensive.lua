@@ -25,26 +25,26 @@ function RuneReader:ShouldCastMageDefensive()
     local blazingBarrierID = 235313
     local prismaticBarrierID = 235450
 
-    local shieldID = nil
+    local spellID = nil
     if specID == 1 then       -- Arcane
-        shieldID = prismaticBarrierID
+        spellID = prismaticBarrierID
     elseif specID == 2 then   -- Fire
-        shieldID = blazingBarrierID
+        spellID = blazingBarrierID
     elseif specID == 3 then   -- Frost
-        shieldID = iceBarrierID
+        spellID = iceBarrierID
     else
         return nil -- Unknown spec
     end
-     if not IsSpellKnown(shieldID) then return nil end
+     if not  C_SpellBook.IsSpellKnown (spellID )  then return nil end
     -- Barrier: trigger at 50% health
     if healthPct <= 0.70  then
-        local aura = RuneReader.GetPlayerAuraBySpellID(shieldID)
+        local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
         if not aura then
-            local cd = C_Spell.GetSpellCooldown(shieldID)
+            local cd = C_Spell.GetSpellCooldown(spellID)
             --local GCD = RuneReader.GetSpellCooldown(61304).duration
             --print("Shield CD", cd and cd.startTime or "No CD")
             if cd and (cd.startTime <= 0 and (cd.startTime + cd.duration) <= GetTime()) then
-                return shieldID
+                return spellID
             end
         end
     end
@@ -133,7 +133,7 @@ function RuneReader:ShouldCastPowerWordShield()
     if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
     --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
-    if not IsSpellKnown(spellID) then return nil end
+    if not  C_SpellBook.IsSpellKnown (spellID )  then return nil end
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
@@ -157,7 +157,7 @@ function RuneReader:ShouldCastObsidianScales()
     if maxHealth == 0 or (health / maxHealth) > 0.50 then return nil end
 
     --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
-    if not IsSpellKnown(spellID) then return nil end
+    if not  C_SpellBook.IsSpellKnown (spellID )  then return nil end
 
     local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
     if aura then return nil end
