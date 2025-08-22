@@ -222,7 +222,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local wait = 0
 
     -- Pull the client SpellQueueWindow (ms) and convert to seconds; default to 50ms if missing
-    local queueMS  = tonumber(GetCVar("SpellQueueWindow")) or 50
+    local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
     local queueSec = queueMS / 1000
 
     -- Adjust the effective "start time" by duration, PrePressDelay, and the client queue window.

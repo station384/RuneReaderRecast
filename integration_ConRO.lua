@@ -92,7 +92,7 @@ function RuneReader:ConRO_UpdateValues(mode)
     end
 
     local wait = 0 --=timeShift
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") ) or 50
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
     local queueSec = (queueMS / 1000) 
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
 
