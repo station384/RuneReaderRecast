@@ -174,7 +174,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Base spell info (used before and after overrides)
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
-    -- Apply movement/exclude/form/self-preservation overrides in priority via your unified wrapper
+    -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
     SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
 
     -- ======================
