@@ -232,6 +232,7 @@ function RuneReader:ShouldCallPet()
     if not UsesPets() then return nil end
     if UnitExists("pet") then return nil end
 
+
     return GetAvailableCallPetSpell()
 end
 
@@ -239,7 +240,7 @@ end
 function RuneReader:ShouldCastRevivePet()
     if not UsesPets() then return nil end
     if  UnitExists("pet") and ( UnitHealth("pet") >= 1) then return nil end
-    --if  UnitHealth("pet") >= 1 then return nil end -- Pet is alive, no need to revive
+    if  UnitIsDead("pet") == false then return nil end -- Pet is alive, no need to revive
 
     if SpellReady(REVIVE_PET_ID) then
         return REVIVE_PET_ID
