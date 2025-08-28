@@ -57,6 +57,8 @@ RuneReader.ChanneledSpells = {
     [194153] = true, --Starfire
     [8936] = true, -- Regrowth
     [274281] = true, -- Moon
+    --Hunter
+    [982] = true -- Revive Pet
     
 }
 

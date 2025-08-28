@@ -231,8 +231,6 @@ end
 function RuneReader:ShouldCallPet()
     if not UsesPets() then return nil end
     if UnitExists("pet") then return nil end
-
-
     return GetAvailableCallPetSpell()
 end
 
@@ -265,9 +263,6 @@ function RuneReader:ShouldCastMendPet()
     end
     return nil
 end
-
-
-
 
 --#endregion
 
