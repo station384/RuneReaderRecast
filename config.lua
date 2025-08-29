@@ -27,7 +27,8 @@ RuneReader.defaultConfig = {
 }
 RuneReader.defaultConfigPerChar = {
     HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist, 2 = ConRO, 3 = MaxDps
-        UseFormCheck = true -- Check if the player is in the correct form for the spell
+    UseFormCheck = true, -- Check if the player is in the correct form for the spell
+    UseGlobalCooldowns = true, -- NEW: allow major cooldowns by default
 
 }
 

@@ -32,8 +32,12 @@ function RuneReader:ApplyConfig()
             RuneReader:CreateSpellIconFrame()
     elseif Hekili and cfgPerChar.HelperSource == 0 then
             RuneReader:CreateSpellIconFrame()
-
     end
+    
+    if RuneReader.RefreshCooldownButton then
+            RuneReader:RefreshCooldownButton()
+    end
+    
 
 
       if cfg.BarCodeMode == 0 then
@@ -155,7 +159,8 @@ function RuneReader:CreateConfigPanel()
      --  Settings.CreateCategory(category, "Engine Settings")
          AddCheckbox("UseInstantWhenMoving",         "Use Instant Cast When moving", "If char is moving instant cast spell will be preferered",      true)
          AddCheckbox("UseSelfHealing",         "Use Self-Heal", "If char is below 40% health they will attempt to self heal if available",      true)
-        AddCheckbox("UseUseFormCheck",         "Use Form check", "If char Has different forms suggest moving to that form (priest/shadow form etc)",      true, 1)
+        AddCheckbox("UseFormCheck",         "Use Form check", "If char Has different forms suggest moving to that form (priest/shadow form etc)",      true, 1)
+        AddCheckbox("UseGlobalCooldowns",         "Use Major Cooldowns", "Allow major cooldowns to be suggested by default",      true, 1)
 
     AddCheckbox("DEBUG",         "Enable Debug Mode", "Toggle debug logging",      false)
 

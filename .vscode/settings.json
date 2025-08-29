@@ -47,7 +47,8 @@
         "INVSLOT_FIRST_EQUIPPED",
         "INVSLOT_LAST_EQUIPPED",
         "MaxDps",
-        "ConROEmpoweredFrame"
+        "ConROEmpoweredFrame",
+        "Add"
     ],
     "Lua.type.weakUnionCheck": true
 }

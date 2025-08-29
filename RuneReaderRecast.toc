@@ -25,5 +25,6 @@ frames_barcode.lua
 frames_qr.lua
 config_panel.lua
 frames_devtools_actionbars.lua
+bindings.lua
 core.lua
 
