@@ -148,7 +148,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
       spellInfo1 = newSpellInfo1
     end
 
-
+--print("AssistedCombat_UpdateValues: SpellID=", SpellID, " Name=", spellInfo1 and spellInfo1.name or "nil")
 
 
     -- ======================
