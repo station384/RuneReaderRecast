@@ -11,8 +11,7 @@ RuneReader.MaxDps_haveUnitTargetAttackable = false
 RuneReader.MaxDps_inCombat = false
 RuneReader.MaxDps_lastSpell = 61304
 RuneReader.MaxDps_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
-RuneReader.MaxDps_GenerationDelayTimeStamp = time()
-RuneReader.MaxDps_GenerationDelayAccumulator = 0
+
 -- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
 
@@ -42,16 +41,9 @@ end
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
-    if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return end
+    if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return nil end
     mode = mode or 1
 
-    RuneReader.MaxDps_GenerationDelayAccumulator = RuneReader.MaxDps_GenerationDelayAccumulator + (time() - RuneReader.MaxDps_GenerationDelayTimeStamp)
-    if RuneReader.MaxDps_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
-        RuneReader.MaxDps_GenerationDelayTimeStamp = time()
-        return RuneReader.LastEncodedResult
-    end
-
-    RuneReader.MaxDps_GenerationDelayTimeStamp = time()
 
     local curTime                             = RuneReader.GetTime()
     --    local _, _, _, latencyWorld = GetNetStats()
@@ -64,7 +56,7 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
 
 
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
+    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
 
 
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
@@ -78,10 +70,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
 
 
-
-    if RuneReader.SpellIconFrame then
-        RuneReader:SetSpellIconFrame(SpellID, keyBind)
-    end
 
     
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
@@ -134,5 +122,5 @@ function RuneReader:MaxDps_UpdateValues(mode)
     local full = combinedValues
 
     RuneReader.MaxDps_LastEncodedResult = full
-    return full
+    return full, SpellID, keyBind
 end

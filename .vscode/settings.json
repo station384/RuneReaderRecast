@@ -48,7 +48,8 @@
         "INVSLOT_LAST_EQUIPPED",
         "MaxDps",
         "ConROEmpoweredFrame",
-        "Add"
+        "Add",
+        "TooltipUtil"
     ],
     "Lua.type.weakUnionCheck": true
 }

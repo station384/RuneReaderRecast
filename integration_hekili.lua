@@ -99,32 +99,21 @@ end
 
 function RuneReader:Hekili_UpdateValues(mode)
     if not Hekili or not Hekili.baseName then return nil end
+    if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
 
-    if not RuneReaderRecastDB.UpdateValuesDelay then
-        RuneReaderRecastDB.UpdateValuesDelay = 0.1 -- Default to 100ms
-    end
-
-    if not RuneReaderRecastDBPerChar then
-        RuneReaderRecastDBPerChar = {}
-    end
-
-    if not RuneReaderRecastDBPerChar.HelperSource then
-        RuneReaderRecastDBPerChar.HelperSource = 0 -- Default to Hekili
-    end
    local mode = mode or 0
 
-    RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
-    if RuneReader.hekili_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay  then
-        RuneReader.hekili_GenerationDelayTimeStamp = time()
-        return RuneReader.hekili_LastEncodedResult
-    end
+    -- RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
+    -- if RuneReader.hekili_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay  then
+    --     RuneReader.hekili_GenerationDelayTimeStamp = time()
+    --     return RuneReader.hekili_LastEncodedResult
+    -- end
 
-    RuneReader.hekili_GenerationDelayTimeStamp = time()
+    -- RuneReader.hekili_GenerationDelayTimeStamp = time()
 
     if not Hekili_GetRecommendedAbility then return end
 
     local curTime = GetTime()
-    local _, _, _, latencyWorld = GetNetStats()
 
     local dataPacPrimary = RuneReader:Hekili_GetRecommendedAbilityPrimary( 1)
     local dataPacNext = RuneReader:Hekili_GetRecommendedAbilityPrimary(2)
@@ -165,7 +154,7 @@ function RuneReader:Hekili_UpdateValues(mode)
     -- print("SpellID", SpellID, "spellInfo1", spellInfo1.castTime)
  
 
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
+    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
 
         
     if SpellID ~= dataPacPrimary.actionID then
@@ -231,9 +220,7 @@ else
 end
 
 
-    if RuneReader.SpellIconFrame then
-        RuneReader:SetSpellIconFrame(dataPacPrimary.actionID, key)
-    end
+
 
  local keytranslate = RuneReader:RuneReaderEnv_translateKey(key )  -- 2 digits
 
@@ -265,5 +252,5 @@ end
     local fullResult = combinedValues --.. checkDigit
     RuneReader.hekili_LastEncodedResult = fullResult
 
-    return fullResult
+    return fullResult, dataPacPrimary.actionID, key
 end

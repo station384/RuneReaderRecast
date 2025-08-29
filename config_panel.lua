@@ -47,6 +47,7 @@ function RuneReader:ApplyConfig()
         -- This is needed because the frame may not be created yet when the addon is loaded.  
         RuneReader:CreateBarcodeWindow()
     end
+    
     if cfg.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.Assisted_LastEncodedResult)
         if success then

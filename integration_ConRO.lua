@@ -43,17 +43,18 @@ end
 
 function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO or not ConRO.Version then return nil end --ConRO Doesn't exists just exit
-    if RuneReaderRecastDBPerChar.HelperSource ~= 2 then return end
+
+    if RuneReaderRecastDBPerChar.HelperSource ~= 2 then return nil end
     local mode = mode or 1
 
-    RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator +
-    (time() - RuneReader.ConRO_GenerationDelayTimeStamp)
-    if RuneReader.ConRO_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
-        RuneReader.ConRO_GenerationDelayTimeStamp = time()
-        return RuneReader.LastEncodedResult
-    end
+    -- RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator +
+    -- (time() - RuneReader.ConRO_GenerationDelayTimeStamp)
+    -- if RuneReader.ConRO_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
+    --     RuneReader.ConRO_GenerationDelayTimeStamp = time()
+    --     return RuneReader.LastEncodedResult
+    -- end
 
-    RuneReader.ConRO_GenerationDelayTimeStamp = time()
+    -- RuneReader.ConRO_GenerationDelayTimeStamp = time()
 
     local curTime                             = RuneReader.GetTime()
     local keyBind                             = ""
@@ -62,7 +63,7 @@ function RuneReader:ConRO_UpdateValues(mode)
 
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
+    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
      
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
@@ -72,9 +73,7 @@ function RuneReader:ConRO_UpdateValues(mode)
       end
     end
 
-    if RuneReader.SpellIconFrame then
-        RuneReader:SetSpellIconFrame(SpellID, keyBind)
-    end
+
 
     --  local timeShift, spellId, gcd = ConRO:EndCast("player")
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
@@ -128,5 +127,5 @@ function RuneReader:ConRO_UpdateValues(mode)
     local full = combinedValues
 
     RuneReader.ConRO_LastEncodedResult = full
-    return full
+    return full, SpellID, keyBind
 end

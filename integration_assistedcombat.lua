@@ -12,28 +12,12 @@
 
 RuneReader = RuneReader or {}
 RuneReader.AssistedCombatSpellInfo = RuneReader.AssistedCombatSpellInfo or {}
-RuneReader.lastAssistedSpell = nil
 RuneReader.Assisted_LastEncodedResult = "1,B0,W0001,K00"
-RuneReader.Assisted_GenerationDelayTimeStamp = time()
-RuneReader.Assisted_GenerationDelayAccumulator = 0
 
 
 
--- This just gets the first instant cast spell.  
--- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
--- function RuneReader:AssistedCombat_GetNextInstantCastSpell()
---     --Bring the functions local for execution.  improves speed. (LUA thing)
---     local spells = RuneReader.GetRotationSpells()
---     for index, value in ipairs(spells) do
---         local spellInfo = RuneReader.GetSpellInfo(value)
---         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
---         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
---             if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
---                 return value
---             end
---         end
---     end
--- end
+
+
 
 
 
@@ -144,51 +128,43 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Default mode to 1 if nil was passed
     local mode = mode or 1
 
-    -- ============================
-    -- Throttle / generation timing
-    -- ============================
-    -- Accumulate elapsed time since last generation
-    RuneReader.Assisted_GenerationDelayAccumulator =
-        RuneReader.Assisted_GenerationDelayAccumulator + (time() - RuneReader.Assisted_GenerationDelayTimeStamp)
-
-    -- If we're still within the configured delay window, update the timestamp and return the cached result
-    if RuneReader.Assisted_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay then
-        RuneReader.Assisted_GenerationDelayTimeStamp = time()
-        return RuneReader.Assisted_LastEncodedResult
-    end
-
-    -- Passed the throttle: reset the timestamp for this generation cycle
-    RuneReader.Assisted_GenerationDelayTimeStamp = time()
-
-    --   local _, _, _, latencyWorld = GetNetStats()  -- (kept as-is per request)
-
     -- ======================
     -- Candidate spell & time
     -- ======================
     local curTime = RuneReader.GetTime()                       -- monotonic "now" from addon helper
     local SpellID = RuneReader.GetNextCastSpell(false)         -- next spell suggestion from source
-
     -- If no spell is available, do not generate a new payload
-    if not SpellID then return RuneReader.Assisted_LastEncodedResult end
+--    if not SpellID then return RuneReader.Assisted_LastEncodedResult end
 
     -- Base spell info (used before and after overrides)
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
     -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID)
+    local newSpellID, newSpellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
+    
+
+    if newSpellID ~= SpellID then
+      SpellID = newSpellID
+      spellInfo1 = newSpellInfo1
+    end
+
+
+
 
     -- ======================
     -- Spellbook metadata map
     -- ======================
     -- Validate spellbook mapping for this spell; rebuild map on-demand if missing
     if not (RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].spellID) then
-        return RuneReader.Assisted_LastEncodedResult
+     -- print ("Missing spellbook metadata for spellID:", SpellID)
+       return RuneReader.Assisted_LastEncodedResult
     end
     local info = RuneReader.SpellbookSpellInfo[SpellID]
 
     if not info then
         RuneReader:BuildAllSpellbookSpellMap()
         info = RuneReader.SpellbookSpellInfo[SpellID]
+      -- print ("Rebuilt spellbook map for spellID:", SpellID)
         if not info then return RuneReader.Assisted_LastEncodedResult end
     end
 
@@ -204,12 +180,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         info.hotkey = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
     end
 
-    -- ======================
-    -- Optional icon update
-    -- ======================
-    if RuneReader.SpellIconFrame then
-        RuneReader:SetSpellIconFrame(SpellID, info.hotkey)
-    end
+
 
     -- ======================
     -- Cooldown & wait window
@@ -272,7 +243,9 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Cache and return
     --print("RuneReader:AssistedCombat_UpdateValues - Full Encoded Result: ", full)
     RuneReader.Assisted_LastEncodedResult = full
-    return full
+    
+
+    return full, SpellID, info.hotkey
 end
 
 

@@ -71,6 +71,210 @@ RuneReader.MovementCastingBuffs = {
 }
 
 
+
+
+-- Due to the way wow handles cooldowns it will not show the cooldown of a spell till it has fired.
+-- But it does report the max cooldown in the tooltip.  so we are going to try and create a defered process that updates out spell cooldowns
+-- with the one found in the tooltip.
+-- Prefer C_TooltipInfo (doesn't require showing a GameTooltip)
+RuneReader.CooldownFromTooltipCache = RuneReader.CooldownFromTooltipCache or {}
+RuneReader._tipQueue, RuneReader._tipQueued = {}, {}
+
+-- Extract readable text from a C_TooltipInfo line without SurfaceArgs.
+local function RR_ExtractLineText(line)
+    if not line then return nil end
+    local resultText = ""
+    -- Some builds already expose line.leftText; grab it if present.
+    if type(line.leftText) == "string" and line.leftText ~= "" then
+        resultText = line.leftText
+    end
+
+    -- Some expose rightText too.
+    if type(line.rightText) == "string" and line.rightText ~= "" then
+        resultText = resultText .. " " .. line.rightText
+    end
+
+    if resultText ~= "" then
+        return resultText
+    end
+
+    -- Otherwise dig through the raw args for a stringVal.
+    if type(line.args) == "table" then
+        for _, a in ipairs(line.args) do
+            if a and type(a.stringVal) == "string" and a.stringVal ~= "" then
+             
+                return a.stringVal
+            end
+        end
+    end
+    return nil
+end
+
+-- Robust, version-safe cooldown reader (no TooltipUtil.SurfaceArgs).
+local function RR_TooltipCooldownSync(spellID)
+    if not spellID then return 0 end
+    local best = 0
+
+    -- 1) Modern tooltip API path (no SurfaceArgs required).
+    if C_TooltipInfo and C_TooltipInfo.GetSpellByID then
+        local data = C_TooltipInfo.GetSpellByID(spellID)
+        if data and type(data.lines) == "table" then
+            for _, line in ipairs(data.lines) do
+                local t = RR_ExtractLineText(line)
+                if t and t:find("ooldown") then -- match "Cooldown"/"cooldown" etc.
+                    local s = t:lower()
+                    local h = tonumber(s:match("(%d+)%s*hour")) or 0
+                    local m = tonumber(s:match("(%d+)%s*min"))  or 0
+                    local sec = tonumber(s:match("(%d+)%s*sec")) or 0
+                    best = math.max(best, h * 3600 + m * 60 + sec)
+                end
+            end
+        end
+    end
+    if best > 0 then
+           --         print("Tooltip CD read (API):", spellID, best)
+        return best
+    end
+
+    -- -- 2) Fallback: hidden GameTooltip scan (works everywhere).
+    -- if not RuneReader._coolTip then
+    --     RuneReader._coolTip = CreateFrame("GameTooltip", "RuneReader_ColdScanTip", UIParent, "GameTooltipTemplate")
+    --     RuneReader._coolTip:SetOwner(UIParent, "ANCHOR_NONE")
+    -- end
+    -- local tip = RuneReader._coolTip
+    -- tip:ClearLines()
+    -- tip:SetSpellByID(spellID)
+
+    -- for i = 1, tip:NumLines() do
+    --     local fs = _G["RuneReader_ColdScanTipTextLeft"..i]
+    --     if fs then
+    --         local t = fs:GetText()
+    --         if t and t:find("ooldown") then
+    --             local s = t:lower()
+    --             local h = tonumber(s:match("(%d+)%s*hour")) or 0
+    --             local m = tonumber(s:match("(%d+)%s*min"))  or 0
+    --             local sec = tonumber(s:match("(%d+)%s*sec")) or 0
+    --             best = math.max(best, h * 3600 + m * 60 + sec)
+    --         end
+    --     end
+    -- end
+
+    return best
+end
+
+RuneReader._tipQueue = RuneReader._tipQueue or {}           -- array of spellIDs
+RuneReader._tipState = RuneReader._tipState or {}           -- [spellID] = { queued=true, tries=0, next=0 }
+RuneReader._tipTicker = RuneReader._tipTicker or nil
+
+local TICK_INTERVAL = 0.10   -- seconds between passes
+local BUDGET        = 10     -- spells per tick
+local MAX_TRIES     = 12     -- ~ progressively up to ~ a few seconds
+local MAX_BACKOFF   = 8.0    -- seconds
+
+local function RR_Schedule(id, delay)
+    local st = RuneReader._tipState[id]
+    if not st then
+        st = { queued = true, tries = 0, next = 0 }
+        RuneReader._tipState[id] = st
+        table.insert(RuneReader._tipQueue, id)
+    end
+    st.next = GetTime() + (delay or 0)
+end
+
+local function RR_StartTipRunner()
+    if RuneReader._tipTicker then return end
+    RuneReader._tipTicker = C_Timer.NewTicker(TICK_INTERVAL, function()
+        local now = GetTime()
+        local processed = 0
+        local q = RuneReader._tipQueue
+        local st = RuneReader._tipState
+
+        -- rotate through the queue, but only process 'due' items
+        local n = #q
+        if n == 0 then
+            -- stop runner when empty
+            RuneReader._tipTicker:Cancel()
+            RuneReader._tipTicker = nil
+            return
+        end
+
+        local i = 1
+        while i <= n and processed < BUDGET do
+            local id = q[i]
+            local s = st[id]
+            if not s then
+                table.remove(q, i)
+                n = n - 1
+            elseif s.next <= now then
+                -- due: attempt a scan
+                table.remove(q, i)
+                n = n - 1
+
+                if RuneReader.CooldownFromTooltipCache[id] == nil then
+                    local tipSec = RR_TooltipCooldownSync(id)  -- your reader; returns 0 if not ready
+                    if tipSec and tipSec > 0 then
+                        RuneReader.CooldownFromTooltipCache[id] = tipSec
+                        -- Update maps if present
+                        local info = RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[id]
+                        if info then info.cooldown = tipSec end
+                        if RuneReader.SpellbookSpellInfoByName and info and info.name then
+                            local byName = RuneReader.SpellbookSpellInfoByName[info.name]
+                            if byName then byName.cooldown = tipSec end
+                        end
+                        st[id] = nil -- done
+                    else
+                        -- backoff and try again later
+                        s.tries = (s.tries or 0) + 1
+                        if s.tries <= MAX_TRIES then
+                            local backoff = math.min(0.25 * (2 ^ (s.tries - 1)), MAX_BACKOFF)
+                            RR_Schedule(id, backoff)
+                        else
+                            -- give up for this session; keep whatever provisional cooldown we had
+                            st[id] = nil
+                        end
+                    end
+                else
+                    st[id] = nil -- already cached elsewhere; remove
+                end
+
+                processed = processed + 1
+            else
+                -- not due yet: rotate to end and continue
+                table.remove(q, i)
+                q[#q + 1] = id
+                -- i not incremented; same position, new id
+            end
+        end
+
+        -- stop runner if queue drained
+        if #q == 0 then
+            RuneReader._tipTicker:Cancel()
+            RuneReader._tipTicker = nil
+        end
+    end)
+end
+
+-- Public: queue a spellID for tooltip cooldown discovery (idempotent)
+local function RR_QueueTooltipCooldown(spellID)
+    if not spellID then return end
+    if RuneReader.CooldownFromTooltipCache[spellID] ~= nil then return end
+    if RuneReader._tipState[spellID] then return end
+    RR_Schedule(spellID, 0)
+    RR_StartTipRunner()
+end
+
+-- Call this when talents/spells change (before rebuilding the map)
+function RuneReader:InvalidateTooltipCooldowns()
+    wipe(self.CooldownFromTooltipCache)
+    -- stop any active runner & clear pending work
+    if self._tipTicker then self._tipTicker:Cancel(); self._tipTicker = nil end
+    wipe(self._tipQueue)
+    wipe(self._tipState)
+end
+
+
+
+
 function RuneReader:HasTalentBySpellID(spellID)
     local configID = C_ClassTalents.GetActiveConfigID()
     if not configID then return false end
@@ -212,42 +416,58 @@ function RuneReader:GetPlayerHealthPct()
 end
 
 
+-- This kinda works.    Not perfect but should catch most cases.
 function RuneReader:GetNextInstantCastSpell()
     --Bring the functions local for execution.  improves speed. (LUA thing)
     local spells = RuneReader.GetRotationSpells()
     for index, value in ipairs(spells) do
-        local spellInfo = RuneReader.GetSpellInfo(value)
+   --     print("GetNextInstantCastSpell: Checking spellID=", value)
+        local spellInfo = C_Spell.GetSpellInfo(value)
         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
-        if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
-            if spellInfo and (spellInfo.castTime == 0 and not RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
-       
-                return value
+        if RuneReader.SpellbookSpellInfo[value] ~= nil then
+            if  RuneReader.SpellbookSpellInfo[value].enabled == true  then
+                -- Calling IsMajorCooldown here is kinda breaking the abstraction layer but we need to filter out major cooldowns here.
+                -- Have to fix this on a refactor.
+                if (C_Spell.IsSpellHarmful(value) == true) then
+                    if (C_Spell.IsSpellUsable(value) == true) then
+                       -- print ("CastTime", spellInfo.castTime, "IsChanneling", RuneReader:IsSpellIDInChanneling(value), "Duration", sCurrentSpellCooldown.duration, "SpellID", value, "name", spellInfo.name)
+                        if  (spellInfo.castTime == 0 and  RuneReader:IsSpellIDInChanneling(value) == false)  then
+                            if (sCurrentSpellCooldown.duration == 0) then
+                                if RuneReaderRecastDBPerChar.UseGlobalCooldowns == true then
+                                    return value
+                                elseif RuneReader:IsMajorCooldown(value) == false then
+                                    return value
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
     end
+    return 0
 end
+
+
 
 
 function RuneReader:GetUpdatedValues()
     local fullResult = ""
+    local SpellID = 0
+    local hotkey = ""
     if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
-        fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
-        --  print("from Hekili", fullResult)
-        return fullResult
+         fullResult, SpellID, hotkey = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
     elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
-        fullResult = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
-        -- print("from ConRo", fullResult)
-        return fullResult
+         fullResult, SpellID, hotkey = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
     elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
-        fullResult = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
-        -- print("from ConRo", fullResult)
-        return fullResult
+         fullResult, SpellID, hotkey = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
     else
         -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
-        fullResult = RuneReader:AssistedCombat_UpdateValues(1)
-        --   print("from Combat Assist", fullResult)
+        fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
     end
-
+    if RuneReader.SpellIconFrame then
+        RuneReader:SetSpellIconFrame(SpellID, hotkey)
+    end
     return fullResult
 end
 
@@ -314,7 +534,8 @@ function RuneReader:BuildAllSpellbookSpellMap()
                 castTime = 0,
                 startTime = startTime or 0,
                 hotkey = "(Equipped Slot " .. slotID .. ")",
-                icon = itemIcon
+                icon = itemIcon,
+                enabled   =  true
             }
         end
     end
@@ -342,27 +563,35 @@ function RuneReader:BuildAllSpellbookSpellMap()
                                 local sSpellCoolDown = RuneReader.GetSpellCooldown(spellID)
                                 local hotkey = RuneReader:GetHotkeyForSpell(spellID)
 
+                                local baseMS = GetSpellBaseCooldown and GetSpellBaseCooldown(spellID)
+                                local base   = (baseMS and baseMS > 0) and (baseMS/1000) or 0
+                                local curDur = (sSpellCoolDown and sSpellCoolDown.duration) or 0
+                                local cooldownSec = base > 0 and base or curDur
+
                                 if sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "" then
                                     RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] = {
                                         name = sSpellInfo.name,
-                                        cooldown = sSpellCoolDown and sSpellCoolDown.duration or 0,
+                                        cooldown = cooldownSec,--sSpellCoolDown and sSpellCoolDown.duration or 0,
                                         castTime = (sSpellInfo.castTime or 0) / 1000,
                                         startTime = sSpellCoolDown and sSpellCoolDown.startTime or 0,
                                         hotkey = hotkey,
-                                        spellID = spellID
+                                        spellID = sSpellInfo.spellID or spellID,
+                                        enabled   = (C_Spell.IsSpellDisabled(spellID)) or true
                                     }
                                 end
 
                                 if hotkey and hotkey ~= "" then
                                     RuneReader.SpellbookSpellInfo[spellID] = {
                                         name = sSpellInfo and sSpellInfo.name or spellName or ("Flyout Spell " .. slot),
-                                        cooldown = sSpellCoolDown and sSpellCoolDown.duration or 0,
+                                        cooldown = cooldownSec,--sSpellCoolDown and sSpellCoolDown.duration or 0,
                                         castTime = (sSpellInfo.castTime or 0) / 1000,
                                         startTime = sSpellCoolDown and sSpellCoolDown.startTime or 0,
                                         hotkey = hotkey,
-                                        spellID = spellID
+                                        spellID = sSpellInfo.spellID or spellID,
+                                        enabled   = (C_Spell.IsSpellDisabled(spellID)) or true
                                     }
                                 end
+                                RR_QueueTooltipCooldown(spellID)
                             end
                         end
                     end
@@ -373,29 +602,37 @@ function RuneReader:BuildAllSpellbookSpellMap()
                     local sSpellInfo = RuneReader.GetSpellInfo(spellID)
                     local sSpellCoolDown = RuneReader.GetSpellCooldown(spellID)
                     local hotkey = RuneReader:GetHotkeyForSpell(spellID)
-                    
+                    local baseMS = GetSpellBaseCooldown and GetSpellBaseCooldown(spellID)
+                    local base   = (baseMS and baseMS > 0) and (baseMS/1000) or 0
+                    local curDur = (sSpellCoolDown and sSpellCoolDown.duration) or 0
+                    local cooldownSec = base > 0 and base or curDur
+
+
                     if (sSpellInfo and sSpellInfo.name and hotkey and hotkey ~= "") then
                         RuneReader.SpellbookSpellInfoByName[sSpellInfo.name] =
                         {
                             name      = (sSpellInfo and sSpellInfo.name) or "",
-                            cooldown  = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                            cooldown  = cooldownSec,--(sSpellCoolDown and sSpellCoolDown.duration) or 0,
                             castTime  = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
                             startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
                             hotkey    = hotkey,
                             spellID   = (sSpellInfo and sSpellInfo.name) or spellID,
+                            enabled   = (C_Spell.IsSpellDisabled(spellID)) or true
                         }
                     end
 
                     if (hotkey and hotkey ~= "") then
                         RuneReader.SpellbookSpellInfo[spellID] = {
                             name = (sSpellInfo and sSpellInfo.name or name) or "",
-                            cooldown = (sSpellCoolDown and sSpellCoolDown.duration) or 0,
+                            cooldown = cooldownSec,--(sSpellCoolDown and sSpellCoolDown.duration) or 0,
                             castTime = (sSpellInfo and sSpellInfo.castTime / 1000) or 0,
                             startTime = (sSpellCoolDown and sSpellCoolDown.startTime) or 0,
                             hotkey = hotkey,
-                            spellID = spellID
+                            spellID = spellID,
+                            enabled   = (C_Spell.IsSpellDisabled(spellID)) or true
                         }
                     end
+                    RR_QueueTooltipCooldown(spellID)
                 end
             end
         end
@@ -458,33 +695,48 @@ function RuneReader:ShouldEnterShadowform()
 end
 
 -- One-stop spell override: movement -> exclude -> form -> self-preservation
-function RuneReader:ResolveOverrides(SpellID)
+function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
+    local newSpellID = SpellID
     -- fetch info safely
     local function GetInfo(id)
         return (RuneReader.GetSpellInfo and RuneReader.GetSpellInfo(id)) or {}
     end
 
-    local spellInfo1 = GetInfo(SpellID)
+    local spellInfo1 = GetInfo(newSpellID)
+
+
+    -- ===== Major cooldown filter (per-character toggle) =====
+    if RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.UseGlobalCooldowns == false then
+        if self.IsMajorCooldown and RuneReader.GetNextNonMajorSpell then
+            if self:IsMajorCooldown(newSpellID) then
+                local alt = self:GetNextNonMajorSpell(newSpellID, suggestedQueue)
+                if alt then
+                    newSpellID    = alt
+                    spellInfo1 = GetInfo(newSpellID)
+                end
+            end
+        end
+    end
 
     -- ===== Movement: prefer instant while moving =====
     if RuneReaderRecastDB and RuneReaderRecastDB.UseInstantWhenMoving == true then
         local castTime = (spellInfo1.castTime or 0)
-        if (castTime > 0 or (self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(SpellID)))
+        if (castTime > 0 or (self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)))
            and (self.IsPlayerMoving and self:IsPlayerMoving()) then
             local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
             if inst then
-                SpellID    = inst
-                spellInfo1 = GetInfo(SpellID)
+                newSpellID    = inst
+                spellInfo1 = GetInfo(newSpellID)
             end
         end
     end
 
     -- ===== Exclude list: swap to next instant if excluded =====
-    if self.IsSpellExcluded and self:IsSpellExcluded(SpellID) then
+    if self.IsSpellExcluded and self:IsSpellExcluded(newSpellID) then
         local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
         if inst then
-            SpellID    = inst
-            spellInfo1 = GetInfo(SpellID)
+            newSpellID    = inst
+            spellInfo1 = GetInfo(newSpellID)
         end
     end
 
@@ -492,8 +744,8 @@ function RuneReader:ResolveOverrides(SpellID)
     if RuneReaderRecastDB and RuneReaderRecastDB.UseFormCheck == true then
         local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
         if formSpell then
-            SpellID    = formSpell
-            spellInfo1 = GetInfo(SpellID)
+            newSpellID    = formSpell
+            spellInfo1 = GetInfo(newSpellID)
         end
     end
 
@@ -532,15 +784,16 @@ function RuneReader:ResolveOverrides(SpellID)
             if type(fn) == "function" then
                 local id = fn(self)
                 if id then
-                    SpellID    = id
-                    spellInfo1 = GetInfo(SpellID)
+                    newSpellID    = id
+                    spellInfo1 = GetInfo(newSpellID)
                     break
                 end
             end
         end
     end
+--print("Final SpellID", SpellID, spellInfo1 and spellInfo1.name)
 
-    return SpellID, spellInfo1
+    return newSpellID, spellInfo1
 end
 
 
@@ -560,6 +813,16 @@ if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("PLAYER_TALENT_UPDATE")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
     RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", function()
+    RuneReader.SpellbookSpellInfo = {}
+    RuneReader.SpellbookSpellInfoByName = {}
         RuneReader:BuildAllSpellbookSpellMap()
     end)
+
+    RuneReader.ActionBarSpellMapInvalidator = CreateFrame("Frame")
+    RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("SPELLS_CHANGED")
+    RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("PLAYER_TALENT_UPDATE")
+    RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
+            RuneReader:InvalidateTooltipCooldowns()
+
+
 end

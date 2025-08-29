@@ -11,6 +11,14 @@ RuneReader = RuneReader or {}
 function RuneReader:ToggleUseGlobalCooldowns()
     if not RuneReaderRecastDBPerChar then return end
     RuneReaderRecastDBPerChar.UseGlobalCooldowns = not RuneReaderRecastDBPerChar.UseGlobalCooldowns
+    -- Hekili has its own toggle event  lets fire it.
+    if Hekili then
+        if RuneReaderRecastDBPerChar.UseGlobalCooldowns then
+            Hekili:FireToggle( "cooldowns", "on" )
+        else
+            Hekili:FireToggle( "cooldowns", "off" )
+        end
+    end
     self:RefreshCooldownButton()
 end
 
