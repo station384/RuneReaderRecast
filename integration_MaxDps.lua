@@ -39,18 +39,21 @@ local function MaxDps_GetSpell(item)
     return result
 end
 
-local function MaxDps_GetNextMajorCooldown()
+ local function MaxDps_GetNextMajorCooldown(spellID)
  for key, isEnabled in pairs(MaxDps.Flags) do
+
     if isEnabled  then
-        if RuneReader:IsMajorCooldown(key)    then
+        if C_Spell.IsSpellHarmful(key) then  -- Dont really need this for MaxDPS.  lets let it figure it out.
+             --   print ("MaxDps Flag", key, isEnabled)
             return key
         end
     end
  end
- return nil
+-- print("MaxDps No Major Cooldown Found")
+ return spellID
 end
 
-local function MaxDps_GetAlwaysUseMajorCooldowns()
+local function MaxDps_GetAlwaysUseMajorCooldowns(spellID)
  for key, isEnabled in pairs(MaxDps.Flags) do
     if isEnabled  then
         if RuneReader:IsMajorCooldownAlwaysUse(key)    then
@@ -58,10 +61,23 @@ local function MaxDps_GetAlwaysUseMajorCooldowns()
         end
     end
  end
- return nil
+ return spellID
 end
 
-
+local function MaxDps_GetKeyBind(spellID)
+    if not spellID then return nil end
+    if not MaxDps.Spells then return nil end
+    local keyBind = ""
+    for key, value in pairs(MaxDps.Spells) do
+        if key == spellID  and value[1].HotKey then
+            keyBind = value[1].HotKey:GetText()
+            keyBind = CleanMaxDpsHotKey(keyBind)
+            -- print("MaxDps KeyBind for ", spellID, " is ", keyBind)
+            break
+        end
+    end 
+    return keyBind
+end
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
@@ -72,16 +88,15 @@ function RuneReader:MaxDps_UpdateValues(mode)
     local curTime                             = RuneReader.GetTime()
     local keyBind                             = ""
     local SpellID                             = MaxDps_GetSpell(1)
-    if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
+
 
     --MaxDps does not automaticly handle major cooldown spells.   
     -- Take them into account here and stub them in if there ready and we have the setting to use them
     if RuneReaderRecastDBPerChar.UseGlobalCooldowns then
-       SpellID =  MaxDps_GetNextMajorCooldown() or SpellID
+        SpellID =  MaxDps_GetNextMajorCooldown(SpellID)
     end
-    
-    SpellID = MaxDps_GetAlwaysUseMajorCooldowns() or SpellID
-
+    SpellID = MaxDps_GetAlwaysUseMajorCooldowns(SpellID) 
+    if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
 
 
 
@@ -90,7 +105,12 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
     SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
 
+-- try and use MaxDPS go get our keybind first
+    keyBind = MaxDps_GetKeyBind(SpellID)
 
+
+
+-- Don't have a keybind so lets fall back on our parse.
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
     else

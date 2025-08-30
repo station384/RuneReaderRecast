@@ -513,36 +513,36 @@ local function RR_CallProvider(self, P)
   return "", 0, ""
 end
 
-function RuneReader:GetUpdatedValues()
-  local _, P = self:PickProvider()
-  local fullResult, SpellID, hotkey = RR_CallProvider(self, P)
-
-  if self.SpellIconFrame then
-    self:SetSpellIconFrame(SpellID, hotkey)
-  end
-  return fullResult
-end
-
-
 -- function RuneReader:GetUpdatedValues()
---     local fullResult = ""
---     local SpellID = 0
---     local hotkey = ""
---     if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
---          fullResult, SpellID, hotkey = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
---     elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
---          fullResult, SpellID, hotkey = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
---     elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
---          fullResult, SpellID, hotkey = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
---     else
---         -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
---         fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
---     end
---     if RuneReader.SpellIconFrame then
---         RuneReader:SetSpellIconFrame(SpellID, hotkey)
---     end
---     return fullResult
+--   local _, P = self:PickProvider()
+--   local fullResult, SpellID, hotkey = RR_CallProvider(self, P)
+
+--   if self.SpellIconFrame then
+--     self:SetSpellIconFrame(SpellID, hotkey)
+--   end
+--   return fullResult
 -- end
+
+
+function RuneReader:GetUpdatedValues()
+    local fullResult = ""
+    local SpellID = 0
+    local hotkey = ""
+    if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+         fullResult, SpellID, hotkey = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
+    elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
+         fullResult, SpellID, hotkey = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
+    elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+         fullResult, SpellID, hotkey = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
+    else
+        -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
+        fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
+    end
+    if RuneReader.SpellIconFrame then
+        RuneReader:SetSpellIconFrame(SpellID, hotkey)
+    end
+    return fullResult
+end
 
 function RuneReader:GetActionBindingKey(page, slot, slotIndex)
     local actionType, id = RuneReader.GetActionInfo(slotIndex)

@@ -11,18 +11,11 @@ RuneReader.MajorCooldownExceptions = {
 function RuneReader:IsMajorCooldown(spellID)
     if not spellID then return false end
 
-    if RuneReader.MajorCooldownExceptions[spellID] then return false end 
+    if RuneReader.MajorCooldownExceptions[spellID] == nil then return false end
+    if RuneReader.SpellbookSpellInfo[spellID].cooldown == nil then return false end
 
     local cd = 0
-    --if RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[spellID] then
-        cd = tonumber(RuneReader.SpellbookSpellInfo[spellID].cooldown) --or 0
-      --  print("IsMajorCooldown: spellID=", spellID, " cooldown=", cd)
-    --end
-    -- safety net: fall back to base cooldown if the map entry is missing
-    -- if cd == 0 and GetSpellBaseCooldown then
-    --     local ms = GetSpellBaseCooldown(spellID)
-    --     if ms and ms > 0 then cd = ms / 1000 end
-    -- end
+    cd = tonumber(RuneReader.SpellbookSpellInfo[spellID].cooldown) --or 0
     return cd > (RuneReader.MajorCooldownThreshold or 30)
 end
 

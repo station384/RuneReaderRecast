@@ -18,14 +18,14 @@ RuneReader.hekili_GenerationDelayAccumulator = 0
 RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
  
-function RuneReader:Hekili_RuneReaderEnv_hasSpell(tbl, x)
+local function Hekili_RuneReaderEnv_hasSpell(tbl, x)
     for _, v in ipairs(tbl) do
         if v == x then return true end
     end
     return false
 end
 
-function RuneReader:Hekili_GetRecommendedAbilityPrimary(index)
+local function Hekili_GetRecommendedAbilityPrimary(index)
     if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.Primary or not Hekili.DisplayPool.Primary.Recommendations then
         return nil
     end
@@ -46,7 +46,7 @@ function RuneReader:Hekili_GetRecommendedAbilityPrimary(index)
     }
 end
 
-function RuneReader:Hekili_GetRecommendedAbilityAOE(index)
+local function Hekili_GetRecommendedAbilityAOE(index)
     if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.AOE or not Hekili.DisplayPool.AOE.Recommendations then
         return nil
     end
@@ -115,9 +115,9 @@ function RuneReader:Hekili_UpdateValues(mode)
 
     local curTime = GetTime()
 
-    local dataPacPrimary = RuneReader:Hekili_GetRecommendedAbilityPrimary( 1)
-    local dataPacNext = RuneReader:Hekili_GetRecommendedAbilityPrimary(2)
-    local dataPacAoe = RuneReader:Hekili_GetRecommendedAbilityAOE( 1)
+    local dataPacPrimary = Hekili_GetRecommendedAbilityPrimary( 1)
+    local dataPacNext = Hekili_GetRecommendedAbilityPrimary(2)
+    local dataPacAoe = Hekili_GetRecommendedAbilityAOE( 1)
     
 
     if  not dataPacPrimary then

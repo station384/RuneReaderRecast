@@ -13,25 +13,9 @@ RuneReader.ConRO_lastSpell = 61304
 RuneReader.ConRO_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 RuneReader.ConRO_GenerationDelayTimeStamp = time()
 RuneReader.ConRO_GenerationDelayAccumulator = 0
--- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
--- This just gets the first instant cast spell.
--- that doesn't have a cooldown.  it doesn't really care what it is.  this is just filler for when your moving.
--- And cheating here..  Since I don't know.  I'll just use Combat Assist for help heh
--- function RuneReader:GetNextInstantCastSpell()
---     --Bring the functions local for execution.  improves speed. (LUA thing)
---     local spells = RuneReader.GetRotationSpells()
---     for index, value in ipairs(spells) do
---         local spellInfo = RuneReader.GetSpellInfo(value)
---         local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(value)
---         if sCurrentSpellCooldown and sCurrentSpellCooldown.duration == 0 then
---             if spellInfo and (spellInfo.castTime == 0 or RuneReader:IsSpellIDInChanneling(value)) and RuneReader.IsSpellHarmful(value) then
---                 return value
---             end
---         end
---     end
--- end
 
-function RuneReader:CleanConROHotKey(HotKeyText)
+
+local function CleanConROHotKey(HotKeyText)
     local keyText = HotKeyText
     if not keyText then keyText = "" end
     if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
