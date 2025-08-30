@@ -14,6 +14,8 @@ function RuneReader:IsSpellExcluded(SpellID)
             return true -- Exclude "Felrush" for all classes
     elseif SpellID == 433874 then
             return true -- Exclude "Felrush" for all classes
+    elseif SpellID == 19801 then
+            return true -- Exclude "Tranq Shot" for all classes
     end
     return false
 end

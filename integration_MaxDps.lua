@@ -43,7 +43,7 @@ end
  for key, isEnabled in pairs(MaxDps.Flags) do
 
     if isEnabled  then
-        if C_Spell.IsSpellHarmful(key) then  -- Dont really need this for MaxDPS.  lets let it figure it out.
+        if C_Spell.IsSpellHarmful(key) and not RuneReader:IsSpellExcluded(key) then  -- Dont really need this for MaxDPS.  lets let it figure it out.
              --   print ("MaxDps Flag", key, isEnabled)
             return key
         end
@@ -96,6 +96,8 @@ function RuneReader:MaxDps_UpdateValues(mode)
         SpellID =  MaxDps_GetNextMajorCooldown(SpellID)
     end
     SpellID = MaxDps_GetAlwaysUseMajorCooldowns(SpellID) 
+
+
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
     if not SpellID then SpellID = 0 end
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
