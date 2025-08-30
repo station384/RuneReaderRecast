@@ -70,7 +70,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
 
     local curTime                             = RuneReader.GetTime()
-    --    local _, _, _, latencyWorld = GetNetStats()
     local keyBind                             = ""
     local SpellID                             = MaxDps_GetSpell(1)
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end

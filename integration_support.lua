@@ -778,18 +778,23 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     local spellInfo1 = GetInfo(newSpellID)
 
 
+    -- I'll come back to this.  I've botch this logic big time and is causing issues.
     -- ===== Major cooldown filter (per-character toggle) =====
-    if RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.UseGlobalCooldowns == false then
-        if self.IsMajorCooldown and RuneReader.GetNextNonMajorSpell then
-            if self:IsMajorCooldown(newSpellID) then
-                local alt = self:GetNextNonMajorSpell(newSpellID, suggestedQueue)
-                if alt then
-                    newSpellID    = alt
-                    spellInfo1 = GetInfo(newSpellID)
-                end
-            end
-        end
-    end
+    -- For now only include Combat Assistent  The others already suggest cooldowns.
+    -- if RuneReaderRecastDBPerChar 
+    --     and RuneReaderRecastDBPerChar.UseGlobalCooldowns == false 
+    --     and RuneReaderRecastDBPerChar.HelperSource == 1 then
+
+    --         if self.IsMajorCooldown and RuneReader.GetNextNonMajorSpell then
+    --         if self:IsMajorCooldown(newSpellID) then
+    --             local alt = self:GetNextNonMajorSpell(newSpellID, suggestedQueue)
+    --             if alt then
+    --                 newSpellID    = alt
+    --                 spellInfo1 = GetInfo(newSpellID)
+    --             end
+    --         end
+    --     end
+    -- end
 
     -- ===== Movement: prefer instant while moving =====
     if RuneReaderRecastDB and RuneReaderRecastDB.UseInstantWhenMoving == true then
