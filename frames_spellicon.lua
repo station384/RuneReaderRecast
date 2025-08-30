@@ -8,6 +8,33 @@
 
 RuneReader = RuneReader or {}
 
+function RuneReader:ToggleUseGlobalCooldowns()
+    if not RuneReaderRecastDBPerChar then return end
+    RuneReaderRecastDBPerChar.UseGlobalCooldowns = not RuneReaderRecastDBPerChar.UseGlobalCooldowns
+    -- Hekili has its own toggle event  lets fire it.
+    if Hekili then
+        if RuneReaderRecastDBPerChar.UseGlobalCooldowns then
+            Hekili:FireToggle( "cooldowns", "on" )
+        else
+            Hekili:FireToggle( "cooldowns", "off" )
+        end
+    end
+    self:RefreshCooldownButton()
+end
+
+function RuneReader:RefreshCooldownButton()
+    local f = self.SpellIconFrame
+    if not f or not f.CooldownButton then return end
+    local on = RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.UseGlobalCooldowns
+    if on then
+        f.CooldownButton:SetButtonState("PUSHED", true)
+        f.CooldownButton:SetText("CD: ON")
+    else
+        f.CooldownButton:SetButtonState("NORMAL", false)
+        f.CooldownButton:SetText("CD: OFF")
+    end
+end
+
 function RuneReader:CreateSpellIconFrame()
     if self.SpellIconFrame then return end
 
@@ -66,6 +93,21 @@ function RuneReader:CreateSpellIconFrame()
             GameTooltip:Show()
         end
     end)
+
+-- Create a toggle button under the icon
+    local btn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    btn:SetSize(62, 20)
+    btn:SetPoint("TOP", icon, "BOTTOM", 0, -6)
+    btn:SetText("CD: OFF")
+    btn:SetScript("OnClick", function()
+        RuneReader:ToggleUseGlobalCooldowns()
+    end)
+    f.CooldownButton = btn
+
+    -- Initialize button state from config
+    RuneReader:RefreshCooldownButton()
+
+
 
     f:SetScript("OnLeave", function()
         GameTooltip:Hide()

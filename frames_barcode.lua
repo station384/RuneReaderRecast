@@ -134,8 +134,8 @@ function RuneReader:CreateBarcodeWindow()
             if RuneReader then
                 RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
                 if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay  then
-                    RuneReader:UpdateC39Display()
                     RuneReader.C39FrameDelayAccumulator = 0
+                    RuneReader:UpdateC39Display()
                 end
             else
                 RuneReader.BarcodeFrame:SetScript("OnUpdate", nil)
@@ -180,19 +180,13 @@ end
 
 function RuneReader:UpdateC39Display()
    local fullResult = ""
-    -- if  Hekili  and (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0) then
-    --   fullResult = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
-    -- end
-    -- if (not Hekili and RuneReaderRecastDBPerChar.HelperSource == 0) or RuneReaderRecastDBPerChar.HelperSource == 1 then
-    --     fullResult = RuneReader:AssistedCombat_UpdateValues(1)
-    -- end
    fullResult = RuneReader:GetUpdatedValues()
 
-  
-        if fullResult then
-                RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
-                RuneReader.lastDisplayedC39Encode= fullResult;
-        end
+
+    if fullResult then
+            RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
+            RuneReader.lastDisplayedC39Encode= fullResult;
+    end
 
   
     RuneReader.lastC39EncodeResult = fullResult or RuneReader.lastC39EncodeResult

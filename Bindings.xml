@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<Bindings>
+    <Binding
+        name="RUNE_READER_TOGGLE_MAJOR_CD"
+        header="RUNE_READER_RECAST"
+        category="Rune Reader Recast "
+        runOnUp="false">
+        RuneReader_ToggleMajorCooldowns()
+    </Binding>
+</Bindings>

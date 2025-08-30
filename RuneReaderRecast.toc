@@ -17,6 +17,7 @@ Integration_Overrides_Healing.lua
 Integration_Overrides_Defensive.lua
 Integration_Overrides_Movement.lua
 Integration_Overrides_Excluded.lua
+Integration_Overrides_MajorCooldowns.lua
 integration_hekili.lua
 integration_assistedcombat.lua
 integration_ConRO.lua
@@ -25,5 +26,6 @@ frames_barcode.lua
 frames_qr.lua
 config_panel.lua
 frames_devtools_actionbars.lua
+bindings.lua
 core.lua
 

@@ -77,6 +77,21 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
 
     self.QRFrame = f
 
+
+
+
+
+    if qrMatrix then
+        RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
+    else
+        f.textures = {}
+    end
+
+    RuneReader:AddToInspector(totalSize*totalSize, "Value encoded QRCode")
+    f:SetSize(totalSize+4, totalSize+4)
+    f:Hide()   
+    f:Show()
+
     if not RuneReader.QRFrame.hasBeenInitialized then
         RuneReader.QRFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
@@ -92,49 +107,9 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame.hasBeenInitialized = true
     end
 
-
-
-    if qrMatrix then
-        RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
-    else
-        f.textures = {}
-    end
-
-    RuneReader:AddToInspector(totalSize*totalSize, "Value encoded QRCode")
-    f:SetSize(totalSize+4, totalSize+4)
-    f:Hide()   
-    f:Show()
-    RuneReader:RegisterActionBarEvents()
 end
 
-function RuneReader:OnActionBarChanged(event, arg1)
-    -- Rebuild your visible action bar spell → hotkey map here
-    RuneReader:BuildAssistedSpellMap()
 
-    -- Optional: trigger QR/Barcode refresh
-    RuneReader.lastQREncodeResult = ""  -- Force QR refresh on next UpdateQRDisplay
-
-    -- Debug/logging
-    RuneReader:AddToInspector(event .. " fired", "ActionBarChange")
-end
-
-function RuneReader:RegisterActionBarEvents()
-    
-    local f = CreateFrame("Frame")
-    f:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-    f:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-    f:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-    f:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
-    f:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-    f:RegisterEvent("UPDATE_BINDINGS")
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-
-    f:SetScript("OnEvent", function(_, event, arg1)
-        if RuneReaderRecastDB.HelperSource == 1 then
-        RuneReader:OnActionBarChanged(event, arg1)
-        end
-    end)
-end
 
 
 
@@ -217,12 +192,7 @@ end
 
 function RuneReader:UpdateQRDisplay()
     local fullResult = ""
-    -- if Hekili or  (not RuneReaderRecastDBPerChar.HelperSource  or RuneReaderRecastDBPerChar.HelperSource == 0)  then
-    --     fullResult = RuneReader:Hekili_UpdateValues(1)
-    -- end
-    -- if Hekili or RuneReaderRecastDBPerChar.HelperSource == 1 then
-    --     fullResult = RuneReader:AssistedCombat_UpdateValues(1)
-    -- end
+
     fullResult = RuneReader:GetUpdatedValues() 
 
     if RuneReader.lastQREncodeResult ~= fullResult or RuneReader.lastDisplayedQREncode ~= fullResult then
