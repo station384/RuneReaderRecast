@@ -1,7 +1,7 @@
 ## Interface: 110200
 ## Title: RuneReader Recast
 ## Notes: Hekili Companion - Barcode and QR helper
-## Version: 2.9.31
+## Version: 2.9.32
 ## Author: Michael Sutton
 ## SavedVariables: RuneReaderRecastDB
 ## SavedVariablesPerCharacter: RuneReaderRecastDBPerChar

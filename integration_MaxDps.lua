@@ -97,9 +97,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
     end
     SpellID = MaxDps_GetAlwaysUseMajorCooldowns(SpellID) 
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
-
-
-
     if not SpellID then SpellID = 0 end
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
@@ -118,10 +115,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
             keyBind = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
       end
     end
-
-
-
-
 
     
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
