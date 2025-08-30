@@ -10,9 +10,9 @@ RuneReader.MajorCooldownExceptions = {
 -- Classifier: uses precomputed cooldown from the spell map
 function RuneReader:IsMajorCooldown(spellID)
     if not spellID then return false end
-  
-    if RuneReader.MajorCooldownExceptions[spellID] then return false end
-  
+
+    if RuneReader.MajorCooldownExceptions[spellID] then return false end 
+
     local cd = 0
     --if RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[spellID] then
         cd = tonumber(RuneReader.SpellbookSpellInfo[spellID].cooldown) --or 0
@@ -25,6 +25,15 @@ function RuneReader:IsMajorCooldown(spellID)
     -- end
     return cd > (RuneReader.MajorCooldownThreshold or 30)
 end
+
+function RuneReader:IsMajorCooldownAlwaysUse(spellID)
+    if not spellID then return false end
+    if RuneReader.MajorCooldownExceptions[spellID] then return true end 
+    return false
+end
+
+
+
 
 -- Candidate-aware chooser: prefer provided queue (Assisted/Hekili), else fallback
 function RuneReader:GetNextNonMajorSpell(currentSpellID, candidates)

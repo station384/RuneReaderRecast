@@ -21,7 +21,7 @@ function RuneReader:ApplyConfig()
     RuneReader:DestroyBarcodeWindow()
     if RuneReader.SpellIconFrame then
        RuneReader:DestroySpellIconFrame()
-     end
+    end
      
 
     if C_AssistedCombat and cfgPerChar.HelperSource == 1 then

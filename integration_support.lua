@@ -417,6 +417,7 @@ end
 
 
 -- This kinda works.    Not perfect but should catch most cases.
+-- Without knowing spell rotation I can only cast the first thing available.
 function RuneReader:GetNextInstantCastSpell()
     --Bring the functions local for execution.  improves speed. (LUA thing)
     local spells = RuneReader.GetRotationSpells()
@@ -451,25 +452,97 @@ end
 
 
 
-function RuneReader:GetUpdatedValues()
-    local fullResult = ""
-    local SpellID = 0
-    local hotkey = ""
-    if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
-         fullResult, SpellID, hotkey = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
-    elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
-         fullResult, SpellID, hotkey = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
-    elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
-         fullResult, SpellID, hotkey = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
-    else
-        -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
-        fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
+-- Provider registry: id -> { name, available(), update(self) }
+-- 0=Hekili, 1=AssistedCombat, 2=ConRO, 3=MaxDps  (matches UI)  -- may want to use this as a global later to drive the config
+local RR_PROVIDERS = {
+  [0] = {
+    name = "Hekili",
+    available = function() return Hekili and Hekili.baseName end,
+    update     = function(self) return self:Hekili_UpdateValues(1) end,
+  },
+  [1] = {
+    name = "AssistedCombat",
+    available = function() return C_AssistedCombat ~= nil end,
+    update     = function(self) return self:AssistedCombat_UpdateValues(1) end,
+  },
+  [2] = {
+    name = "ConRO",
+    available = function() return ConRO and ConRO.Version end,
+    update     = function(self) return self:ConRO_UpdateValues(1) end,
+  },
+  [3] = {
+    name = "MaxDps",
+    available = function() return MaxDps and MaxDps.db end,
+    update     = function(self) return self:MaxDps_UpdateValues(1) end,
+  },
+}
+
+-- Pick the best provider:
+-- 1) try the user-selected HelperSource if available
+-- 2) else fall back in priority order: AssistedCombat -> Hekili -> ConRO -> MaxDps
+function RuneReader:PickProvider()
+  local sel = (RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.HelperSource) or 1
+  local order = { sel, 1, 0, 2, 3 }  -- ensure we try the selected first, then our fallback order
+  local seen = {}
+
+  for i = 1, #order do
+    local id = order[i]
+    if id ~= nil and not seen[id] then
+      seen[id] = true
+      local P = RR_PROVIDERS[id]
+      local ok, avail = pcall(P and P.available or function() end)
+      if ok and avail then
+        return id, P
+      end
     end
-    if RuneReader.SpellIconFrame then
-        RuneReader:SetSpellIconFrame(SpellID, hotkey)
-    end
-    return fullResult
+  end
+
+  -- nothing available (very unlikely); return AssistedCombat stub so we can still run
+  return 1, RR_PROVIDERS[1]
 end
+
+-- Safe call wrapper so a provider can’t hard-error your UI
+local function RR_CallProvider(self, P)
+  local ok, full, spellID, hotkey = pcall(P.update, self)
+  if ok and full ~= nil then
+    return full, spellID or 0, hotkey or ""
+  end
+  if RuneReader.DEBUG then
+    print("|cffff5555[RuneReader]|r provider failed:", P and P.name or "?", ok and "(bad returns)" or full)
+  end
+  return "", 0, ""
+end
+
+function RuneReader:GetUpdatedValues()
+  local _, P = self:PickProvider()
+  local fullResult, SpellID, hotkey = RR_CallProvider(self, P)
+
+  if self.SpellIconFrame then
+    self:SetSpellIconFrame(SpellID, hotkey)
+  end
+  return fullResult
+end
+
+
+-- function RuneReader:GetUpdatedValues()
+--     local fullResult = ""
+--     local SpellID = 0
+--     local hotkey = ""
+--     if Hekili and Hekili.baseName and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+--          fullResult, SpellID, hotkey = RuneReader:Hekili_UpdateValues(1) --Standard code39 for now.....
+--     elseif ConRO and ConRO.Version and (RuneReaderRecastDBPerChar.HelperSource == 2) then
+--          fullResult, SpellID, hotkey = RuneReader:ConRO_UpdateValues(1) --Standard code39 for now.....
+--     elseif MaxDps and MaxDps.db and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+--          fullResult, SpellID, hotkey = RuneReader:MaxDps_UpdateValues(1) --Standard code39 for now.....
+--     else
+--         -- Fallback to AssistedCombat as it should always be available. if prior arnt selected or not available
+--         fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
+--     end
+--     if RuneReader.SpellIconFrame then
+--         RuneReader:SetSpellIconFrame(SpellID, hotkey)
+--     end
+--     return fullResult
+-- end
 
 function RuneReader:GetActionBindingKey(page, slot, slotIndex)
     local actionType, id = RuneReader.GetActionInfo(slotIndex)

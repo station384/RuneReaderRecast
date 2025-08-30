@@ -15,7 +15,7 @@ RuneReader.MaxDps_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 -- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
 
-function RuneReader:CleanMaxDpsHotKey(HotKeyText)
+local function CleanMaxDpsHotKey(HotKeyText)
     local keyText = HotKeyText
     if not keyText then keyText = "" end
     if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
@@ -25,7 +25,7 @@ function RuneReader:CleanMaxDpsHotKey(HotKeyText)
     end
 end
 
-function RuneReader:MaxDps_GetSpell(item)
+local function MaxDps_GetSpell(item)
 
    local result = nil
    result = MaxDps.Spell or RuneReader.GetNextCastSpell(false)
@@ -39,6 +39,30 @@ function RuneReader:MaxDps_GetSpell(item)
     return result
 end
 
+local function MaxDps_GetNextMajorCooldown()
+ for key, isEnabled in pairs(MaxDps.Flags) do
+    if isEnabled  then
+        if RuneReader:IsMajorCooldown(key)    then
+            return key
+        end
+    end
+ end
+ return nil
+end
+
+local function MaxDps_GetAlwaysUseMajorCooldowns()
+ for key, isEnabled in pairs(MaxDps.Flags) do
+    if isEnabled  then
+        if RuneReader:IsMajorCooldownAlwaysUse(key)    then
+            return key
+        end
+    end
+ end
+ return nil
+end
+
+
+
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
     if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return nil end
@@ -48,13 +72,22 @@ function RuneReader:MaxDps_UpdateValues(mode)
     local curTime                             = RuneReader.GetTime()
     --    local _, _, _, latencyWorld = GetNetStats()
     local keyBind                             = ""
-    local SpellID                             = RuneReader:MaxDps_GetSpell(1)
+    local SpellID                             = MaxDps_GetSpell(1)
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
+
+    --MaxDps does not automaticly handle major cooldown spells.   
+    -- Take them into account here and stub them in if there ready and we have the setting to use them
+    if RuneReaderRecastDBPerChar.UseGlobalCooldowns then
+       SpellID =  MaxDps_GetNextMajorCooldown() or SpellID
+    end
+    
+    SpellID = MaxDps_GetAlwaysUseMajorCooldowns() or SpellID
+
+
+
 
     if not SpellID then SpellID = 0 end
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-
-
 
     SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
 
