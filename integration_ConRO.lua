@@ -95,6 +95,16 @@ function RuneReader:ConRO_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
+
+    if AuraUtil and AuraUtil.FindAuraByName then
+    local find = AuraUtil.FindAuraByName
+    if find("G-99 Breakneck", "player", "HELPFUL") or
+       find("Unstable Rocketpack", "player", "HELPFUL") then
+      keytranslate = "00"
+    end
+  end
+
+
     local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo
     --Just playing around going to base36 encode the numbers to save space
     local combinedValues = mode
