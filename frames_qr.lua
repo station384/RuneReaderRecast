@@ -174,47 +174,53 @@ function RuneReader:BuildQRCodeTextures(qrMatrix, quietZone, moduleSize)
 
 end
 
+
 function RuneReader:UpdateQRCodeTextures(qrMatrix)
-    if not RuneReader.QRFrame or not RuneReader.QRFrame.textures then return end
-    local qrSize = #qrMatrix
-    for y = 1, qrSize do
-        for x = 1, qrSize do
-            local i = (y - 1) * qrSize + x
-            local tex = self.QRFrame.textures[i]
-            if qrMatrix[y][x] > 0 then
-                tex:SetColorTexture(0, 0, 0, 1)
-            else
-                tex:SetColorTexture(1, 1, 1, 0)   -- white, fully transparent
-            end
-        end
+  local textures = self.QRFrame.textures
+  if not textures then return end
+
+  local qrSize = #qrMatrix
+  for y = 1, qrSize do
+    local row = qrMatrix[y]
+    for x = 1, qrSize do
+      local i   = (y - 1) * qrSize + x
+      local tex = textures[i]
+      if row[x] > 0 then
+        tex:SetColorTexture(0, 0, 0, 1)   -- black, opaque
+      else
+        tex:SetColorTexture(1, 1, 1, 0)   -- white, fully transparent
+      end
     end
+  end
 end
 
 function RuneReader:UpdateQRDisplay()
-    local fullResult = ""
+  -- Cache local references to avoid repeated table lookups
+  local self = RuneReader
+  local db   = RuneReaderRecastDB
+  local qr   = QRencode
+  local lastResult   = self.lastQREncodeResult
+  local lastDisplayed = self.lastDisplayedQREncode
+  local dataLen      = self.DataLength
 
-    fullResult = RuneReader:GetUpdatedValues() 
+  local fullResult = self:GetUpdatedValues()
 
-    if RuneReader.lastQREncodeResult ~= fullResult or RuneReader.lastDisplayedQREncode ~= fullResult then
-       
-        local stringToEncode = RuneReader.lastQREncodeResult
-        local success, matrix = QRencode.qrcode(stringToEncode, RuneReaderRecastDB.Ec_level or 7)
-        if success then
-            -- if the size of the frame doesn't match (someone played with the config files), or the size of the barcode changed recreate the frame to the correct size.
-  --          print(fullResult )
-
-
-            if  (string.len(RuneReader.lastQREncodeResult) ~= RuneReader.DataLength) then
-                RuneReader.DataLength = #RuneReader.lastQREncodeResult
-                RuneReader:AddToInspector(stringToEncode, "Value encoded QRCode")
-                RuneReader:DestroyQRWindow()
-
-                RuneReader:CreateQRWindow(matrix, RuneReaderRecastDB.QRModuleSize, RuneReaderRecastDB.QRQuietZone)
-            end
-            RuneReader:UpdateQRCodeTextures(matrix)
-            RuneReader.lastDisplayedQREncode= stringToEncode;
-            --print("UpdateQRDisplay: " .. stringToEncode)
-        end
+  if lastResult ~= fullResult or lastDisplayed ~= fullResult then
+    local success, matrix = qr.qrcode(fullResult, db.Ec_level or 7)
+    if success then
+      -- Re‑create the window only if the encoded string length changed
+      if #fullResult ~= dataLen then
+        self.DataLength = #fullResult
+        self:AddToInspector(fullResult, "Value encoded QRCode")
+        self:DestroyQRWindow()
+        self:CreateQRWindow(matrix, db.QRModuleSize, db.QRQuietZone)
+      end
+      self:UpdateQRCodeTextures(matrix)
+      self.lastDisplayedQREncode = fullResult
     end
-     RuneReader.lastQREncodeResult = fullResult
+  end
+
+  self.lastQREncodeResult = fullResult
 end
+
+
