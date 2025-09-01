@@ -104,8 +104,7 @@ function RuneReader:CreateSpellIconFrame()
     end)
     f.CooldownButton = btn
 
-    -- Initialize button state from config
-    RuneReader:RefreshCooldownButton()
+
 
 
 
@@ -117,6 +116,8 @@ function RuneReader:CreateSpellIconFrame()
     f.Icon = icon
 
     self.SpellIconFrame = f
+    -- Initialize button state from config
+    RuneReader:RefreshCooldownButton()
 end
 
 function RuneReader:DestroySpellIconFrame()
