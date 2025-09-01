@@ -446,7 +446,7 @@ function RuneReader:GetNextInstantCastSpell()
             end
         end
     end
-    return 0
+    return nil
 end
 
 
@@ -769,13 +769,18 @@ end
 
 -- One-stop spell override: movement -> exclude -> form -> self-preservation
 function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
+    if SpellID == nil then return end
+    if SpellID <= 0 then return SpellID end  -- Spell IDs should never be less than or = 0. if they are its becuase the addon is doing soimthing special and we just want to skip it.
     local newSpellID = SpellID
-    -- fetch info safely
-    local function GetInfo(id)
-        return (RuneReader.GetSpellInfo and RuneReader.GetSpellInfo(id)) or {}
-    end
+    local dbGlobal   = RuneReaderRecastDB
+    local dbPerChar =  RuneReaderRecastDBPerChar
+    local UseInstantMoving =   dbGlobal and dbGlobal.UseInstantWhenMoving
+    local UseInstantFormCheck = dbGlobal and dbGlobal.UseFormCheck
+    local UseSelfHealing = dbPerChar and dbPerChar.UseSelfHealing
+    
 
-    local spellInfo1 = GetInfo(newSpellID)
+
+    local spellInfo1 = C_Spell.GetSpellInfo(newSpellID)
 
 
     -- I'll come back to this.  I've botch this logic big time and is causing issues.
@@ -797,14 +802,18 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     -- end
 
     -- ===== Movement: prefer instant while moving =====
-    if RuneReaderRecastDB and RuneReaderRecastDB.UseInstantWhenMoving == true then
+    if UseInstantMoving then
         local castTime = (spellInfo1.castTime or 0)
-        if (castTime > 0 or (self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)))
-           and (self.IsPlayerMoving and self:IsPlayerMoving()) then
-            local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
+        local isMoving = self.IsPlayerMoving and self:IsPlayerMoving()
+        local isChanneling = self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)
+
+        if (castTime > 0 or isChanneling) and isMoving then
+            local getNext = self.GetNextInstantCastSpell
+            local inst = getNext and getNext(self)
+            --local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
             if inst then
                 newSpellID    = inst
-                spellInfo1 = GetInfo(newSpellID)
+             --   spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
             end
         end
     end
@@ -814,21 +823,21 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
         local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
         if inst then
             newSpellID    = inst
-            spellInfo1 = GetInfo(newSpellID)
+          --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
         end
     end
 
     -- ===== Form check (e.g., Shadowform) =====
-    if RuneReaderRecastDB and RuneReaderRecastDB.UseFormCheck == true then
+    if UseInstantFormCheck then
         local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
         if formSpell then
             newSpellID    = formSpell
-            spellInfo1 = GetInfo(newSpellID)
+            --spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
         end
     end
 
     -- ===== Self-preservation / defensives (priority order) =====
-    if RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.UseSelfHealing == true then
+    if UseSelfHealing then
         -- Priority list by function name; first non-nil wins.
         local priority = {
             "ShouldCastRevivePet",
@@ -863,7 +872,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
                 local id = fn(self)
                 if id then
                     newSpellID    = id
-                    spellInfo1 = GetInfo(newSpellID)
+                  --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
                     break
                 end
             end
@@ -871,7 +880,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     end
 --print("Final SpellID", SpellID, spellInfo1 and spellInfo1.name)
 
-    return newSpellID, spellInfo1
+    return newSpellID --, spellInfo1
 end
 
 
