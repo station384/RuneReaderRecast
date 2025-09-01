@@ -8,14 +8,13 @@ RuneReader = RuneReader or {}
 
 
 function RuneReader:IsSpellExcluded(SpellID)
-    if SpellID == 198793 then
-        return true -- Exclude "Vengful Retreat" for all classes
-    elseif SpellID == 195072 then
-            return true -- Exclude "Felrush" for all classes
-    elseif SpellID == 433874 then
-            return true -- Exclude "Felrush" for all classes
-    elseif SpellID == 19801 then
-            return true -- Exclude "Tranq Shot" for all classes
-    end
-    return false
+    local excludedSpells = {
+        [198793] = true, -- Vengful Retreat
+        [195072] = true, -- Felrush
+        [433874] = true, -- Felrush (duplicate ID)
+        [19801] = true, -- Tranq Shot
+        [147362] = true, -- Counter Shot
+        [8936] = true, -- Regrowth 
+    }
+    return excludedSpells[SpellID] or false
 end
