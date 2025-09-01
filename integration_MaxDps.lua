@@ -7,56 +7,65 @@
 
 RuneReader = RuneReader or {}
 
-RuneReader.MaxDps_haveUnitTargetAttackable = false
-RuneReader.MaxDps_inCombat = false
-RuneReader.MaxDps_lastSpell = 61304
-RuneReader.MaxDps_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
+local MaxDps_haveUnitTargetAttackable = false
+local MaxDps_inCombat = false
+local MaxDps_lastSpell = 61304
+local MaxDps_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
 
 -- RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
 
+local gsub  = string.gsub
+local upper = string.upper
 
 local function CleanMaxDpsHotKey(HotKeyText)
-    local keyText = HotKeyText
-    if not keyText then keyText = "" end
-    if keyText and keyText ~= "" and keyText ~= RANGE_INDICATOR then
-        keyText = keyText:gsub("CTRL", "C")
-        keyText = keyText:gsub("ALT", "A")
-        return keyText:gsub("-", ""):upper()
+    local keyText = HotKeyText or ""
+--    if keyText then keyText = "" end
+    if keyText ~= "" and keyText ~= RANGE_INDICATOR then
+        keyText = gsub(keyText, "CTRL", "C")
+        keyText = gsub(keyText, "ALT", "A")
+        return upper(gsub(keyText, "-", ""))
     end
+    return nil
 end
+
 
 local function MaxDps_GetSpell(item)
+  -- MaxDps doesnt activate till in combat, so Spell will be nil.  So we will get the next instant cast spell Bliz recommends to start things out.
+  local result = RuneReader.GetNextCastSpell(false)
+  if item == 1 then
+    result = MaxDps.Spell or result
+  end
 
-   local result = nil
-   result = MaxDps.Spell or RuneReader.GetNextCastSpell(false)
-   local intCount = 1
-    for index, value in pairs(MaxDps.SpellsGlowing) do
-        if (intCount == item and value == 1) then
-            result = index
-        end
-        intCount = intCount + 1
-    end
-    return result
+  local glowing = MaxDps.SpellsGlowing
+
+  -- Scan the table; if the requested index has a 1 flag, override the result.
+  local count = 2
+   for idx, flag in pairs(glowing) do
+     if count == item and flag == 1 then
+       result = idx
+     end
+     count = count + 1
+   end
+  return result
 end
 
- local function MaxDps_GetNextMajorCooldown(spellID)
- for key, isEnabled in pairs(MaxDps.Flags) do
 
-    if isEnabled  then
-        if C_Spell.IsSpellHarmful(key) and not RuneReader:IsSpellExcluded(key) then  -- Dont really need this for MaxDPS.  lets let it figure it out.
-             --   print ("MaxDps Flag", key, isEnabled)
-            return key
+ local function MaxDps_GetNextMajorCooldown(spellID)
+    local flags = MaxDps.Flags
+    for key, isEnabled in pairs(flags) do
+        if isEnabled  then
+            if (C_Spell.IsSpellHarmful(key) or C_Spell.IsSpellHelpful(key)) and not RuneReader:IsSpellExcluded(key) then  -- Dont really need this for MaxDPS.  lets let it figure it out.
+                return key
+            end
         end
     end
- end
--- print("MaxDps No Major Cooldown Found")
- return spellID
+    return spellID
 end
 
 local function MaxDps_GetAlwaysUseMajorCooldowns(spellID)
  for key, isEnabled in pairs(MaxDps.Flags) do
     if isEnabled  then
-        if RuneReader:IsMajorCooldownAlwaysUse(key)    then
+        if RuneReader:IsMajorCooldownAlwaysUse(key)  and not RuneReader:IsSpellExcluded(key)  then
             return key
         end
     end
@@ -84,7 +93,7 @@ function RuneReader:MaxDps_UpdateValues(mode)
     if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return nil end
     mode = mode or 1
 
-
+   local spellInfo1 = nil
     local curTime                             = RuneReader.GetTime()
     local keyBind                             = ""
     local SpellID                             = MaxDps_GetSpell(1)
@@ -95,32 +104,42 @@ function RuneReader:MaxDps_UpdateValues(mode)
     if RuneReaderRecastDBPerChar.UseGlobalCooldowns then
         SpellID =  MaxDps_GetNextMajorCooldown(SpellID)
     end
-    SpellID = MaxDps_GetAlwaysUseMajorCooldowns(SpellID) 
+    SpellID = MaxDps_GetAlwaysUseMajorCooldowns(SpellID)
 
+    SpellID = RuneReader:ResolveOverrides(SpellID, nil)
 
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
-    if not SpellID then SpellID = 0 end
-    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+--    if not SpellID then SpellID = 0 end
 
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
 
 -- try and use MaxDPS go get our keybind first
     keyBind = MaxDps_GetKeyBind(SpellID)
 
+    
+    spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
 
 -- Don't have a keybind so lets fall back on our parse.
+if not keyBind or keyBind == "" then
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
     else
-      if (RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
+      if (RuneReader.SpellbookSpellInfo and spellInfo1 and RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
             keyBind = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
       end
     end
-
+end
     
-    local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
-    local delay = (spellInfo1.castTime / 1000)
+ 
+    if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
+    if not SpellID then SpellID = 0 end
+
+    local sCurrentSpellCooldown =     RuneReader.GetSpellCooldown(SpellID) or {} 
+    sCurrentSpellCooldown.duration = sCurrentSpellCooldown.duration or spellInfo1.castTime
+    sCurrentSpellCooldown.startTime = sCurrentSpellCooldown.startTime or 0
+
+    --local delay = (spellInfo1.castTime / 1000)
+  
     local duration = sCurrentSpellCooldown.duration
 
 
@@ -144,8 +163,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(keyBind) -- 2 digits
-    -- local cooldownEnc = string.format("%04d", math.min(9999, math.floor((sCurrentSpellCooldown.duration or 0) * 10)))  -- 4 digits
-    -- local castTimeEnc = string.format("%04d", math.min(9999, math.floor(((spellInfo1.castTime or 0) / 1000 or 0) * 10)))  -- 4 digits
     local bitMask = 0
     if RuneReader.UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
@@ -153,6 +170,18 @@ function RuneReader:MaxDps_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
+
+    if AuraUtil and AuraUtil.FindAuraByName then
+    local find = AuraUtil.FindAuraByName
+    if find("G-99 Breakneck", "player", "HELPFUL") or
+       find("Unstable Rocketpack", "player", "HELPFUL") then
+      keytranslate = "00"
+    end
+  end
+
+
+
+
     local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo, 4 = MaxDps
     --Just playing around going to base36 encode the numbers to save space
     local combinedValues = mode
