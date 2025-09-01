@@ -9,13 +9,9 @@
 RuneReader = RuneReader or {}
 
 RuneReader.hekili_haveUnitTargetAttackable = false
-RuneReader.hekili_inCombat = false
-RuneReader.hekili_lastSpell = 61304
-RuneReader.hekili_PrioritySpells = { 47528, 2139, 30449, 147362 }  --Interrupts
-RuneReader.hekili_LastDataPak = {};
-RuneReader.hekili_GenerationDelayTimeStamp = time()
-RuneReader.hekili_GenerationDelayAccumulator = 0
-RuneReader.hekili_LastEncodedResult = "1,B0,W0001,K00"
+local hekili_inCombat = false
+local hekili_LastDataPak = {};
+
 
  
 local function Hekili_RuneReaderEnv_hasSpell(tbl, x)
@@ -26,44 +22,59 @@ local function Hekili_RuneReaderEnv_hasSpell(tbl, x)
 end
 
 local function Hekili_GetRecommendedAbilityPrimary(index)
-    if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.Primary or not Hekili.DisplayPool.Primary.Recommendations then
-        return nil
-    end
-    local dpak = Hekili.DisplayPool.Primary.Recommendations[index]
-    if not dpak then
-        return nil
-    end
-    if dpak.actionID == nil or dpak.keybind == nil or dpak.keybind == "" or dpak.wait == nil or dpak.delay == nil or dpak.exact_time == nil then
-        return nil
-    end
-    return {
-        actionID = dpak.actionID,
-        delay = dpak.delay,
-        wait = dpak.wait,
-        time = dpak.time,
-        keybind = dpak.keybind,
-        exact_time = dpak.exact_time
-    }
+  local rec = Hekili
+  if not rec or not rec.DisplayPool or not rec.DisplayPool.Primary then
+    return nil
+  end
+
+  local recs = rec.DisplayPool.Primary.Recommendations
+  if not recs then return nil end
+
+  local dpak = recs[index]
+  if not dpak then return nil end
+
+  if not (dpak.actionID and dpak.keybind ~= "" and dpak.wait and dpak.delay and dpak.exact_time) then
+    return nil
+  end
+
+  return {
+    actionID   = dpak.actionID,
+    delay      = dpak.delay,
+    wait       = dpak.wait,
+    time       = dpak.time,
+    keybind    = dpak.keybind,
+    exact_time = dpak.exact_time
+  }
 end
 
 local function Hekili_GetRecommendedAbilityAOE(index)
-    if not Hekili or not Hekili.DisplayPool or not Hekili.DisplayPool.AOE or not Hekili.DisplayPool.AOE.Recommendations then
-        return nil
-    end
-    local dpak = Hekili.DisplayPool.AOE.Recommendations[index]
-    if not dpak then return nil end
-    if dpak.actionID == nil or dpak.keybind == nil or dpak.keybind == "" or dpak.wait == nil or dpak.delay == nil or dpak.exact_time == nil then
-        return nil
-    end
-    return {
-        actionID = dpak.actionID,
-        delay = dpak.delay,
-        wait = dpak.wait,
-        time = dpak.time,
-        keybind = dpak.keybind,
-        exact_time = dpak.exact_time
-    }
+  local rec = Hekili
+  if not rec or not rec.DisplayPool or not rec.DisplayPool.AOE then
+    return nil
+  end
+
+  local recs = rec.DisplayPool.AOE.Recommendations
+  if not recs then return nil end
+
+  local dpak = recs[index]
+  if not dpak then return nil end
+
+  if not (dpak.actionID and dpak.keybind ~= "" and dpak.wait and dpak.delay and dpak.exact_time) then
+    return nil
+  end
+
+  return {
+    actionID   = dpak.actionID,
+    delay      = dpak.delay,
+    wait       = dpak.wait,
+    time       = dpak.time,
+    keybind    = dpak.keybind,
+    exact_time = dpak.exact_time
+  }
 end
+
+
+
 
 --The returned string is in this format
 --This is the format for code39
@@ -97,160 +108,274 @@ end
 
 
 
-function RuneReader:Hekili_UpdateValues(mode)
-    if not Hekili or not Hekili.baseName then return nil end
-    if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
+-- function RuneReader:Hekili_UpdateValues(mode)
+--     if not Hekili or not Hekili.baseName then return nil end
+--     if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
 
-   local mode = mode or 0
+--    local mode = mode or 0
 
-    -- RuneReader.hekili_GenerationDelayAccumulator = RuneReader.hekili_GenerationDelayAccumulator + (time() - RuneReader.hekili_GenerationDelayTimeStamp)
-    -- if RuneReader.hekili_GenerationDelayAccumulator <= RuneReaderRecastDB.UpdateValuesDelay  then
-    --     RuneReader.hekili_GenerationDelayTimeStamp = time()
-    --     return RuneReader.hekili_LastEncodedResult
-    -- end
 
-    -- RuneReader.hekili_GenerationDelayTimeStamp = time()
+--     if not Hekili_GetRecommendedAbility then return end
 
-    if not Hekili_GetRecommendedAbility then return end
+--     local curTime = GetTime()
 
-    local curTime = GetTime()
-
-    local dataPacPrimary = Hekili_GetRecommendedAbilityPrimary( 1)
-    local dataPacNext = Hekili_GetRecommendedAbilityPrimary(2)
-    local dataPacAoe = Hekili_GetRecommendedAbilityAOE( 1)
+--     local dataPacPrimary = Hekili_GetRecommendedAbilityPrimary( 1)
+--     local dataPacNext = Hekili_GetRecommendedAbilityPrimary(2)
+--     local dataPacAoe = Hekili_GetRecommendedAbilityAOE( 1)
     
 
-    if  not dataPacPrimary then
-        dataPacPrimary = RuneReader.hekili_LastDataPak
-    end
+--     if  not dataPacPrimary then
+--         dataPacPrimary = hekili_LastDataPak
+--     end
 
-    if not dataPacPrimary then dataPacPrimary = {} end
+--     if not dataPacPrimary then dataPacPrimary = {} end
     
-    if dataPacPrimary.actionID == nil then
-        dataPacPrimary.delay = 0
-        dataPacPrimary.wait = 0
-        dataPacPrimary.keybind = nil
-        dataPacPrimary.actionID = nil
-        if RuneReader.hekili_LastDataPak then
-            dataPacPrimary = RuneReader.hekili_LastDataPak
-        end
-    end
+--     if dataPacPrimary.actionID == nil then
+--         dataPacPrimary.delay = 0
+--         dataPacPrimary.wait = 0
+--         dataPacPrimary.keybind = nil
+--         dataPacPrimary.actionID = nil
+--         if hekili_LastDataPak then
+--             dataPacPrimary = hekili_LastDataPak
+--         end
+--     end
 
-    RuneReader.hekili_LastDataPak = dataPacPrimary
+--     hekili_LastDataPak = dataPacPrimary
 
 
 
-    if not dataPacPrimary.delay then dataPacPrimary.delay = 0 end
-    if not dataPacPrimary.wait then dataPacPrimary.wait = 0 end
-    if not dataPacPrimary.exact_time then dataPacPrimary.exact_time = curTime end
-    if not dataPacPrimary.keybind then dataPacPrimary.keybind = "" end
+--     if not dataPacPrimary.delay then dataPacPrimary.delay = 0 end
+--     if not dataPacPrimary.wait then dataPacPrimary.wait = 0 end
+--     if not dataPacPrimary.exact_time then dataPacPrimary.exact_time = curTime end
+--     if not dataPacPrimary.keybind then dataPacPrimary.keybind = "" end
 
-    local delay = dataPacPrimary.delay
-    local wait = dataPacPrimary.wait
+--     local delay = dataPacPrimary.delay
+--     local wait = dataPacPrimary.wait
    
--- Going to try and insert overrides I provide in recast
-    local  SpellID = dataPacPrimary.actionID or 0
-    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
-    -- print("SpellID", SpellID, "spellInfo1", spellInfo1.castTime)
- 
-
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
-
+-- -- Going to try and insert overrides I provide in recast
+--     local  SpellID = dataPacPrimary.actionID
+--     SpellID = RuneReader:ResolveOverrides(SpellID, nil)
+--     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
         
-    if SpellID ~= dataPacPrimary.actionID then
-        if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
-            dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
-        else
-            if (RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
-                dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
-            end
-        end
-        dataPacPrimary.delay = 0
-        dataPacPrimary.wait = spellInfo1.castTime or 0
-        dataPacPrimary.keybind = nil
-        dataPacPrimary.actionID = SpellID
-    end
+--     if SpellID ~= dataPacPrimary.actionID then
+--         if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
+--             dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
+--         else
+--             if (RuneReader.SpellbookSpellInfoByName and RuneReader.SpellbookSpellInfoByName[spellInfo1.name] and RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey) then
+--                 dataPacPrimary.keybind  = RuneReader.SpellbookSpellInfoByName[spellInfo1.name].hotkey or ""
+--             end
+--         end
+--         dataPacPrimary.delay = 0
+--         dataPacPrimary.wait = spellInfo1.castTime or 0
+--         dataPacPrimary.keybind = nil
+--         dataPacPrimary.actionID = SpellID
+--     end
  
 
-    if wait == 0 then dataPacPrimary.exact_time = curTime end
+--     if wait == 0 then dataPacPrimary.exact_time = curTime end
 
-    if UnitCanAttack("player", "target") then
-        RuneReader.hekili_haveUnitTargetAttackable = true
-    else
-        RuneReader.hekili_haveUnitTargetAttackable = false
+--     if UnitCanAttack("player", "target") then
+--         RuneReader.hekili_haveUnitTargetAttackable = true
+--     else
+--         RuneReader.hekili_haveUnitTargetAttackable = false
+--     end
+--     if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
+--         RuneReader.hekili_haveUnitTargetAttackable = true
+--     end
+--   -- Check if the player is in combat
+--     local isInCombat = UnitAffectingCombat("player")
+
+--     if isInCombat then
+--         hekili_inCombat = true
+--     else
+--         hekili_inCombat = false
+--     end
+--     local queueMS = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+--     local queueSec = queueMS / 1000
+
+--     local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
+--     local countDown = (exact_time - curTime) 
+
+--         countDown = RuneReader:Clamp(countDown, 0, 9.99)
+
+--     local bitvalue = 0
+--     -- if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
+--     --     RuneReader.hekili_haveUnitTargetAttackable = true
+--     -- end
+
+--     if RuneReader.hekili_haveUnitTargetAttackable then
+--         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)
+--     end
+--     if hekili_inCombat then
+--         bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
+--     end
+
+
+
+--     local key = ""
+--     if ( RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID]) then
+--     key = RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID].hotkey
+--     else
+--         key = dataPacPrimary.keybind
+--     end
+
+
+
+
+--     local keytranslate = RuneReader:RuneReaderEnv_translateKey(key )  -- 2 digits
+
+--     if AuraUtil and AuraUtil.FindAuraByName then
+--         if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
+--             keytranslate = "00"
+--         end
+--         if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
+--             keytranslate = "00"
+--         end
+--     end
+
+
+
+
+--     local combinedValues =  mode .. 
+--                             '/B' .. bitvalue  
+--                             .. '/W' .. string.format("%04.3f", countDown ):gsub("[.]", "") 
+--                             .. '/K' .. keytranslate
+
+--                             --.. '/D' .. string.format("%04.3f", delay):gsub("[.]", "") 
+--                             --.. '/G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") 
+--                             --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") 
+--                             --.. '/A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") 
+--                             --.. '/S' .. source                
+
+--     local fullResult = combinedValues --.. checkDigit
+
+--     return fullResult, dataPacPrimary.actionID, key
+-- end
+
+-- Cache frequently‑used globals
+local GetTime           = GetTime
+local UnitCanAttack     = UnitCanAttack
+local UnitAffectingCombat = UnitAffectingCombat
+local GetCVar           = GetCVar
+local string_format     = string.format
+local C_Spell           = C_Spell
+local RuneReader        = RuneReader
+
+
+function RuneReader:Hekili_UpdateValues(mode)
+  if not Hekili or not Hekili.baseName then return nil end
+  if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
+
+  local mode = mode or 0
+  local curTime = GetTime()
+
+  -- Quick guard for the helper function
+  if not Hekili_GetRecommendedAbility then return end
+
+  -- --- Fetch recommendations --------------------------------------------
+  local dataPacPrimary = Hekili_GetRecommendedAbilityPrimary(1)
+  local dataPacNext    = Hekili_GetRecommendedAbilityPrimary(2)
+  local dataPacAoe     = Hekili_GetRecommendedAbilityAOE(1)
+
+  if not dataPacPrimary then
+    dataPacPrimary = hekili_LastDataPak
+  end
+  if not dataPacPrimary then dataPacPrimary = {} end
+
+  -- Normalise missing fields
+  local pk = dataPacPrimary
+  if pk.actionID == nil then
+    pk.delay     = 0
+    pk.wait      = 0
+    pk.keybind   = nil
+    pk.actionID  = nil
+    if hekili_LastDataPak then pk = hekili_LastDataPak end
+  end
+  hekili_LastDataPak = pk
+
+  if not pk.delay        then pk.delay        = 0 end
+  if not pk.wait         then pk.wait         = 0 end
+  if not pk.exact_time   then pk.exact_time   = curTime end
+  if not pk.keybind      then pk.keybind      = "" end
+
+  -- --- Resolve overrides -----------------------------------------------
+  local SpellID = pk.actionID
+  SpellID = RuneReader:ResolveOverrides(SpellID, nil)
+  local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+
+  if SpellID ~= pk.actionID then
+    local sbInfo  = RuneReader.SpellbookSpellInfo
+    local sbInfoByName = RuneReader.SpellbookSpellInfoByName
+
+    if sbInfo and sbInfo[SpellID] and sbInfo[SpellID].hotkey then
+      pk.keybind = sbInfo[SpellID].hotkey or ""
+    elseif sbInfoByName and sbInfoByName[spellInfo1.name] and sbInfoByName[spellInfo1.name].hotkey then
+      pk.keybind = sbInfoByName[spellInfo1.name].hotkey or ""
     end
-    if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
-        RuneReader.hekili_haveUnitTargetAttackable = true
+
+    pk.delay      = 0
+    pk.wait       = spellInfo1.castTime or 0
+    pk.keybind    = nil
+    pk.actionID   = SpellID
+  end
+
+  if pk.wait == 0 then pk.exact_time = curTime end
+
+  -- --- Target & combat flags --------------------------------------------
+  RuneReader.hekili_haveUnitTargetAttackable =
+      UnitCanAttack("player", "target") or
+      (pk.actionID and not C_Spell.IsSpellHarmful(pk.actionID))
+
+  local inCombat = UnitAffectingCombat("player")
+  hekili_inCombat = inCombat
+
+  -- --- Timing calculations ---------------------------------------------
+  local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+  local queueSec = queueMS / 1000
+
+  local exact_time = ((pk.exact_time + pk.delay) - pk.wait) -
+                     ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
+  local countDown  = RuneReader:Clamp(exact_time - curTime, 0, 9.99)
+
+  -- --- Bit flags --------------------------------------------------------
+  local bitvalue = 0
+  if RuneReader.hekili_haveUnitTargetAttackable then
+    bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)   -- set bit‑0
+  end
+  if hekili_inCombat then
+    bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)   -- set bit‑1
+  end
+
+  -- --- Key handling -----------------------------------------------------
+  local key = RuneReader.SpellbookSpellInfo[pk.actionID] and
+              RuneReader.SpellbookSpellInfo[pk.actionID].hotkey or
+              pk.keybind
+
+  local keytranslate = RuneReader:RuneReaderEnv_translateKey(key)  -- 2 digits
+
+  if AuraUtil and AuraUtil.FindAuraByName then
+    local find = AuraUtil.FindAuraByName
+    if find("G-99 Breakneck", "player", "HELPFUL") or
+       find("Unstable Rocketpack", "player", "HELPFUL") then
+      keytranslate = "00"
     end
-  -- Check if the player is in combat
-    local isInCombat = UnitAffectingCombat("player")
+  end
 
-    if isInCombat then
-        RuneReader.hekili_inCombat = true
-    else
-        RuneReader.hekili_inCombat = false
-    end
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
-    local queueSec = queueMS / 1000
+  -- --- Build the output string -----------------------------------------
+  local parts = {
+    mode,
+    "/B" .. bitvalue,
+    "/W" .. string_format("%04.3f", countDown):gsub("[.]", ""),
+    "/K" .. keytranslate
+  }
+  -- (Optional parts are commented out in the original; keep them commented.)
+  -- table.insert(parts, "/D" .. string_format("%04.3f", pk.delay):gsub("[.]", ""))
+  -- table.insert(parts, "/G" .. string_format("%04.3f", sCooldownResult.duration/100):gsub("[.]", ""))
+  -- table.insert(parts, "/L" .. string_format("%04.3f", latencyWorld/1000):gsub("[.]", ""))
+  -- table.insert(parts, "/A" .. string_format("%08i", pk.actionID or 0):gsub("[.]", ""))
+  -- table.insert(parts, "/S" .. source)
 
-    local exact_time = ((dataPacPrimary.exact_time + delay) - (wait)) - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
-    local countDown = (exact_time - curTime) 
+  local fullResult = table.concat(parts)  -- no check digit for now
 
-        countDown = RuneReader:Clamp(countDown, 0, 9.99)
-
-    local bitvalue = 0
-    -- if dataPacPrimary.actionID ~= nil and C_Spell.IsSpellHarmful(dataPacPrimary.actionID) == false then
-    --     RuneReader.hekili_haveUnitTargetAttackable = true
-    -- end
-
-    if RuneReader.hekili_haveUnitTargetAttackable then
-        bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 0)
-    end
-    if RuneReader.hekili_inCombat then
-        bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)
-    end
-
---    local keytranslate = RuneReader:RuneReaderEnv_translateKey(dataPacPrimary.keybind)
---print(dataPacPrimary.actionID)
-local key = ""
-if ( RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID]) then
-key = RuneReader.SpellbookSpellInfo[dataPacPrimary.actionID].hotkey
-else
-    key = dataPacPrimary.keybind
-end
-
-
-
-
- local keytranslate = RuneReader:RuneReaderEnv_translateKey(key )  -- 2 digits
-
-    if AuraUtil and AuraUtil.FindAuraByName then
-        if AuraUtil.FindAuraByName("G-99 Breakneck", "player", "HELPFUL") then
-            keytranslate = "00"
-        end
-        if AuraUtil.FindAuraByName("Unstable Rocketpack", "player", "HELPFUL") then
-            keytranslate = "00"
-        end
-    end
-
-    local sCooldownResult = C_Spell.GetSpellCooldown(61304) -- find the GCD
-     local source = "1"  -- 1 = AssistedCombat, 0 = Hekili
-    --print ( duration .. enable) 
-    local combinedValues =  mode .. 
-                            '/B' .. bitvalue  
-                            .. '/W' .. string.format("%04.3f", countDown ):gsub("[.]", "") 
-                            .. '/K' .. keytranslate
-
-                            --.. '/D' .. string.format("%04.3f", delay):gsub("[.]", "") 
-                            --.. '/G' .. string.format("%04.3f", sCooldownResult.duration/100):gsub("[.]", "") 
-                            --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "") 
-                            --.. '/A' .. string.format("%08i", dataPacPrimary.actionID or 0):gsub("[.]", "") 
-                            --.. '/S' .. source                
-
-    --mode .. keytranslate .. waitTranslate .. bitvalue 
-    --local checkDigit = RuneReader:CalculateCheckDigit(combinedValues)
-    local fullResult = combinedValues --.. checkDigit
-    RuneReader.hekili_LastEncodedResult = fullResult
-
-    return fullResult, dataPacPrimary.actionID, key
+  return fullResult, pk.actionID, key
 end
