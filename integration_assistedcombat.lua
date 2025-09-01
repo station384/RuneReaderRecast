@@ -214,6 +214,15 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local cooldownEnc  = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10))) -- 4 digits
     local castTimeEnc  = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10))) -- 4 digits
 
+    if AuraUtil and AuraUtil.FindAuraByName then
+      local find = AuraUtil.FindAuraByName
+      if find("G-99 Breakneck", "player", "HELPFUL") or
+        find("Unstable Rocketpack", "player", "HELPFUL") then
+        keytranslate = "00"
+      end
+    end
+
+
     -- Bitfield flags:
     --  bit 0 → player can attack target
     --  bit 1 → player is in combat
