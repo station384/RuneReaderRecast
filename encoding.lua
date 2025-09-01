@@ -74,14 +74,31 @@ function RuneReader:ValidateWithCheckDigitASCII(input)
     return expected == actual
 end
 
+-- Pre‑computed masks (bit_position + 1 → 2^bit_position)
+local bitMasks = {
+  1,          2,          4,          8,          16,
+  32,         64,         128,        256,        512,
+  1024,       2048,       4096,       8192,       16384,
+  32768,      65536,      131072,     262144,     524288,
+  1048576,    2097152,    4194304,    8388608,    16777216,
+  33554432,   67108864,   134217728,  268435456,  536870912,
+  1073741824
+}
+
+--Set‑bit helper 
 function RuneReader:RuneReaderEnv_set_bit(byte, bit_position)
-    local bit_mask = 2 ^ bit_position
-    if byte % (bit_mask + bit_mask) >= bit_mask then
-        return byte -- bit already set
-    else
-        return byte + bit_mask
-    end
+  -- Get the power‑of‑two mask for the requested bit.
+  local mask = bitMasks[bit_position + 1]   -- Lua indices start at 1
+
+  -- If the bit is already set, just return the original value.
+  if byte % (mask * 2) < mask then
+    return byte + mask     -- bit was clear → set it
+  else
+    return byte            -- bit already set
+  end
 end
+
+
 
 -- Helper function used for debuging
 -- This adds info to an in game tool used for development
