@@ -300,25 +300,26 @@ function RuneReader:Hekili_UpdateValues(mode)
 
   -- --- Resolve overrides -----------------------------------------------
   local SpellID = pk.actionID
-  SpellID = RuneReader:ResolveOverrides(SpellID, nil)
-  local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+  if SpellID and SpellID >= 0 then
+    SpellID = RuneReader:ResolveOverrides(SpellID, nil)
+    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
-  if SpellID ~= pk.actionID then
-    local sbInfo  = RuneReader.SpellbookSpellInfo
-    local sbInfoByName = RuneReader.SpellbookSpellInfoByName
+    if SpellID ~= pk.actionID then
+      local sbInfo  = RuneReader.SpellbookSpellInfo
+      local sbInfoByName = RuneReader.SpellbookSpellInfoByName
 
-    if sbInfo and sbInfo[SpellID] and sbInfo[SpellID].hotkey then
-      pk.keybind = sbInfo[SpellID].hotkey or ""
-    elseif sbInfoByName and sbInfoByName[spellInfo1.name] and sbInfoByName[spellInfo1.name].hotkey then
-      pk.keybind = sbInfoByName[spellInfo1.name].hotkey or ""
+      if sbInfo and sbInfo[SpellID] and sbInfo[SpellID].hotkey then
+        pk.keybind = sbInfo[SpellID].hotkey or ""
+      elseif sbInfoByName and sbInfoByName[spellInfo1.name] and sbInfoByName[spellInfo1.name].hotkey then
+        pk.keybind = sbInfoByName[spellInfo1.name].hotkey or ""
+      end
+
+      pk.delay      = 0
+      pk.wait       = spellInfo1.castTime or 0
+      pk.keybind    = nil
+      pk.actionID   = SpellID
     end
-
-    pk.delay      = 0
-    pk.wait       = spellInfo1.castTime or 0
-    pk.keybind    = nil
-    pk.actionID   = SpellID
   end
-
   if pk.wait == 0 then pk.exact_time = curTime end
 
   -- --- Target & combat flags --------------------------------------------
