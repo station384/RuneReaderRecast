@@ -137,17 +137,16 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 --    if not SpellID then return RuneReader.Assisted_LastEncodedResult end
 
     -- Base spell info (used before and after overrides)
-    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
+
 
     -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
-    local newSpellID, newSpellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
-    
+    local newSpellID = RuneReader:ResolveOverrides(SpellID, nil)
+
 
     if newSpellID ~= SpellID then
       SpellID = newSpellID
-      spellInfo1 = newSpellInfo1
     end
-
+    local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 --print("AssistedCombat_UpdateValues: SpellID=", SpellID, " Name=", spellInfo1 and spellInfo1.name or "nil")
 
 
