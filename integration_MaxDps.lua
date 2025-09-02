@@ -164,9 +164,11 @@ end
     -- Encode fields
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(keyBind) -- 2 digits
     local bitMask = 0
+    
     if RuneReader.UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
     end
+
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
