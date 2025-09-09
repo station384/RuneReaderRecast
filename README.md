@@ -11,7 +11,7 @@ RuneReader Recast can function as:
 
 ## ✅ Features:
 - **Combat Assist Integration:**
-  - Supports Hekili, Blizzard Assisted Combat, and ConRO.
+  - Supports Hekili, Blizzard Assisted Combat, MaxDPS and ConRO.
   - Automatically detects available addons and selects the appropriate data source.
 - **Visual Spell Encoding:**
   - **Barcode (Code39):** Low CPU usage, simple visual output.
@@ -21,9 +21,6 @@ RuneReader Recast can function as:
   - Displays the currently recommended spell icon with associated hotkey.
   - Tooltip support for additional details.
   - Draggable with position-saving between sessions.
-- **Automated Frame Management:**
-  - Automatically hides during pet battles or when the World Map is open.
-  - Self-resizing and self-healing to address WoW’s scaling behavior.
 - **Highly Configurable:**
   - Adjustable UI scale per display type.
   - Configurable refresh delay, barcode type, and spell queue pre-press delay.
@@ -40,6 +37,7 @@ RuneReader Recast can function as:
 
 ## ✅ Configuration:
 Access the settings via:
+ - Addon Options
 
 Here, you can:
 - Select which combat assist source to use (Hekili, WoW Assisted Combat, ConRO).
