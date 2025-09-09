@@ -1,3 +1,20 @@
+-- RuneReader Recast
+-- Copyright (c) Michael Sutton 2025
+-- Licensed under the GNU General Public License v3.0 (GPLv3)
+-- You may use, modify, and distribute this file under the terms of the GPLv3 license.
+-- See: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+
+-- Description:
+-- This module provides overrides for major cooldown detection and spell selection.
+-- It classifies major cooldowns based on their cooldown duration and allows for exceptions.
+-- It also provides a function to select the next non-major spell from a list of candidates,
+-- preferring those provided by external rotation providers like Assisted or Hekili. 
+-- This is primarily for use with the WoW Assisted Combat function.
+
+
+
+
 -- Integration_Overrides_MajorCooldowns.lua
 RuneReader = RuneReader or {}
 
