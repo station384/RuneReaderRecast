@@ -84,9 +84,14 @@ local function MaxDps_GetKeyBind(spellID)
             -- print("MaxDps KeyBind for ", spellID, " is ", keyBind)
             break
         end
-    end 
+    end
     return keyBind
 end
+
+-- Spell Queue Window Divisor
+-- Is used to adjust the spell queue window time to match the pre-press delay
+-- But leaves some room for latencyWorld screen refresh etc. 
+local spellQueueWindowDivisor = 1.2  
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
@@ -147,7 +152,7 @@ end
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
 
     local wait = 0 --=timeShift
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
     local queueSec = queueMS / 1000
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration -
     ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)

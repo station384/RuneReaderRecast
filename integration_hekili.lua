@@ -261,6 +261,10 @@ local string_format     = string.format
 local C_Spell           = C_Spell
 local RuneReader        = RuneReader
 
+-- Spell Queue Window Divisor
+-- Is used to adjust the spell queue window time to match the pre-press delay
+-- But leaves some room for latencyWorld screen refresh etc. 
+local spellQueueWindowDivisor = 1.2  
 
 function RuneReader:Hekili_UpdateValues(mode)
   if not Hekili or not Hekili.baseName then return nil end
@@ -331,7 +335,7 @@ function RuneReader:Hekili_UpdateValues(mode)
   hekili_inCombat = inCombat
 
   -- --- Timing calculations ---------------------------------------------
-  local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 3) or 50
+  local queueMS  = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
   local queueSec = queueMS / 1000
 
   local exact_time = ((pk.exact_time + pk.delay) - pk.wait) -

@@ -24,6 +24,12 @@ local function CleanConROHotKey(HotKeyText)
         return keyText:gsub("-", ""):upper()
     end
 end
+    
+-- Spell Queue Window Divisor
+-- Is used to adjust the spell queue window time to match the pre-press delay
+-- But leaves some room for latencyWorld screen refresh etc. 
+local spellQueueWindowDivisor = 1.2  
+
 
 function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO or not ConRO.Version then return nil end --ConRO Doesn't exists just exit
@@ -45,10 +51,10 @@ function RuneReader:ConRO_UpdateValues(mode)
     local SpellID                             = ConRO.SuggestedSpells[1]
     if not SpellID then return nil end
 
+    SpellID = RuneReader:ResolveOverrides(SpellID, nil)
+     
     local spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
-    SpellID, spellInfo1 = RuneReader:ResolveOverrides(SpellID, nil)
-     
     if (RuneReader.SpellbookSpellInfo and RuneReader.SpellbookSpellInfo[SpellID] and RuneReader.SpellbookSpellInfo[SpellID].hotkey) then
         keyBind = RuneReader.SpellbookSpellInfo[SpellID].hotkey or ""
     else
@@ -74,8 +80,9 @@ function RuneReader:ConRO_UpdateValues(mode)
          duration = emportTime
     end
 
+
     local wait = 0 --=timeShift
-    local queueMS = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+    local queueMS = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
     local queueSec = (queueMS / 1000) 
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
 
