@@ -331,7 +331,7 @@ function RuneReader:Hekili_UpdateValues(mode)
   hekili_inCombat = inCombat
 
   -- --- Timing calculations ---------------------------------------------
-  local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+  local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 3) or 50
   local queueSec = queueMS / 1000
 
   local exact_time = ((pk.exact_time + pk.delay) - pk.wait) -
