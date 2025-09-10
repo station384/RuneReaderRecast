@@ -18,7 +18,7 @@
 -- Integration_Overrides_MajorCooldowns.lua
 RuneReader = RuneReader or {}
 
-RuneReader.MajorCooldownThreshold = 30
+RuneReader.MajorCooldownThreshold = 30 --Seconds
 RuneReader.MajorCooldownExceptions = {
     [19574] = true, -- Bestial Wrath (cast often despite long base)
     -- add more exceptions here
