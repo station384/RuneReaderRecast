@@ -580,6 +580,24 @@ end
 
 --#endregion
 
+--#region Evoker Self Healing Functions
+function RuneReader:ShouldCastVerdantEmbrace()
+    local _, class = UnitClass("player")
+    if class ~= "EVOKER" then return nil end
+    local spellID = 360995  -- Verdant Embrace
+    local health = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
+
+    if not  C_SpellBook.IsSpellKnown (spellID ) then return nil end
+    local cd = C_Spell.GetSpellCooldown(spellID)
+
+    if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
+    return spellID
+
+end
+--#endregion
+
 
 --#region Shaman Self Healing Functions
 function RuneReader:ShouldCastHealingSurge()

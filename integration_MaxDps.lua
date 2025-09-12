@@ -88,10 +88,17 @@ local function MaxDps_GetKeyBind(spellID)
     return keyBind
 end
 
+local function MaxDps_GetEmpowermentLevel(SpellID)
+  if not SpellID then return 0 end
+  if not MaxDps.FrameData  then return 0 end
+  if not MaxDps.FrameData.empowerLevel then return 0 end
+  return MaxDps.FrameData.empowerLevel[SpellID] or 0
+end
+
 -- Spell Queue Window Divisor
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
-local spellQueueWindowDivisor = 1.2  
+local spellQueueWindowDivisor = 3.0  
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
@@ -134,7 +141,6 @@ if not keyBind or keyBind == "" then
       end
     end
 end
-    
  
     if not SpellID then return RuneReader.MaxDps_LastEncodedResult end
     if not SpellID then SpellID = 0 end
@@ -151,6 +157,14 @@ end
     --  local GCD = RuneReader.GetSpellCooldown(61304).duration -- find the GCD
     if sCurrentSpellCooldown.duration == 0 or not sCurrentSpellCooldown.duration then GCD = 0 end
 
+
+    -- handle Empowerment spells
+    if MaxDps_GetEmpowermentLevel(SpellID) ~= 0  then 
+      --  print ("Charge To:",MaxDps_GetEmpowermentLevel(SpellID),  "Time To Charge:", MaxDps_GetEmpowermentLevel(SpellID) /  (2.1/4))
+        duration = MaxDps_GetEmpowermentLevel(SpellID) / (2.1/4)
+    end
+
+
     local wait = 0 --=timeShift
     local queueMS = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
     local queueSec = queueMS / 1000
@@ -164,6 +178,7 @@ end
 
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
+    
 
 
     -- Encode fields

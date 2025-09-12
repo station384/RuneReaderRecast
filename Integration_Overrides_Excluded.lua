@@ -9,12 +9,18 @@ RuneReader = RuneReader or {}
 
 function RuneReader:IsSpellExcluded(SpellID)
     local excludedSpells = {
+        -- Demon Hunter
         [198793] = true, -- Vengful Retreat
         [195072] = true, -- Felrush
-        [433874] = true, -- Felrush (duplicate ID)
+        -- Hunter
         [19801] = true, -- Tranq Shot
         [147362] = true, -- Counter Shot
+       --Druid
         [8936] = true, -- Regrowth 
+        -- Evoker
+        [358267] = true, -- Hover
+        [433874] = true, -- Deep Breath
+        [360995] = true, -- Verdant Embrace
     }
     return excludedSpells[SpellID] or false
 end
