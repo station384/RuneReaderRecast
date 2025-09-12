@@ -127,7 +127,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
     -- Default mode to 1 if nil was passed
     local mode = mode or 1
-
+    local spellQueueWindowDivisor = 1 
     -- ======================
     -- Candidate spell & time
     -- ======================
@@ -192,7 +192,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local wait = 0
 
     -- Pull the client SpellQueueWindow (ms) and convert to seconds; default to 50ms if missing
-    local queueMS  = tonumber(GetCVar("SpellQueueWindow") / 1.2) or 50
+    local queueMS  = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
     local queueSec = queueMS / 1000
 
     -- Adjust the effective "start time" by duration, PrePressDelay, and the client queue window.

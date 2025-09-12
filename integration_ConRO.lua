@@ -28,7 +28,7 @@ end
 -- Spell Queue Window Divisor
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
-local spellQueueWindowDivisor = 3.0 
+local spellQueueWindowDivisor = 1 
 
 
 function RuneReader:ConRO_UpdateValues(mode)

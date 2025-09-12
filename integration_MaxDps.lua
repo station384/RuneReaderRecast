@@ -98,7 +98,7 @@ end
 -- Spell Queue Window Divisor
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
-local spellQueueWindowDivisor = 3.0  
+local spellQueueWindowDivisor = 1  
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
@@ -161,7 +161,8 @@ end
     -- handle Empowerment spells
     if MaxDps_GetEmpowermentLevel(SpellID) ~= 0  then 
       --  print ("Charge To:",MaxDps_GetEmpowermentLevel(SpellID),  "Time To Charge:", MaxDps_GetEmpowermentLevel(SpellID) /  (2.1/4))
-        duration = MaxDps_GetEmpowermentLevel(SpellID) / (2.1/4)
+        duration = (MaxDps_GetEmpowermentLevel(SpellID) / (2.1/5)) 
+
     end
 
 
