@@ -864,6 +864,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
             "ShouldCastBarkskin",
             "ShouldCastPurifyingBrew",
             "ShouldCastVivifyBrewmaster",
+            "ShouldCastVerdantEmbrace"
         }
 
         for _, fname in ipairs(priority) do
