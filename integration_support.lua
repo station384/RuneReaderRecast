@@ -767,6 +767,8 @@ function RuneReader:ShouldEnterShadowform()
     return nil
 end
 
+
+
 -- One-stop spell override: movement -> exclude -> form -> self-preservation
 function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     if SpellID == nil then return end
@@ -801,6 +803,10 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     --     end
     -- end
 
+
+
+
+    
     -- ===== Movement: prefer instant while moving =====
     if UseInstantMoving then
         local castTime = (spellInfo1.castTime or 0)
@@ -884,7 +890,21 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     return newSpellID --, spellInfo1
 end
 
+function RuneReader:IsGCDActive(SpellID)
+    if not SpellID then  return false, 0 end
+    local gcdSpellID = 61304 -- Replace with actual primary ability spell ID for your class
+    if not  RuneReader.GetSpellCooldown then   return false, 0 end
+    local gcdCooldown = RuneReader.GetSpellCooldown(gcdSpellID)
+    local requestSpellID = RuneReader.GetSpellCooldown(SpellID)
+    
+    if (gcdCooldown and gcdCooldown.duration > 0) and 
+    (requestSpellID and requestSpellID.duration ~= 0) then
+--print("GCD Active", gcdCooldown.duration)
+        return true, gcdCooldown.duration
+    end
 
+    return false, 0
+end
 
 if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater = CreateFrame("Frame")

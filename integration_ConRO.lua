@@ -29,7 +29,7 @@ end
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
 local spellQueueWindowDivisor = 1 
-
+local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO or not ConRO.Version then return nil end --ConRO Doesn't exists just exit
@@ -86,7 +86,7 @@ function RuneReader:ConRO_UpdateValues(mode)
     local queueSec = (queueMS / 1000) 
     sCurrentSpellCooldown.startTime = (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay  or 0) + queueSec)
 
-    wait = sCurrentSpellCooldown.startTime - curTime 
+    wait = sCurrentSpellCooldown.startTime - curTime
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
 
@@ -102,6 +102,9 @@ function RuneReader:ConRO_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
+    if RuneReader:IsGCDActive(SpellID) then
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
+    end
 
     if AuraUtil and AuraUtil.FindAuraByName then
     local find = AuraUtil.FindAuraByName
@@ -110,12 +113,12 @@ function RuneReader:ConRO_UpdateValues(mode)
       keytranslate = "00"
     end
   end
-
+    suggestionIndex = (suggestionIndex + 1) % 9
 
     local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo
     --Just playing around going to base36 encode the numbers to save space
     local combinedValues = mode
-        .. '/B' .. bitMask
+        .. '/B' .. string.format("%02i",bitMask)
         .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "")
         .. '/K' .. keytranslate
     --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "")

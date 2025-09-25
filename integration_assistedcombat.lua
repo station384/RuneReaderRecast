@@ -16,6 +16,8 @@ RuneReader.Assisted_LastEncodedResult = "1,B0,W0001,K00"
 
 
 
+local spellQueueWindowDivisor = 1 
+local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 
 
@@ -127,7 +129,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
     -- Default mode to 1 if nil was passed
     local mode = mode or 1
-    local spellQueueWindowDivisor = 1 
+
     -- ======================
     -- Candidate spell & time
     -- ======================
@@ -232,12 +234,14 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
-
+    if RuneReader:IsGCDActive(SpellID) then
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
+    end
     local source = "1" -- 1 = AssistedCombat, 0 = Hekili
-
+    suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = mode
-        .. '/B' .. bitMask
+        .. '/B' .. string.format("%02i",bitMask)
         .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "")
         .. '/K' .. keytranslate
     --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "")

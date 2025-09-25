@@ -67,13 +67,13 @@ function RuneReader:ShouldCastRejuvenationIfNeeded()
     if maxHealth == 0 or (health / maxHealth) > 0.70 then return nil end
 
     -- Check for existing Rejuvenation aura on player
-    for i = 1, 40 do
+   -- for i = 1, 40 do
         local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
-        if not aura then break end
-        if aura.spellId == spellID then
+      --  if then break end
+        if aura and aura.spellId == spellID then
             return nil -- Already has Rejuvenation active
         end
-    end
+    --end
 
     -- Has Rejuvenation in talent tree?
     --if not RuneReader:HasTalentBySpellID(rejuvenationID) then return nil end

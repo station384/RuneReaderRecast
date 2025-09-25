@@ -24,3 +24,5 @@ function RuneReader:IsSpellExcluded(SpellID)
     }
     return excludedSpells[SpellID] or false
 end
+
+

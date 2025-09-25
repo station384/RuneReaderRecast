@@ -98,7 +98,8 @@ end
 -- Spell Queue Window Divisor
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
-local spellQueueWindowDivisor = 1  
+local spellQueueWindowDivisor = 1.5  
+local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
@@ -126,8 +127,6 @@ function RuneReader:MaxDps_UpdateValues(mode)
 
 -- try and use MaxDPS go get our keybind first
     keyBind = MaxDps_GetKeyBind(SpellID)
-
-    
     spellInfo1 = RuneReader.GetSpellInfo(SpellID)
 
 
@@ -179,7 +178,7 @@ end
 
 
     wait = RuneReader:Clamp(wait, 0, 9.99)
-    
+    suggestionIndex = (suggestionIndex + 1) % 9
 
 
     -- Encode fields
@@ -194,6 +193,10 @@ end
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
 
+    if RuneReader:IsGCDActive(SpellID) then
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
+    end
+
     if AuraUtil and AuraUtil.FindAuraByName then
     local find = AuraUtil.FindAuraByName
     if find("G-99 Breakneck", "player", "HELPFUL") or
@@ -202,13 +205,13 @@ end
     end
   end
 
-
+  
 
 
     local source = "3" -- 1 = AssistedCombat, 0 = Hekili, 3 = ConRo, 4 = MaxDps
     --Just playing around going to base36 encode the numbers to save space
     local combinedValues = mode
-        .. '/B' .. bitMask
+        .. '/B' .. string.format("%02i",bitMask)
         .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "")
         .. '/K' .. keytranslate
     --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "")

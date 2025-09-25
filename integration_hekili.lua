@@ -264,7 +264,8 @@ local RuneReader        = RuneReader
 -- Spell Queue Window Divisor
 -- Is used to adjust the spell queue window time to match the pre-press delay
 -- But leaves some room for latencyWorld screen refresh etc. 
-local spellQueueWindowDivisor = 1 
+local spellQueueWindowDivisor = 1.5 
+local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 function RuneReader:Hekili_UpdateValues(mode)
   if not Hekili or not Hekili.baseName then return nil end
@@ -350,7 +351,9 @@ function RuneReader:Hekili_UpdateValues(mode)
   if hekili_inCombat then
     bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 1)   -- set bit‑1
   end
-
+  if RuneReader:IsGCDActive(SpellID) then
+      bitvalue = RuneReader:RuneReaderEnv_set_bit(bitvalue, 3)
+  end
   -- --- Key handling -----------------------------------------------------
   local key = RuneReader.SpellbookSpellInfo[pk.actionID] and
               RuneReader.SpellbookSpellInfo[pk.actionID].hotkey or
@@ -365,11 +368,11 @@ function RuneReader:Hekili_UpdateValues(mode)
       keytranslate = "00"
     end
   end
-
+    suggestionIndex = (suggestionIndex + 1) % 9
   -- --- Build the output string -----------------------------------------
   local parts = {
     mode,
-    "/B" .. bitvalue,
+    "/B" .. string.format("%02i",bitvalue),
     "/W" .. string_format("%04.3f", countDown):gsub("[.]", ""),
     "/K" .. keytranslate
   }
