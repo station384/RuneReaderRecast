@@ -6,6 +6,8 @@
 
 RuneReader = RuneReader or {}
 RuneReader.HealthHistory =  RuneReader.HealthHistory or {}
+RuneReader.SpellbookSpellInfo = {}
+RuneReader.SpellbookSpellInfoByName = {}
 --#region Move globals to local object (table) for faster execution
 RuneReader.GetSpellInfo = C_Spell.GetSpellInfo
 RuneReader.GetSpellCooldown = C_Spell.GetSpellCooldown
@@ -264,7 +266,7 @@ local function RR_QueueTooltipCooldown(spellID)
 end
 
 -- Call this when talents/spells change (before rebuilding the map)
-function RuneReader:InvalidateTooltipCooldowns()
+function RuneReader:InvalidateTooltipCooldowns(param1, param2, param3)
     wipe(self.CooldownFromTooltipCache)
     -- stop any active runner & clear pending work
     if self._tipTicker then self._tipTicker:Cancel(); self._tipTicker = nil end
@@ -920,17 +922,33 @@ if not RuneReader.ActionBarSpellMapUpdater then
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("PLAYER_TALENT_UPDATE")
     RuneReader.ActionBarSpellMapUpdater:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
-    RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", function()
-    RuneReader.SpellbookSpellInfo = {}
-    RuneReader.SpellbookSpellInfoByName = {}
+    
+    RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", 
+    function(self, event, param2, param3, param4, param5)
+        if param2 then 
+            local type, id, subType = GetActionInfo(param2) 
+            if (subType == "assistedcombat") then return end
+        end
         RuneReader:BuildAllSpellbookSpellMap()
+
     end)
 
     RuneReader.ActionBarSpellMapInvalidator = CreateFrame("Frame")
     RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("SPELLS_CHANGED")
     RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("PLAYER_TALENT_UPDATE")
     RuneReader.ActionBarSpellMapInvalidator:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
-            RuneReader:InvalidateTooltipCooldowns()
+    RuneReader.ActionBarSpellMapInvalidator:SetScript("OnEvent", 
+    function(self, event, param2, param3, param4, param5)
+            
+        if  param2 then 
+            local type, id, subType = GetActionInfo(param2) 
+            if (subType  == "assistedcombat") then return end
+        end
+        RuneReader:InvalidateTooltipCooldowns()
+
+    end)
+
+
 
 
 end
