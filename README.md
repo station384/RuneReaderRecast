@@ -1,3 +1,9 @@
+> [!NOTE]
+> This addon will be shutdown after Midnight 12.0 (Pre-patch)
+>
+> The functions that this addon utilizes will no longer be available to use with release of 12.0 (pre-patch)
+> with no path to move forward I am forced to shutdown the project, unless blizzard changes course.
+
 # RuneReader Recast
 
 **RuneReader Recast** is a World of Warcraft addon that visually displays combat recommendations from multiple sources using **barcodes**, **QR codes**, and a **spell icon frame** with hotkeys.  
