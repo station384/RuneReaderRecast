@@ -925,7 +925,9 @@ if not RuneReader.ActionBarSpellMapUpdater then
     
     RuneReader.ActionBarSpellMapUpdater:SetScript("OnEvent", 
     function(self, event, param2, param3, param4, param5)
-        if param2 then 
+       -- print(event,param2)
+
+        if param2 and (event == "ACTIONBAR_SLOT_CHANGED") then 
             local type, id, subType = GetActionInfo(param2) 
             if (subType == "assistedcombat") then return end
         end
