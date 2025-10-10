@@ -57,7 +57,9 @@ end
 
 function RuneReader:ShouldCastRejuvenationIfNeeded()
     local _, class = UnitClass("player")
+    local bearForm = 1                 -- FORM index for Bear (see below)
     if class ~= "DRUID" then return nil end
+    if GetShapeshiftForm() == bearForm then return nil end
 
     local spellID = 774
 
