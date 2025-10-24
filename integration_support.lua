@@ -810,7 +810,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
 
     
     -- ===== Movement: prefer instant while moving =====
-    if UseInstantMoving then
+    if UseInstantMoving and UseInstantMoving == true then
         local castTime = (spellInfo1.castTime or 0)
         local isMoving = self.IsPlayerMoving and self:IsPlayerMoving()
         local isChanneling = self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)
@@ -836,7 +836,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     end
 
     -- ===== Form check (e.g., Shadowform) =====
-    if UseInstantFormCheck then
+    if UseInstantFormCheck and UseInstantFormCheck == true then
         local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
         if formSpell then
             newSpellID    = formSpell
@@ -845,7 +845,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     end
 
     -- ===== Self-preservation / defensives (priority order) =====
-    if UseSelfHealing then
+    if UseSelfHealing and UseSelfHealing == true then
         -- Priority list by function name; first non-nil wins.
         local priority = {
             "ShouldCastRevivePet",
@@ -864,6 +864,7 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
             "ShouldCastCrimsonVial",
             "ShouldCastImpendingVictory",
             "ShouldCastShieldBlock",
+            "ShouldCastVictoryRush",
             "ShouldCastPowerWordShield",
             "ShouldCastHealingSurge",
             "ShouldCastObsidianScales",

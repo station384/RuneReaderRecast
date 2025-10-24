@@ -306,10 +306,10 @@ function RuneReader:ShouldCastDeathStrike()
     if class ~= "DEATHKNIGHT" then return nil end
 
     local specID = GetSpecialization()
-    if specID ~= 1 then return nil end  -- Blood only
+   -- if specID ~= 1 then return nil end  -- Blood only
 
     local deathStrikeID = 49998
-
+    if not  C_SpellBook.IsSpellKnown (deathStrikeID ) then return nil end
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 then return nil end
@@ -536,12 +536,27 @@ function RuneReader:ShouldCastCrimsonVial()
 end
 --#endregion
 
---#region Warrior Self Healing Functions111111
+--#region Warrior Self Healing Functions
 function RuneReader:ShouldCastImpendingVictory()
     local _, class = UnitClass("player")
     if class ~= "WARRIOR" then return nil end
 
     local spellID = 202168  -- Impending Victory
+    -- Check player's Rage
+    local rage = UnitPower("player", Enum.PowerType.Rage)
+
+    -- Get the Rage cost of Shield Block (fix: wrong cost type used in original)
+    local costs = C_Spell.GetSpellPowerCost(spellID)
+    local spellCost = 0
+    for _, cost in ipairs(costs) do
+        if cost.type == Enum.PowerType.Rage then
+            spellCost = cost.cost
+            break
+        end
+    end
+
+    if rage < spellCost then return nil end
+
     local health = UnitHealth("player")
     local maxHealth = UnitHealthMax("player")
     if maxHealth == 0 or (health / maxHealth) > 0.60 then return nil end
@@ -559,6 +574,7 @@ function RuneReader:ShouldCastImpendingVictory()
 
     return spellID
 end
+
 function RuneReader:ShouldCastShieldBlock()
     local _, class = UnitClass("player")
     if class ~= "WARRIOR" then return nil end
@@ -568,8 +584,23 @@ function RuneReader:ShouldCastShieldBlock()
 
     local spellID = 2565 -- Shield Block
 
+    -- Check player's Rage
+    local rage = UnitPower("player", Enum.PowerType.Rage)
+
+    -- Get the Rage cost of Shield Block (fix: wrong cost type used in original)
+    local costs = C_Spell.GetSpellPowerCost(spellID)
+    local spellCost = 0
+    for _, cost in ipairs(costs) do
+        if cost.type == Enum.PowerType.Rage then
+            spellCost = cost.cost
+            break
+        end
+    end
+
+    if rage < spellCost then return nil end
+
     -- Avoid casting if already active
-    local aura = RuneReader.GetPlayerAuraBySpellID(spellID)
+    local aura = RuneReader.GetPlayerAuraBySpellID(132404)
     if aura then return nil end
 
     -- Check spell cooldown (Shield Block is 2 charges, but check CD)
@@ -580,6 +611,29 @@ function RuneReader:ShouldCastShieldBlock()
     return spellID
 end
 
+function RuneReader:ShouldCastVictoryRush()
+    local _, class = UnitClass("player")
+    if class ~= "WARRIOR" then return nil end
+
+    local spellID = 34428  -- Victory Rush
+    local haveAura = 32216
+    local health = UnitHealth("player")
+    local maxHealth = UnitHealthMax("player")
+    if maxHealth == 0 or (health / maxHealth) > 0.80 then return nil end
+
+    --if not RuneReader:HasTalentBySpellID(spellID) then return nil end
+    if not C_SpellBook.IsSpellKnown (spellID )  then return nil end
+
+
+    local aura = RuneReader.GetPlayerAuraBySpellID(haveAura)
+    if aura then return nil end
+
+    local cd = C_Spell.GetSpellCooldown(spellID)
+    --local GCD = RuneReader.GetSpellCooldown(61304).duration
+     if not cd or (cd.startTime >= 0 and (cd.startTime + cd.duration) >= GetTime()) then return nil end
+
+    return spellID
+end
 --#endregion
 
 --#region Evoker Self Healing Functions

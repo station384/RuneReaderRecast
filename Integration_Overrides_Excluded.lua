@@ -19,6 +19,8 @@ function RuneReader:IsSpellExcluded(SpellID)
        
         --Druid
         [8936] = true, -- Regrowth 
+        [106839] = true, -- Skullbash
+        [22812] = true, -- barkskin
         
         -- Evoker
         [358267] = true, -- Hover
@@ -29,7 +31,8 @@ function RuneReader:IsSpellExcluded(SpellID)
         [1856] = true, -- Vanish
 
         --Racials to exclude 
-        [265221] = true -- FireBlood
+        [265221] = true, -- FireBlood
+        [274738] = true -- Ancestral Call
     }
     return excludedSpells[SpellID] or false
 end
