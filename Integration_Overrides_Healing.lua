@@ -270,6 +270,7 @@ end
 
 --#region Hunter Self Healing Functions
 function RuneReader:ShouldCastExhilaration()
+    -- todo:  check is this can be reworked
     local _, class = UnitClass("player")
     if class ~= "HUNTER" then return nil end
 

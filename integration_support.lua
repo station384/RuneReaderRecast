@@ -60,7 +60,9 @@ RuneReader.ChanneledSpells = {
     [8936] = true, -- Regrowth
     [274281] = true, -- Moon
     --Hunter
-    [982] = true -- Revive Pet
+    [982] = true, -- Revive Pet
+    --Mage
+    [382440] = true -- Shifting power
     
 }
 
@@ -87,19 +89,24 @@ local function RR_ExtractLineText(line)
     if not line then return nil end
     local resultText = ""
     -- Some builds already expose line.leftText; grab it if present.
-    if type(line.leftText) == "string" and line.leftText ~= "" then
-        resultText = line.leftText
-    end
-
-    -- Some expose rightText too.
-    if type(line.rightText) == "string" and line.rightText ~= "" then
-        resultText = resultText .. " " .. line.rightText
-    end
-
-    if resultText ~= "" then
+    if (issecretvalue(line.leftText)) then
         return resultText
-    end
+    else
 
+        if type(line.leftText) == "string" and line.leftText ~= "" then
+            resultText = line.leftText
+        end
+
+        -- Some expose rightText too.
+        if type(line.rightText) == "string" and line.rightText ~= "" then
+            resultText = resultText .. " " .. line.rightText
+        end
+
+        if resultText ~= "" then
+            return resultText
+        end
+    end
+    
     -- Otherwise dig through the raw args for a stringVal.
     if type(line.args) == "table" then
         for _, a in ipairs(line.args) do
@@ -776,119 +783,123 @@ function RuneReader:ResolveOverrides(SpellID,  suggestedQueue)
     if SpellID == nil then return end
     if SpellID <= 0 then return SpellID end  -- Spell IDs should never be less than or = 0. if they are its becuase the addon is doing soimthing special and we just want to skip it.
     local newSpellID = SpellID
-    local dbGlobal   = RuneReaderRecastDB
-    local dbPerChar =  RuneReaderRecastDBPerChar
-    local UseInstantMoving =   dbGlobal and dbGlobal.UseInstantWhenMoving
-    local UseInstantFormCheck = dbGlobal and dbGlobal.UseFormCheck
-    local UseSelfHealing = dbPerChar and dbPerChar.UseSelfHealing
+    
+    --todo:  the rest of this needs to be checked for functionality
+    
+
+--     local dbGlobal   = RuneReaderRecastDB
+--     local dbPerChar =  RuneReaderRecastDBPerChar
+--     local UseInstantMoving =   dbGlobal and dbGlobal.UseInstantWhenMoving
+--     local UseInstantFormCheck = dbGlobal and dbGlobal.UseFormCheck
+--     local UseSelfHealing = dbPerChar and dbPerChar.UseSelfHealing
     
 
 
-    local spellInfo1 = C_Spell.GetSpellInfo(newSpellID)
+--     local spellInfo1 = C_Spell.GetSpellInfo(newSpellID)
 
 
-    -- I'll come back to this.  I've botch this logic big time and is causing issues.
-    -- ===== Major cooldown filter (per-character toggle) =====
-    -- For now only include Combat Assistent  The others already suggest cooldowns.
-    -- if RuneReaderRecastDBPerChar 
-    --     and RuneReaderRecastDBPerChar.UseGlobalCooldowns == false 
-    --     and RuneReaderRecastDBPerChar.HelperSource == 1 then
+--     -- I'll come back to this.  I've botch this logic big time and is causing issues.
+--     -- ===== Major cooldown filter (per-character toggle) =====
+--     -- For now only include Combat Assistent  The others already suggest cooldowns.
+--     -- if RuneReaderRecastDBPerChar 
+--     --     and RuneReaderRecastDBPerChar.UseGlobalCooldowns == false 
+--     --     and RuneReaderRecastDBPerChar.HelperSource == 1 then
 
-    --         if self.IsMajorCooldown and RuneReader.GetNextNonMajorSpell then
-    --         if self:IsMajorCooldown(newSpellID) then
-    --             local alt = self:GetNextNonMajorSpell(newSpellID, suggestedQueue)
-    --             if alt then
-    --                 newSpellID    = alt
-    --                 spellInfo1 = GetInfo(newSpellID)
-    --             end
-    --         end
-    --     end
-    -- end
+--     --         if self.IsMajorCooldown and RuneReader.GetNextNonMajorSpell then
+--     --         if self:IsMajorCooldown(newSpellID) then
+--     --             local alt = self:GetNextNonMajorSpell(newSpellID, suggestedQueue)
+--     --             if alt then
+--     --                 newSpellID    = alt
+--     --                 spellInfo1 = GetInfo(newSpellID)
+--     --             end
+--     --         end
+--     --     end
+--     -- end
 
 
 
 
     
-    -- ===== Movement: prefer instant while moving =====
-    if UseInstantMoving and UseInstantMoving == true then
-        local castTime = (spellInfo1.castTime or 0)
-        local isMoving = self.IsPlayerMoving and self:IsPlayerMoving()
-        local isChanneling = self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)
+--     -- ===== Movement: prefer instant while moving =====
+--     -- if UseInstantMoving and UseInstantMoving == true then
+--     --     local castTime = (spellInfo1.castTime or 0)
+--     --     local isMoving = self.IsPlayerMoving and self:IsPlayerMoving()
+--     --     local isChanneling = self.IsSpellIDInChanneling and self:IsSpellIDInChanneling(newSpellID)
 
-        if (castTime > 0 or isChanneling) and isMoving then
-            local getNext = self.GetNextInstantCastSpell
-            local inst = getNext and getNext(self)
-            --local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
-            if inst then
-                newSpellID    = inst
-             --   spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
-            end
-        end
-    end
+--     --     if (castTime > 0 or isChanneling) and isMoving then
+--     --         local getNext = self.GetNextInstantCastSpell
+--     --         local inst = getNext and getNext(self)
+--     --         --local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
+--     --         if inst then
+--     --             newSpellID    = inst
+--     --          --   spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
+--     --         end
+--     --     end
+--     -- end
 
-    -- ===== Exclude list: swap to next instant if excluded =====
-    if self.IsSpellExcluded and self:IsSpellExcluded(newSpellID) then
-        local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
-        if inst then
-            newSpellID    = inst
-          --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
-        end
-    end
+--     -- ===== Exclude list: swap to next instant if excluded =====
+--     if self.IsSpellExcluded and self:IsSpellExcluded(newSpellID) then
+--         local inst = self.GetNextInstantCastSpell and self:GetNextInstantCastSpell()
+--         if inst then
+--             newSpellID    = inst
+--           --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
+--         end
+--     end
 
-    -- ===== Form check (e.g., Shadowform) =====
-    if UseInstantFormCheck and UseInstantFormCheck == true then
-        local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
-        if formSpell then
-            newSpellID    = formSpell
-            --spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
-        end
-    end
+--     -- ===== Form check (e.g., Shadowform) =====
+--     if UseInstantFormCheck and UseInstantFormCheck == true then
+--         local formSpell = self.ShouldEnterShadowform and self:ShouldEnterShadowform()
+--         if formSpell then
+--             newSpellID    = formSpell
+--             --spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
+--         end
+--     end
 
-    -- ===== Self-preservation / defensives (priority order) =====
-    if UseSelfHealing and UseSelfHealing == true then
-        -- Priority list by function name; first non-nil wins.
-        local priority = {
-            "ShouldCastRevivePet",
-            "ShouldCallPet",
-            "ShouldCastMendPet",
-            "ShouldCastExhilaration",
-            "ShouldCastBearOrRegen",
-            "ShouldCastRejuvenationIfNeeded",
-            "ShouldCastWordOfGlory",
-            "ShouldCastDeathStrike",
-            "ShouldCastMarrowrend",
-            "ShouldCastRuneTap",
-            "ShouldCastMageDefensive",
-            "ShouldCastExpelHarm",
-            "ShouldCastCelestialBrew",
-            "ShouldCastCrimsonVial",
-            "ShouldCastImpendingVictory",
-            "ShouldCastShieldBlock",
-            "ShouldCastVictoryRush",
-            "ShouldCastPowerWordShield",
-            "ShouldCastHealingSurge",
-            "ShouldCastObsidianScales",
-            "ShouldCastIronfur",
-            "ShouldCastNaturesVigil",
-            "ShouldCastBarkskin",
-            "ShouldCastPurifyingBrew",
-            "ShouldCastVivifyBrewmaster",
-            "ShouldCastVerdantEmbrace"
-        }
+--     -- ===== Self-preservation / defensives (priority order) =====
+--     if UseSelfHealing and UseSelfHealing == true then
+--         -- Priority list by function name; first non-nil wins.
+--         local priority = {
+--             "ShouldCastRevivePet",
+--             "ShouldCallPet",
+--             "ShouldCastMendPet",
+--             "ShouldCastExhilaration",
+--             "ShouldCastBearOrRegen",
+--             "ShouldCastRejuvenationIfNeeded",
+--             "ShouldCastWordOfGlory",
+--             "ShouldCastDeathStrike",
+--             "ShouldCastMarrowrend",
+--             "ShouldCastRuneTap",
+--             "ShouldCastMageDefensive",
+--             "ShouldCastExpelHarm",
+--             "ShouldCastCelestialBrew",
+--             "ShouldCastCrimsonVial",
+--             "ShouldCastImpendingVictory",
+--             "ShouldCastShieldBlock",
+--             "ShouldCastVictoryRush",
+--             "ShouldCastPowerWordShield",
+--             "ShouldCastHealingSurge",
+--             "ShouldCastObsidianScales",
+--             "ShouldCastIronfur",
+--             "ShouldCastNaturesVigil",
+--             "ShouldCastBarkskin",
+--             "ShouldCastPurifyingBrew",
+--             "ShouldCastVivifyBrewmaster",
+--             "ShouldCastVerdantEmbrace"
+--         }
 
-        for _, fname in ipairs(priority) do
-            local fn = self[fname]
-            if type(fn) == "function" then
-                local id = fn(self)
-                if id then
-                    newSpellID    = id
-                  --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
-                    break
-                end
-            end
-        end
-    end
---print("Final SpellID", SpellID, spellInfo1 and spellInfo1.name)
+--         for _, fname in ipairs(priority) do
+--             local fn = self[fname]
+--             if type(fn) == "function" then
+--                 local id = fn(self)
+--                 if id then
+--                     newSpellID    = id
+--                   --  spellInfo1 = RuneReader.GetSpellInfo(newSpellID)
+--                     break
+--                 end
+--             end
+--         end
+--     end
+-- --print("Final SpellID", SpellID, spellInfo1 and spellInfo1.name)
 
     return newSpellID --, spellInfo1
 end
@@ -899,10 +910,12 @@ function RuneReader:IsGCDActive(SpellID)
     if not  RuneReader.GetSpellCooldown then   return false, 0 end
     local gcdCooldown = RuneReader.GetSpellCooldown(gcdSpellID)
     local requestSpellID = RuneReader.GetSpellCooldown(SpellID)
-    
+     if (requestSpellID and requestSpellID.duration and issecretvalue(requestSpellID.duration)) then
+         return false, 0
+     end
     if (gcdCooldown and gcdCooldown.duration > 0) and 
     (requestSpellID and requestSpellID.duration ~= 0) then
---print("GCD Active", gcdCooldown.duration)
+        --print("GCD Active", gcdCooldown.duration)
         return true, gcdCooldown.duration
     end
 

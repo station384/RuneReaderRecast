@@ -142,7 +142,9 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
 
     -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
-    local newSpellID = RuneReader:ResolveOverrides(SpellID, nil)
+    -- Todo:  check if we can do anything to override
+    --local newSpellID = RuneReader:ResolveOverrides(SpellID, nil)
+    local newSpellID = SpellID;
 
 
     if newSpellID ~= SpellID then
@@ -198,12 +200,13 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local queueSec = queueMS / 1000
 
     -- Adjust the effective "start time" by duration, PrePressDelay, and the client queue window.
-    -- This models when the key should be pressed so the spell fires ASAP as GCD/cooldown frees up.
-    sCurrentSpellCooldown.startTime =
-        (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
-
+    -- This models when the key should be pressed so the spell fires ASAP as GCD/cooldown frees up.\
+    -- ToDo: see if we can figure out a start time.
+    -- sCurrentSpellCooldown.startTime =
+    --     (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
+    
     -- Compute wait relative to our current time now that startTime has been adjusted
-    wait = sCurrentSpellCooldown.startTime - curTime
+    wait = 0 --sCurrentSpellCooldown.startTime - curTime
 
     -- Clamp to a sane 0..9.99 range (encoded with 3 decimals below)
     wait = RuneReader:Clamp(wait, 0, 9.99)
@@ -212,8 +215,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Encoding
     -- ======================
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey)                          -- 2 digits
-    local cooldownEnc  = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10))) -- 4 digits
-    local castTimeEnc  = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10))) -- 4 digits
+    --local cooldownEnc  = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10))) -- 4 digits
+    --local castTimeEnc  = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10))) -- 4 digits
 
     if AuraUtil and AuraUtil.FindAuraByName then
       local find = AuraUtil.FindAuraByName
@@ -234,9 +237,9 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
-    if RuneReader:IsGCDActive(SpellID) then
-        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
-    end
+    -- if RuneReader:IsGCDActive(SpellID) then
+    --     bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
+    -- end
     local source = "1" -- 1 = AssistedCombat, 0 = Hekili
     suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
