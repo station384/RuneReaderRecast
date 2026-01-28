@@ -13,6 +13,8 @@ RuneReader Recast can function as:
 - A component of **assistive devices** (e.g., external readers or visual aids).
 - A **standalone overlay** for reviewing combat data in recorded video feeds.
 
+> [!NOTE]
+> The software that uses this addon is at [RuneReader](https://github.com/station384/RuneReader)
 ---
 
 ## ✅ Features:
