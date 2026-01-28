@@ -134,7 +134,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Candidate spell & time
     -- ======================
     local curTime = RuneReader.GetTime()                       -- monotonic "now" from addon helper
-    local SpellID = RuneReader.GetNextCastSpell(false)         -- next spell suggestion from source
+    local SpellID = RuneReader.GetNextCastSpell(true)         -- next spell suggestion from source
+
     -- If no spell is available, do not generate a new payload
 --    if not SpellID then return RuneReader.Assisted_LastEncodedResult end
 
@@ -144,7 +145,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
     -- Todo:  check if we can do anything to override
     --local newSpellID = RuneReader:ResolveOverrides(SpellID, nil)
-    local newSpellID = SpellID;
+    local newSpellID = SpellID or 0;
 
 
     if newSpellID ~= SpellID then

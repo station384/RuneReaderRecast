@@ -532,7 +532,7 @@ end
 --   return fullResult
 -- end
 
-
+-- TODO: remove hekili and conro
 function RuneReader:GetUpdatedValues()
     local fullResult = ""
     local SpellID = 0
