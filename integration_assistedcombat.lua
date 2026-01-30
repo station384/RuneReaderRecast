@@ -21,7 +21,11 @@ local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 
 
-
+RuneReader.myScale1000  = C_CurveUtil.CreateCurve();
+RuneReader.myScale1000 :AddPoint(0.0, 0.0);
+RuneReader.myScale1000 :AddPoint(0.1, 0.0);
+RuneReader.myScale1000 :AddPoint(0.25, 250);
+RuneReader.myScale1000 :AddPoint(1.0, 1000)
 
 
 
@@ -129,25 +133,28 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
     -- Default mode to 1 if nil was passed
     local mode = mode or 1
-
+    -- Wait time until cooldown ends
+    local wait = 0
     -- ======================
     -- Candidate spell & time
     -- ======================
     local curTime = RuneReader.GetTime()                       -- monotonic "now" from addon helper
-    local SpellID = RuneReader.GetNextCastSpell(true)         -- next spell suggestion from source
+    local SpellID = RuneReader.GetNextCastSpell(false)         -- next spell suggestion from source
 
     -- If no spell is available, do not generate a new payload
 --    if not SpellID then return RuneReader.Assisted_LastEncodedResult end
 
     -- Base spell info (used before and after overrides)
-
+    if not SpellID then
+      wait = 1.0
+    end
 
     -- Apply movement/exclude/form/self-preservation overrides in priority via our helper
     -- Todo:  check if we can do anything to override
     --local newSpellID = RuneReader:ResolveOverrides(SpellID, nil)
     local newSpellID = SpellID or 0;
 
-
+    
     if newSpellID ~= SpellID then
       SpellID = newSpellID
     end
@@ -191,10 +198,15 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- ======================
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
     spellInfo1 = RuneReader.GetSpellInfo(SpellID)  -- re-fetch in case overrides changed the target spell
-    local duration = sCurrentSpellCooldown.duration
+    local SpellCooldown = C_Spell.GetSpellCooldownDuration(SpellID) or 0
+    -- Notes:
+    -- This gives the correct duration, but if in combat it will it will return nil.
+    -- print will output the correct value in and out of combat, need to find a way around this.
+    -- may be able to make this a window in the game and have it displayed as a bar under the barcode in code 39, qr my be more difficult.
+    local duration = SpellCooldown:EvaluateRemainingPercent(RuneReader.myScale1000 )
 
-    -- Wait time until cooldown ends
-    local wait = 0
+
+
 
     -- Pull the client SpellQueueWindow (ms) and convert to seconds; default to 50ms if missing
     local queueMS  = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
@@ -207,10 +219,12 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     --     (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
     
     -- Compute wait relative to our current time now that startTime has been adjusted
-    wait = 0 --sCurrentSpellCooldown.startTime - curTime
+
+    --wait = "  " .. tostring(duration)--0 --sCurrentSpellCooldown.startTime - curTime
+    wait = tonumber(duration)
 
     -- Clamp to a sane 0..9.99 range (encoded with 3 decimals below)
-    wait = RuneReader:Clamp(wait, 0, 9.99)
+    --wait = RuneReader:Clamp(wait, 0, 9.99)
 
     -- ======================
     -- Encoding
@@ -246,7 +260,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = mode
         .. '/B' .. string.format("%02i",bitMask)
-        .. '/W' .. string.format("%04.3f", wait):gsub("[.]", "")
+        .. '/W' .. string.format("%04i", wait)
         .. '/K' .. keytranslate
     --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "")
     --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "")
