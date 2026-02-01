@@ -289,14 +289,14 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- if RuneReader:IsGCDActive(SpellID) then
     --     bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
     -- end
-    --print(GetChannelDrain1000("player"))
+    print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
-    local combinedValues = mode
-        .. '/B' .. string.format("%02i",bitMask)
-        .. '/W' .. string.format("%04i", wait)
-        .. '/K' .. keytranslate
-        .. '/D' .. string.format("%04i", GetChannelDrain1000("player"))
+    local combinedValues = 
+         '/B' .. string.format("%02i",bitMask) ..
+         '/W' .. string.format("%04i", wait) ..
+         '/K' .. keytranslate ..
+         '/D' .. string.format("%04i", GetChannelDrain1000("player"))
     --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "")
     --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
     --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")
