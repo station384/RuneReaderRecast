@@ -289,7 +289,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- if RuneReader:IsGCDActive(SpellID) then
     --     bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
     -- end
-    print(GetChannelDrain1000("player"))
+    --print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = 
