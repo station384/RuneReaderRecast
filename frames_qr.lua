@@ -205,7 +205,7 @@ function RuneReader:UpdateQRDisplay()
 
   local fullResult = self:GetUpdatedValues()
 
-  if lastResult ~= fullResult or lastDisplayed ~= fullResult then
+ -- if lastResult ~= fullResult or lastDisplayed ~= fullResult then
     local success, matrix = qr.qrcode(fullResult, db.Ec_level or 7)
     if success then
       -- Re‑create the window only if the encoded string length changed
@@ -218,7 +218,7 @@ function RuneReader:UpdateQRDisplay()
       self:UpdateQRCodeTextures(matrix)
       self.lastDisplayedQREncode = fullResult
     end
-  end
+  --end
 
   self.lastQREncodeResult = fullResult
 end

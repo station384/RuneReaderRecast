@@ -12,7 +12,7 @@
 
 RuneReader = RuneReader or {}
 RuneReader.AssistedCombatSpellInfo = RuneReader.AssistedCombatSpellInfo or {}
-RuneReader.Assisted_LastEncodedResult = "1,B0,W0001,K00"
+RuneReader.Assisted_LastEncodedResult = "/B0/W0001/K00/D0000"
 
 
 
@@ -23,11 +23,46 @@ local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 RuneReader.myScale1000  = C_CurveUtil.CreateCurve();
 RuneReader.myScale1000 :AddPoint(0.0, 0.0);
-RuneReader.myScale1000 :AddPoint(0.1, 0.0);
-RuneReader.myScale1000 :AddPoint(0.25, 250);
+RuneReader.myScale1000 :AddPoint(0.25, 0.0);
+-- RuneReader.myScale1000 :AddPoint(0.25, 250);
 RuneReader.myScale1000 :AddPoint(1.0, 1000)
 
+local function GetChannelRemainingPercent(unit)
+  local name, _, _, startMs, endMs = UnitChannelInfo(unit)
+  if not name or not startMs or not endMs then
+    return 0
+  end
 
+  local nowMs = GetTime() * 1000
+  local durMs = endMs - startMs
+  if durMs <= 0 then return 0 end
+
+  local remainingMs = endMs - nowMs
+  if remainingMs < 0 then remainingMs = 0 end
+  if remainingMs > durMs then remainingMs = durMs end
+
+  return math.floor((remainingMs / durMs) * 1000 + 0.5)
+end
+
+local function GetChannelDrain1000(unit)
+  local name, _, _, startMs, endMs = UnitChannelInfo(unit)
+  if not name or not startMs or not endMs then
+    return 0
+  end
+
+  local nowMs = GetTime() * 1000
+  local durMs = endMs - startMs
+  if durMs <= 0 then
+    return 0
+  end
+
+  local remainingMs = endMs - nowMs
+  if remainingMs < 0 then remainingMs = 0 end
+  if remainingMs > durMs then remainingMs = durMs end
+
+  -- Scale remaining fraction to 0..1000
+  return math.floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
+end
 
 --[[
 AssistedCombat_UpdateValues
@@ -93,13 +128,12 @@ Encoding format (current fields):
 Notes:  
     This is the format for code39
     Code39 -- Mode-0
-    MODE KEY WAIT BIT(0,1) CHECK
-    0    00  000  0        0
-    Mode 0-Code39 1-QR
-    BitMask 0=Target 1=Combat
-    Check quick check if of total values to the left
+    KEY  WAIT  BIT(0,1)
+    /K00 /W000 /B00
+    BitMask(4Bit) 0=Target 1=Combat 2=Multi-Target
 
-    QR -- Mode-1 
+
+function     QR -- Mode-1 
     1st char is number for compatability with code39 mode check
     Comma seperated values, Alpha value mean, 
     All text can be alpha numberic ASCII
@@ -107,7 +141,7 @@ Notes:
     A = Alpha numeric (A..Z,a..z,0..9,-,=)
     Only the first parameter (MODE) is a fixed position
     MODE bool(0,1) 
-    1,B0,W0000,K00,D0000,
+    /B0/W0000/K00/D0000
     B (N) BitMask(4Bit) 0=Target 1=Combat 2=Multi-Target
     W (0000) WaitTime (4 digit Mask of max value of 9999 or 9 seconds and 999 miliseconds)
     K (NN) Keymask Encoded Key value
@@ -255,14 +289,14 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- if RuneReader:IsGCDActive(SpellID) then
     --     bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
     -- end
-    local source = "1" -- 1 = AssistedCombat, 0 = Hekili
+    --print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = mode
         .. '/B' .. string.format("%02i",bitMask)
         .. '/W' .. string.format("%04i", wait)
         .. '/K' .. keytranslate
-    --.. '/D' .. string.format("%04.3f", 0):gsub("[.]", "")
+        .. '/D' .. string.format("%04i", GetChannelDrain1000("player"))
     --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "")
     --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
     --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")
