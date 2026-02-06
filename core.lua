@@ -51,7 +51,6 @@ function RuneReader:InitializeAddon()
     RuneReader:InitConfig()
     RuneReader:RegisterMapHooks()
     RuneReader:CreateConfigPanel()
-    1
     if RuneReaderRecastDB.BarCodeMode == 0 then
         -- Note to future self:  This is a hack to force the barcode window to be recreated WITH the proper scale on inital load of the game.
         -- DO NOT REMOVE THIS.
