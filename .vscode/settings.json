@@ -49,7 +49,8 @@
         "MaxDps",
         "ConROEmpoweredFrame",
         "Add",
-        "TooltipUtil"
+        "TooltipUtil",
+        "EditModeManagerFrame"
     ],
     "Lua.type.weakUnionCheck": true
 }
