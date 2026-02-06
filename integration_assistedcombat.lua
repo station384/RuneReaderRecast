@@ -266,7 +266,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local keytranslate = RuneReader:RuneReaderEnv_translateKey(info.hotkey)                          -- 2 digits
     --local cooldownEnc  = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10))) -- 4 digits
     --local castTimeEnc  = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10))) -- 4 digits
-
+    if EditModeManagerFrame and not EditModeManagerFrame:IsShown() then
     if AuraUtil and AuraUtil.FindAuraByName then
       local find = AuraUtil.FindAuraByName
       if find("G-99 Breakneck", "player", "HELPFUL") or
@@ -274,11 +274,16 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
         keytranslate = "00"
       end
     end
-
+  end
 
     -- Bitfield flags:
     --  bit 0 → player can attack target
     --  bit 1 → player is in combat
+    --  bit 2 player is in multi target 
+    --  bit 3 Was Detecting if gcd was active. can't do that anymore.
+    --  bit 4 not used yet
+    --  bit 5 not used yet
+
     local bitMask = 0
     if RuneReader.UnitCanAttack("player", "target") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 0)
@@ -286,9 +291,22 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     if RuneReader.UnitAffectingCombat("player") then
         bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 1)
     end
-    -- if RuneReader:IsGCDActive(SpellID) then
-    --     bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
-    -- end
+    if RuneReader.UnitAffectingCombat("player") then -- check for multi target
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 2)
+    end
+    if 1==2 then --RuneReader:IsGCDActive(SpellID) then
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 3)
+    end
+    if 1==2 then -- not used yet. but keeping stub
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 4)
+    end
+    if 1==2 then -- not used yet. but keeping stub
+        bitMask = RuneReader:RuneReaderEnv_set_bit(bitMask, 5)
+    end
+
+
+
+    local channelingPercent = GetChannelDrain1000("player")
     --print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
     -- Assemble the compact payload. Keep your commented fields for future expansion.
@@ -296,7 +314,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
          '/B' .. string.format("%02i",bitMask) ..
          '/W' .. string.format("%04i", wait) ..
          '/K' .. keytranslate ..
-         '/D' .. string.format("%04i", GetChannelDrain1000("player"))
+         '/D' .. string.format("%04i", channelingPercent)
+         
     --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "")
     --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
     --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")

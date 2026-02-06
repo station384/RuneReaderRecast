@@ -51,6 +51,7 @@ function RuneReader:InitializeAddon()
     RuneReader:InitConfig()
     RuneReader:RegisterMapHooks()
     RuneReader:CreateConfigPanel()
+    1
     if RuneReaderRecastDB.BarCodeMode == 0 then
         -- Note to future self:  This is a hack to force the barcode window to be recreated WITH the proper scale on inital load of the game.
         -- DO NOT REMOVE THIS.
@@ -60,6 +61,7 @@ function RuneReader:InitializeAddon()
         RuneReader:DestroyBarcodeWindow()
         RuneReader:CreateBarcodeWindow()
     end
+
     if RuneReaderRecastDB.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult, RuneReaderRecastDB.Ec_level or 7)
         if success then
@@ -78,18 +80,18 @@ function RuneReader:InitializeAddon()
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
-    elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
-         RuneReader:CreateSpellIconFrame()
-         RuneReader:DestroySpellIconFrame()
-         RuneReader:CreateSpellIconFrame()
+    -- elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
+    --      RuneReader:CreateSpellIconFrame()
+    --      RuneReader:DestroySpellIconFrame()
+    --      RuneReader:CreateSpellIconFrame()
     elseif MaxDps and (RuneReaderRecastDBPerChar.HelperSource == 3) then
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
-    elseif Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
-         RuneReader:CreateSpellIconFrame()
-         RuneReader:DestroySpellIconFrame()
-         RuneReader:CreateSpellIconFrame()
+    -- elseif Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+    --      RuneReader:CreateSpellIconFrame()
+    --      RuneReader:DestroySpellIconFrame()
+    --      RuneReader:CreateSpellIconFrame()
          
 
     end
@@ -140,14 +142,14 @@ function(self, event, addonName)
         end
     elseif event == "PET_BATTLE_OPENING_START" then
             if RuneReader.BarcodeFrame then
-            RuneReader.BarcodeFrame:Hide()
+                RuneReader.BarcodeFrame:Hide()
             end
             if RuneReader.QRFrame then
                 RuneReader.QRFrame:Hide()
             end
     elseif event == "PET_BATTLE_CLOSE" then
             if RuneReader.BarcodeFrame then
-            RuneReader.BarcodeFrame:Show()
+                RuneReader.BarcodeFrame:Show()
             end
             if RuneReader.QRFrame then
                 RuneReader.QRFrame:Show()
