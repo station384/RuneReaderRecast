@@ -64,6 +64,59 @@ local function GetChannelDrain1000(unit)
   return math.floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
 end
 
+local function GetCastingDuration1000(unit)
+  local name, _, _, startMs, endMs = UnitCastingInfo(unit)
+  if not name or not startMs or not endMs then
+    return 0
+  end
+
+  local nowMs = GetTime() * 1000
+  local durMs = endMs - startMs
+  if durMs <= 0 then
+    return 0
+  end
+
+  local remainingMs = endMs - nowMs
+  if remainingMs < 0 then remainingMs = 0 end
+  if remainingMs > durMs then remainingMs = durMs end
+
+  -- Scale remaining fraction to 0..1000
+  return math.floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
+end
+
+local GCD_SPELL_ID = 61304
+
+local function Clamp(x, lo, hi)
+  if x < lo then return lo end
+  if x > hi then return hi end
+  return x
+end
+
+local function GetGCDPercentComplete()
+  local info = C_Spell.GetSpellCooldown(GCD_SPELL_ID)
+  if not info then return 1000 end
+
+  local startTime = info.startTime or 0
+  local duration  = info.duration  or 0
+  local modRate   = info.modRate   or 1
+
+  -- No GCD running
+  if startTime <= 0 or duration <= 0 then
+    return 1000
+  end
+
+  local now = GetTime()
+  local elapsed = (now - startTime) * modRate
+  local pct = (elapsed / duration) * 1000
+  return Clamp(pct - (250), 0, 1000) -- subtract 250ms as a buffer to ensure we are actually out of the GCD when it hits 0
+end
+
+
+local function GetGCDPercentRemaining()
+  return 1000 - GetGCDPercentComplete()
+end
+
+
 --[[
 AssistedCombat_UpdateValues
 ==========================
@@ -255,7 +308,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Compute wait relative to our current time now that startTime has been adjusted
 
     --wait = "  " .. tostring(duration)--0 --sCurrentSpellCooldown.startTime - curTime
-    wait = tonumber(duration)
+    wait = GetCastingDuration1000("player")--tonumber(duration)
 
     -- Clamp to a sane 0..9.99 range (encoded with 3 decimals below)
     --wait = RuneReader:Clamp(wait, 0, 9.99)
@@ -309,17 +362,23 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     local channelingPercent = GetChannelDrain1000("player")
     --print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
+
+-- local GCD_SPELL_ID = 61304
+-- local GetSpellCooldownInfo = (C_Spell and C_Spell.GetSpellCooldown) or GetSpellCooldown
+-- local info = GetSpellCooldownInfo(GCD_SPELL_ID)
+
+   --print ( )
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = 
-         '/B' .. string.format("%02i",bitMask) ..
-         '/W' .. string.format("%04i", wait) ..
-         '/K' .. keytranslate ..
-         '/D' .. string.format("%04i", channelingPercent)
-         
-    --.. '/G' .. string.format("%04.3f", sCooldownResult.duration):gsub("[.]", "")
+         '/B' .. RuneReader:ToBase36(string.format("%02i",bitMask)) ..
+         '/W' .. RuneReader:ToBase36(string.format("%04i", wait + GetGCDPercentRemaining() )) ..
+         '/K' .. RuneReader:ToBase36(string.format("%02i", tonumber(keytranslate ))) ..
+         '/D' .. RuneReader:ToBase36(string.format("%04i", channelingPercent))         
+         .. '/G' .. string.format("%04i", GetGCDPercentRemaining())
     --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
     --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")
     --.. '/S' .. source
+          
 
     local full = combinedValues
 

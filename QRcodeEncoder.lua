@@ -213,15 +213,12 @@ end
 -- See table 2 of the spec. We only support mode 1, 2 and 4.
 -- That is: numeric, alaphnumeric and binary.
 local function get_mode( str )
-	-- if string.match(str,"^[0-9]+$") then
-	-- 	return 1
-	-- elseif string.match(str,"^[0-9A-Z $%%*./:+-]+$") then
-	-- 	return 2
-	-- else
-	-- 	return 4
-	-- end
-	if 1 == 1 then 
-		return 4 
+	if string.match(str,"^[0-9]+$") then
+		return 1
+	elseif string.match(str,"^[0-9A-Z $%%*./:+-]+$") then
+		return 2
+	else
+		return 4
 		end
 	assert(false,"never reached") -- luacheck: ignore
 	return nil
