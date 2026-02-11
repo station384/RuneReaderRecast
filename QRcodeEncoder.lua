@@ -1,36 +1,36 @@
 local debugging = false;
 local testing = false;
 
+-- local preCalcedMode = true
+-- -- Octal helper for environments lacking "%o" (including some WoW versions)
+-- local function to_octal(n)
+--   local r = ""
+--   repeat
+--     r = tostring(n % 8) .. r
+--     n = math.floor(n / 8)
+--   until n == 0
+--   return r
+-- end
 
--- Octal helper for environments lacking "%o" (including some WoW versions)
-local function to_octal(n)
-  local r = ""
-  repeat
-    r = tostring(n % 8) .. r
-    n = math.floor(n / 8)
-  until n == 0
-  return r
-end
-
--- PATCH: Replaces binary(x, digits) to use octal fallback if "%o" is not available.
-local function binary(x, digits)
-  local s
-  -- Try native %o support, fallback if error
-  local success, result = pcall(string.format, "%o", x)
-  if success then
-    s = result
-  else
-    s = to_octal(x)
-  end
-  local a = {["0"]="000",["1"]="001", ["2"]="010",["3"]="011",
-             ["4"]="100",["5"]="101", ["6"]="110",["7"]="111"}
-  s = string.gsub(s,"(.)",function (d) return a[d] end)
-  -- remove leading 0s
-  s = string.gsub(s,"^0*(.*)$","%1")
-  local fmtstring = string.format("%%%ds",digits)
-  local ret = string.format(fmtstring,s)
-  return string.gsub(ret," ","0")
-end
+-- -- PATCH: Replaces binary(x, digits) to use octal fallback if "%o" is not available.
+-- local function binary(x, digits)
+--   local s
+--   -- Try native %o support, fallback if error
+--   local success, result = pcall(string.format, "%o", x)
+--   if success then
+--     s = result
+--   else
+--     s = to_octal(x)
+--   end
+--   local a = {["0"]="000",["1"]="001", ["2"]="010",["3"]="011",
+--              ["4"]="100",["5"]="101", ["6"]="110",["7"]="111"}
+--   s = string.gsub(s,"(.)",function (d) return a[d] end)
+--   -- remove leading 0s
+--   s = string.gsub(s,"^0*(.*)$","%1")
+--   local fmtstring = string.format("%%%ds",digits)
+--   local ret = string.format(fmtstring,s)
+--   return string.gsub(ret," ","0")
+-- end
 
 
 
@@ -84,97 +84,97 @@ end
 
 -- To calculate xor we need to do that bitwise. This helper table speeds up the num-to-bit
 -- part a bit (no pun intended)
-local cclxvi = {[0] = {0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,0,0}, {0,1,0,0,0,0,0,0}, {1,1,0,0,0,0,0,0},
-{0,0,1,0,0,0,0,0}, {1,0,1,0,0,0,0,0}, {0,1,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0},
-{0,0,0,1,0,0,0,0}, {1,0,0,1,0,0,0,0}, {0,1,0,1,0,0,0,0}, {1,1,0,1,0,0,0,0},
-{0,0,1,1,0,0,0,0}, {1,0,1,1,0,0,0,0}, {0,1,1,1,0,0,0,0}, {1,1,1,1,0,0,0,0},
-{0,0,0,0,1,0,0,0}, {1,0,0,0,1,0,0,0}, {0,1,0,0,1,0,0,0}, {1,1,0,0,1,0,0,0},
-{0,0,1,0,1,0,0,0}, {1,0,1,0,1,0,0,0}, {0,1,1,0,1,0,0,0}, {1,1,1,0,1,0,0,0},
-{0,0,0,1,1,0,0,0}, {1,0,0,1,1,0,0,0}, {0,1,0,1,1,0,0,0}, {1,1,0,1,1,0,0,0},
-{0,0,1,1,1,0,0,0}, {1,0,1,1,1,0,0,0}, {0,1,1,1,1,0,0,0}, {1,1,1,1,1,0,0,0},
-{0,0,0,0,0,1,0,0}, {1,0,0,0,0,1,0,0}, {0,1,0,0,0,1,0,0}, {1,1,0,0,0,1,0,0},
-{0,0,1,0,0,1,0,0}, {1,0,1,0,0,1,0,0}, {0,1,1,0,0,1,0,0}, {1,1,1,0,0,1,0,0},
-{0,0,0,1,0,1,0,0}, {1,0,0,1,0,1,0,0}, {0,1,0,1,0,1,0,0}, {1,1,0,1,0,1,0,0},
-{0,0,1,1,0,1,0,0}, {1,0,1,1,0,1,0,0}, {0,1,1,1,0,1,0,0}, {1,1,1,1,0,1,0,0},
-{0,0,0,0,1,1,0,0}, {1,0,0,0,1,1,0,0}, {0,1,0,0,1,1,0,0}, {1,1,0,0,1,1,0,0},
-{0,0,1,0,1,1,0,0}, {1,0,1,0,1,1,0,0}, {0,1,1,0,1,1,0,0}, {1,1,1,0,1,1,0,0},
-{0,0,0,1,1,1,0,0}, {1,0,0,1,1,1,0,0}, {0,1,0,1,1,1,0,0}, {1,1,0,1,1,1,0,0},
-{0,0,1,1,1,1,0,0}, {1,0,1,1,1,1,0,0}, {0,1,1,1,1,1,0,0}, {1,1,1,1,1,1,0,0},
-{0,0,0,0,0,0,1,0}, {1,0,0,0,0,0,1,0}, {0,1,0,0,0,0,1,0}, {1,1,0,0,0,0,1,0},
-{0,0,1,0,0,0,1,0}, {1,0,1,0,0,0,1,0}, {0,1,1,0,0,0,1,0}, {1,1,1,0,0,0,1,0},
-{0,0,0,1,0,0,1,0}, {1,0,0,1,0,0,1,0}, {0,1,0,1,0,0,1,0}, {1,1,0,1,0,0,1,0},
-{0,0,1,1,0,0,1,0}, {1,0,1,1,0,0,1,0}, {0,1,1,1,0,0,1,0}, {1,1,1,1,0,0,1,0},
-{0,0,0,0,1,0,1,0}, {1,0,0,0,1,0,1,0}, {0,1,0,0,1,0,1,0}, {1,1,0,0,1,0,1,0},
-{0,0,1,0,1,0,1,0}, {1,0,1,0,1,0,1,0}, {0,1,1,0,1,0,1,0}, {1,1,1,0,1,0,1,0},
-{0,0,0,1,1,0,1,0}, {1,0,0,1,1,0,1,0}, {0,1,0,1,1,0,1,0}, {1,1,0,1,1,0,1,0},
-{0,0,1,1,1,0,1,0}, {1,0,1,1,1,0,1,0}, {0,1,1,1,1,0,1,0}, {1,1,1,1,1,0,1,0},
-{0,0,0,0,0,1,1,0}, {1,0,0,0,0,1,1,0}, {0,1,0,0,0,1,1,0}, {1,1,0,0,0,1,1,0},
-{0,0,1,0,0,1,1,0}, {1,0,1,0,0,1,1,0}, {0,1,1,0,0,1,1,0}, {1,1,1,0,0,1,1,0},
-{0,0,0,1,0,1,1,0}, {1,0,0,1,0,1,1,0}, {0,1,0,1,0,1,1,0}, {1,1,0,1,0,1,1,0},
-{0,0,1,1,0,1,1,0}, {1,0,1,1,0,1,1,0}, {0,1,1,1,0,1,1,0}, {1,1,1,1,0,1,1,0},
-{0,0,0,0,1,1,1,0}, {1,0,0,0,1,1,1,0}, {0,1,0,0,1,1,1,0}, {1,1,0,0,1,1,1,0},
-{0,0,1,0,1,1,1,0}, {1,0,1,0,1,1,1,0}, {0,1,1,0,1,1,1,0}, {1,1,1,0,1,1,1,0},
-{0,0,0,1,1,1,1,0}, {1,0,0,1,1,1,1,0}, {0,1,0,1,1,1,1,0}, {1,1,0,1,1,1,1,0},
-{0,0,1,1,1,1,1,0}, {1,0,1,1,1,1,1,0}, {0,1,1,1,1,1,1,0}, {1,1,1,1,1,1,1,0},
-{0,0,0,0,0,0,0,1}, {1,0,0,0,0,0,0,1}, {0,1,0,0,0,0,0,1}, {1,1,0,0,0,0,0,1},
-{0,0,1,0,0,0,0,1}, {1,0,1,0,0,0,0,1}, {0,1,1,0,0,0,0,1}, {1,1,1,0,0,0,0,1},
-{0,0,0,1,0,0,0,1}, {1,0,0,1,0,0,0,1}, {0,1,0,1,0,0,0,1}, {1,1,0,1,0,0,0,1},
-{0,0,1,1,0,0,0,1}, {1,0,1,1,0,0,0,1}, {0,1,1,1,0,0,0,1}, {1,1,1,1,0,0,0,1},
-{0,0,0,0,1,0,0,1}, {1,0,0,0,1,0,0,1}, {0,1,0,0,1,0,0,1}, {1,1,0,0,1,0,0,1},
-{0,0,1,0,1,0,0,1}, {1,0,1,0,1,0,0,1}, {0,1,1,0,1,0,0,1}, {1,1,1,0,1,0,0,1},
-{0,0,0,1,1,0,0,1}, {1,0,0,1,1,0,0,1}, {0,1,0,1,1,0,0,1}, {1,1,0,1,1,0,0,1},
-{0,0,1,1,1,0,0,1}, {1,0,1,1,1,0,0,1}, {0,1,1,1,1,0,0,1}, {1,1,1,1,1,0,0,1},
-{0,0,0,0,0,1,0,1}, {1,0,0,0,0,1,0,1}, {0,1,0,0,0,1,0,1}, {1,1,0,0,0,1,0,1},
-{0,0,1,0,0,1,0,1}, {1,0,1,0,0,1,0,1}, {0,1,1,0,0,1,0,1}, {1,1,1,0,0,1,0,1},
-{0,0,0,1,0,1,0,1}, {1,0,0,1,0,1,0,1}, {0,1,0,1,0,1,0,1}, {1,1,0,1,0,1,0,1},
-{0,0,1,1,0,1,0,1}, {1,0,1,1,0,1,0,1}, {0,1,1,1,0,1,0,1}, {1,1,1,1,0,1,0,1},
-{0,0,0,0,1,1,0,1}, {1,0,0,0,1,1,0,1}, {0,1,0,0,1,1,0,1}, {1,1,0,0,1,1,0,1},
-{0,0,1,0,1,1,0,1}, {1,0,1,0,1,1,0,1}, {0,1,1,0,1,1,0,1}, {1,1,1,0,1,1,0,1},
-{0,0,0,1,1,1,0,1}, {1,0,0,1,1,1,0,1}, {0,1,0,1,1,1,0,1}, {1,1,0,1,1,1,0,1},
-{0,0,1,1,1,1,0,1}, {1,0,1,1,1,1,0,1}, {0,1,1,1,1,1,0,1}, {1,1,1,1,1,1,0,1},
-{0,0,0,0,0,0,1,1}, {1,0,0,0,0,0,1,1}, {0,1,0,0,0,0,1,1}, {1,1,0,0,0,0,1,1},
-{0,0,1,0,0,0,1,1}, {1,0,1,0,0,0,1,1}, {0,1,1,0,0,0,1,1}, {1,1,1,0,0,0,1,1},
-{0,0,0,1,0,0,1,1}, {1,0,0,1,0,0,1,1}, {0,1,0,1,0,0,1,1}, {1,1,0,1,0,0,1,1},
-{0,0,1,1,0,0,1,1}, {1,0,1,1,0,0,1,1}, {0,1,1,1,0,0,1,1}, {1,1,1,1,0,0,1,1},
-{0,0,0,0,1,0,1,1}, {1,0,0,0,1,0,1,1}, {0,1,0,0,1,0,1,1}, {1,1,0,0,1,0,1,1},
-{0,0,1,0,1,0,1,1}, {1,0,1,0,1,0,1,1}, {0,1,1,0,1,0,1,1}, {1,1,1,0,1,0,1,1},
-{0,0,0,1,1,0,1,1}, {1,0,0,1,1,0,1,1}, {0,1,0,1,1,0,1,1}, {1,1,0,1,1,0,1,1},
-{0,0,1,1,1,0,1,1}, {1,0,1,1,1,0,1,1}, {0,1,1,1,1,0,1,1}, {1,1,1,1,1,0,1,1},
-{0,0,0,0,0,1,1,1}, {1,0,0,0,0,1,1,1}, {0,1,0,0,0,1,1,1}, {1,1,0,0,0,1,1,1},
-{0,0,1,0,0,1,1,1}, {1,0,1,0,0,1,1,1}, {0,1,1,0,0,1,1,1}, {1,1,1,0,0,1,1,1},
-{0,0,0,1,0,1,1,1}, {1,0,0,1,0,1,1,1}, {0,1,0,1,0,1,1,1}, {1,1,0,1,0,1,1,1},
-{0,0,1,1,0,1,1,1}, {1,0,1,1,0,1,1,1}, {0,1,1,1,0,1,1,1}, {1,1,1,1,0,1,1,1},
-{0,0,0,0,1,1,1,1}, {1,0,0,0,1,1,1,1}, {0,1,0,0,1,1,1,1}, {1,1,0,0,1,1,1,1},
-{0,0,1,0,1,1,1,1}, {1,0,1,0,1,1,1,1}, {0,1,1,0,1,1,1,1}, {1,1,1,0,1,1,1,1},
-{0,0,0,1,1,1,1,1}, {1,0,0,1,1,1,1,1}, {0,1,0,1,1,1,1,1}, {1,1,0,1,1,1,1,1},
-{0,0,1,1,1,1,1,1}, {1,0,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1}}
+-- local cclxvi = {[0] = {0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,0,0}, {0,1,0,0,0,0,0,0}, {1,1,0,0,0,0,0,0},
+-- {0,0,1,0,0,0,0,0}, {1,0,1,0,0,0,0,0}, {0,1,1,0,0,0,0,0}, {1,1,1,0,0,0,0,0},
+-- {0,0,0,1,0,0,0,0}, {1,0,0,1,0,0,0,0}, {0,1,0,1,0,0,0,0}, {1,1,0,1,0,0,0,0},
+-- {0,0,1,1,0,0,0,0}, {1,0,1,1,0,0,0,0}, {0,1,1,1,0,0,0,0}, {1,1,1,1,0,0,0,0},
+-- {0,0,0,0,1,0,0,0}, {1,0,0,0,1,0,0,0}, {0,1,0,0,1,0,0,0}, {1,1,0,0,1,0,0,0},
+-- {0,0,1,0,1,0,0,0}, {1,0,1,0,1,0,0,0}, {0,1,1,0,1,0,0,0}, {1,1,1,0,1,0,0,0},
+-- {0,0,0,1,1,0,0,0}, {1,0,0,1,1,0,0,0}, {0,1,0,1,1,0,0,0}, {1,1,0,1,1,0,0,0},
+-- {0,0,1,1,1,0,0,0}, {1,0,1,1,1,0,0,0}, {0,1,1,1,1,0,0,0}, {1,1,1,1,1,0,0,0},
+-- {0,0,0,0,0,1,0,0}, {1,0,0,0,0,1,0,0}, {0,1,0,0,0,1,0,0}, {1,1,0,0,0,1,0,0},
+-- {0,0,1,0,0,1,0,0}, {1,0,1,0,0,1,0,0}, {0,1,1,0,0,1,0,0}, {1,1,1,0,0,1,0,0},
+-- {0,0,0,1,0,1,0,0}, {1,0,0,1,0,1,0,0}, {0,1,0,1,0,1,0,0}, {1,1,0,1,0,1,0,0},
+-- {0,0,1,1,0,1,0,0}, {1,0,1,1,0,1,0,0}, {0,1,1,1,0,1,0,0}, {1,1,1,1,0,1,0,0},
+-- {0,0,0,0,1,1,0,0}, {1,0,0,0,1,1,0,0}, {0,1,0,0,1,1,0,0}, {1,1,0,0,1,1,0,0},
+-- {0,0,1,0,1,1,0,0}, {1,0,1,0,1,1,0,0}, {0,1,1,0,1,1,0,0}, {1,1,1,0,1,1,0,0},
+-- {0,0,0,1,1,1,0,0}, {1,0,0,1,1,1,0,0}, {0,1,0,1,1,1,0,0}, {1,1,0,1,1,1,0,0},
+-- {0,0,1,1,1,1,0,0}, {1,0,1,1,1,1,0,0}, {0,1,1,1,1,1,0,0}, {1,1,1,1,1,1,0,0},
+-- {0,0,0,0,0,0,1,0}, {1,0,0,0,0,0,1,0}, {0,1,0,0,0,0,1,0}, {1,1,0,0,0,0,1,0},
+-- {0,0,1,0,0,0,1,0}, {1,0,1,0,0,0,1,0}, {0,1,1,0,0,0,1,0}, {1,1,1,0,0,0,1,0},
+-- {0,0,0,1,0,0,1,0}, {1,0,0,1,0,0,1,0}, {0,1,0,1,0,0,1,0}, {1,1,0,1,0,0,1,0},
+-- {0,0,1,1,0,0,1,0}, {1,0,1,1,0,0,1,0}, {0,1,1,1,0,0,1,0}, {1,1,1,1,0,0,1,0},
+-- {0,0,0,0,1,0,1,0}, {1,0,0,0,1,0,1,0}, {0,1,0,0,1,0,1,0}, {1,1,0,0,1,0,1,0},
+-- {0,0,1,0,1,0,1,0}, {1,0,1,0,1,0,1,0}, {0,1,1,0,1,0,1,0}, {1,1,1,0,1,0,1,0},
+-- {0,0,0,1,1,0,1,0}, {1,0,0,1,1,0,1,0}, {0,1,0,1,1,0,1,0}, {1,1,0,1,1,0,1,0},
+-- {0,0,1,1,1,0,1,0}, {1,0,1,1,1,0,1,0}, {0,1,1,1,1,0,1,0}, {1,1,1,1,1,0,1,0},
+-- {0,0,0,0,0,1,1,0}, {1,0,0,0,0,1,1,0}, {0,1,0,0,0,1,1,0}, {1,1,0,0,0,1,1,0},
+-- {0,0,1,0,0,1,1,0}, {1,0,1,0,0,1,1,0}, {0,1,1,0,0,1,1,0}, {1,1,1,0,0,1,1,0},
+-- {0,0,0,1,0,1,1,0}, {1,0,0,1,0,1,1,0}, {0,1,0,1,0,1,1,0}, {1,1,0,1,0,1,1,0},
+-- {0,0,1,1,0,1,1,0}, {1,0,1,1,0,1,1,0}, {0,1,1,1,0,1,1,0}, {1,1,1,1,0,1,1,0},
+-- {0,0,0,0,1,1,1,0}, {1,0,0,0,1,1,1,0}, {0,1,0,0,1,1,1,0}, {1,1,0,0,1,1,1,0},
+-- {0,0,1,0,1,1,1,0}, {1,0,1,0,1,1,1,0}, {0,1,1,0,1,1,1,0}, {1,1,1,0,1,1,1,0},
+-- {0,0,0,1,1,1,1,0}, {1,0,0,1,1,1,1,0}, {0,1,0,1,1,1,1,0}, {1,1,0,1,1,1,1,0},
+-- {0,0,1,1,1,1,1,0}, {1,0,1,1,1,1,1,0}, {0,1,1,1,1,1,1,0}, {1,1,1,1,1,1,1,0},
+-- {0,0,0,0,0,0,0,1}, {1,0,0,0,0,0,0,1}, {0,1,0,0,0,0,0,1}, {1,1,0,0,0,0,0,1},
+-- {0,0,1,0,0,0,0,1}, {1,0,1,0,0,0,0,1}, {0,1,1,0,0,0,0,1}, {1,1,1,0,0,0,0,1},
+-- {0,0,0,1,0,0,0,1}, {1,0,0,1,0,0,0,1}, {0,1,0,1,0,0,0,1}, {1,1,0,1,0,0,0,1},
+-- {0,0,1,1,0,0,0,1}, {1,0,1,1,0,0,0,1}, {0,1,1,1,0,0,0,1}, {1,1,1,1,0,0,0,1},
+-- {0,0,0,0,1,0,0,1}, {1,0,0,0,1,0,0,1}, {0,1,0,0,1,0,0,1}, {1,1,0,0,1,0,0,1},
+-- {0,0,1,0,1,0,0,1}, {1,0,1,0,1,0,0,1}, {0,1,1,0,1,0,0,1}, {1,1,1,0,1,0,0,1},
+-- {0,0,0,1,1,0,0,1}, {1,0,0,1,1,0,0,1}, {0,1,0,1,1,0,0,1}, {1,1,0,1,1,0,0,1},
+-- {0,0,1,1,1,0,0,1}, {1,0,1,1,1,0,0,1}, {0,1,1,1,1,0,0,1}, {1,1,1,1,1,0,0,1},
+-- {0,0,0,0,0,1,0,1}, {1,0,0,0,0,1,0,1}, {0,1,0,0,0,1,0,1}, {1,1,0,0,0,1,0,1},
+-- {0,0,1,0,0,1,0,1}, {1,0,1,0,0,1,0,1}, {0,1,1,0,0,1,0,1}, {1,1,1,0,0,1,0,1},
+-- {0,0,0,1,0,1,0,1}, {1,0,0,1,0,1,0,1}, {0,1,0,1,0,1,0,1}, {1,1,0,1,0,1,0,1},
+-- {0,0,1,1,0,1,0,1}, {1,0,1,1,0,1,0,1}, {0,1,1,1,0,1,0,1}, {1,1,1,1,0,1,0,1},
+-- {0,0,0,0,1,1,0,1}, {1,0,0,0,1,1,0,1}, {0,1,0,0,1,1,0,1}, {1,1,0,0,1,1,0,1},
+-- {0,0,1,0,1,1,0,1}, {1,0,1,0,1,1,0,1}, {0,1,1,0,1,1,0,1}, {1,1,1,0,1,1,0,1},
+-- {0,0,0,1,1,1,0,1}, {1,0,0,1,1,1,0,1}, {0,1,0,1,1,1,0,1}, {1,1,0,1,1,1,0,1},
+-- {0,0,1,1,1,1,0,1}, {1,0,1,1,1,1,0,1}, {0,1,1,1,1,1,0,1}, {1,1,1,1,1,1,0,1},
+-- {0,0,0,0,0,0,1,1}, {1,0,0,0,0,0,1,1}, {0,1,0,0,0,0,1,1}, {1,1,0,0,0,0,1,1},
+-- {0,0,1,0,0,0,1,1}, {1,0,1,0,0,0,1,1}, {0,1,1,0,0,0,1,1}, {1,1,1,0,0,0,1,1},
+-- {0,0,0,1,0,0,1,1}, {1,0,0,1,0,0,1,1}, {0,1,0,1,0,0,1,1}, {1,1,0,1,0,0,1,1},
+-- {0,0,1,1,0,0,1,1}, {1,0,1,1,0,0,1,1}, {0,1,1,1,0,0,1,1}, {1,1,1,1,0,0,1,1},
+-- {0,0,0,0,1,0,1,1}, {1,0,0,0,1,0,1,1}, {0,1,0,0,1,0,1,1}, {1,1,0,0,1,0,1,1},
+-- {0,0,1,0,1,0,1,1}, {1,0,1,0,1,0,1,1}, {0,1,1,0,1,0,1,1}, {1,1,1,0,1,0,1,1},
+-- {0,0,0,1,1,0,1,1}, {1,0,0,1,1,0,1,1}, {0,1,0,1,1,0,1,1}, {1,1,0,1,1,0,1,1},
+-- {0,0,1,1,1,0,1,1}, {1,0,1,1,1,0,1,1}, {0,1,1,1,1,0,1,1}, {1,1,1,1,1,0,1,1},
+-- {0,0,0,0,0,1,1,1}, {1,0,0,0,0,1,1,1}, {0,1,0,0,0,1,1,1}, {1,1,0,0,0,1,1,1},
+-- {0,0,1,0,0,1,1,1}, {1,0,1,0,0,1,1,1}, {0,1,1,0,0,1,1,1}, {1,1,1,0,0,1,1,1},
+-- {0,0,0,1,0,1,1,1}, {1,0,0,1,0,1,1,1}, {0,1,0,1,0,1,1,1}, {1,1,0,1,0,1,1,1},
+-- {0,0,1,1,0,1,1,1}, {1,0,1,1,0,1,1,1}, {0,1,1,1,0,1,1,1}, {1,1,1,1,0,1,1,1},
+-- {0,0,0,0,1,1,1,1}, {1,0,0,0,1,1,1,1}, {0,1,0,0,1,1,1,1}, {1,1,0,0,1,1,1,1},
+-- {0,0,1,0,1,1,1,1}, {1,0,1,0,1,1,1,1}, {0,1,1,0,1,1,1,1}, {1,1,1,0,1,1,1,1},
+-- {0,0,0,1,1,1,1,1}, {1,0,0,1,1,1,1,1}, {0,1,0,1,1,1,1,1}, {1,1,0,1,1,1,1,1},
+-- {0,0,1,1,1,1,1,1}, {1,0,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1}}
 
 -- Return a number that is the result of interpreting the table tbl (msb first)
-local function tbl_to_number(tbl)
-	local n = #tbl
-	local rslt = 0
-	local power = 1
-	for i = 1, n do
-		rslt = rslt + tbl[i]*power
-		power = power*2
-	end
-	return rslt
-end
+-- local function tbl_to_number(tbl)
+-- 	local n = #tbl
+-- 	local rslt = 0
+-- 	local power = 1
+-- 	for i = 1, n do
+-- 		rslt = rslt + tbl[i]*power
+-- 		power = power*2
+-- 	end
+-- 	return rslt
+-- end
 
--- Calculate bitwise xor of bytes m and n. 0 <= m,n <= 256.
-local function bit_xor(m, n)
-	local tbl_m = cclxvi[m]
-	local tbl_n = cclxvi[n]
-	local tbl = {}
-	for i = 1, 8 do
-		if(tbl_m[i] ~= tbl_n[i]) then
-			tbl[i] = 1
-		else
-			tbl[i] = 0
-		end
-	end
-	return tbl_to_number(tbl)
-end
+-- -- Calculate bitwise xor of bytes m and n. 0 <= m,n <= 256.
+-- local function bit_xor(m, n)
+-- 	local tbl_m = cclxvi[m]
+-- 	local tbl_n = cclxvi[n]
+-- 	local tbl = {}
+-- 	for i = 1, 8 do
+-- 		if(tbl_m[i] ~= tbl_n[i]) then
+-- 			tbl[i] = 1
+-- 		else
+-- 			tbl[i] = 0
+-- 		end
+-- 	end
+-- 	return tbl_to_number(tbl)
+-- end
 
 -- Return the binary representation of the number x with the width of `digits`.
 -- %o doesn't exist in lua 5.1
@@ -189,6 +189,61 @@ end
 --   local ret = string.format(fmtstring,s)
 --   return string.gsub(ret," ","0")
 -- end
+
+
+local max,min=math.max,math.min
+local floor,abs=math.floor,math.abs
+local byte,sub,rep=string.byte,string.sub,string.rep
+local gsub,match,format=string.gsub,string.match,string.format
+local concat = table.concat
+
+
+local xor_lookup = {}
+do
+	-- Build a fast xor helper that stays compatible across Lua versions.
+	-- We precompute a 256x256 lookup table once at load time using a portable
+	-- arithmetic xor; the hot path is then a constant-time table lookup without
+	-- requiring native bitwise operators or external bit libraries.
+	-- Slow but portable xor used only while populating the lookup table if no native op exists.
+	local function slow_xor(a,b)
+		local result = 0
+		local bitval = 1
+		while a > 0 or b > 0 do
+			if (a % 2) ~= (b % 2) then
+				result = result + bitval
+			end
+			a = floor(a / 2)
+			b = floor(b / 2)
+			bitval = bitval * 2
+		end
+		return result
+	end
+
+	-- Always build a 256x256 table once at load time; avoids any reliance on bitwise operators.
+	for i=0,255 do
+		local row = {}
+		for j=0,255 do
+			row[j] = slow_xor(i,j)
+		end
+		xor_lookup[i] = row
+	end
+end
+
+local decToHexTable={
+	["0"]="0000",["1"]="0001",["2"]="0010",["3"]="0011",
+	["4"]="0100",["5"]="0101",["6"]="0110",["7"]="0111",
+	["8"]="1000",["9"]="1001",["a"]="1010",["b"]="1011",
+	["c"]="1100",["d"]="1101",["e"]="1110",["f"]="1111",
+}
+local function decToHex(d) return decToHexTable[d] end
+-- Return the binary representation of the number x with the width of `digits`.
+local function binary(x,digits)
+	local s = format("%x",x) -- dec to hex
+	s = gsub(s,"(.)",decToHex) -- hex to bin
+	s = gsub(s,"^0+","") -- remove leading 0s
+	return rep("0",digits - #s) .. s
+end
+
 
 -- A small helper function for add_typeinfo_to_matrix() and add_version_information()
 -- Add a 2 (black by default) / -2 (blank by default) to the matrix at position x,y
@@ -269,14 +324,14 @@ local function get_version_eclevel(len,mode,requested_ec_level)
 
 	local bits, digits, modebits, c
 	local tab = { {10,9,8,8},{12,11,16,10},{14,13,16,12} }
-	local minversion = 40
+	local minversion = 99 -- placeholder, must be replaced by a lower value
 	local maxec_level = requested_ec_level or 1
-	local min,max = 1, 4
+	local minlv,maxlv = 1, 4
 	if requested_ec_level and requested_ec_level >= 1 and requested_ec_level <= 4 then
-		min = requested_ec_level
-		max = requested_ec_level
+		minlv = requested_ec_level
+		maxlv = requested_ec_level
 	end
-	for ec_level=min,max do
+	for ec_level=minlv,maxlv do
 		for version=1,#capacity do
 			bits = capacity[version][ec_level] * 8
 			bits = bits - 4 -- the mode indicator
@@ -289,13 +344,13 @@ local function get_version_eclevel(len,mode,requested_ec_level)
 			end
 			modebits = bits - digits
 			if local_mode == 1 then -- numeric
-				c = math.floor(modebits * 3 / 10)
+				c = floor(modebits * 3 / 10)
 			elseif local_mode == 2 then -- alphanumeric
-				c = math.floor(modebits * 2 / 11)
+				c = floor(modebits * 2 / 11)
 			elseif local_mode == 3 then -- binary
-				c = math.floor(modebits * 1 / 8)
+				c = floor(modebits * 1 / 8)
 			else
-				c = math.floor(modebits * 1 / 13)
+				c = floor(modebits * 1 / 13)
 			end
 			if c >= len then
 				if version <= minversion then
@@ -306,6 +361,7 @@ local function get_version_eclevel(len,mode,requested_ec_level)
 			end
 		end
 	end
+	assert(minversion<=40,"Data too long to encode in QR code")
 	return minversion, maxec_level
 end
 
@@ -374,50 +430,45 @@ local asciitbl = {
 
 -- Return a binary representation of the numeric string `str`. This must contain only digits 0-9.
 local function encode_string_numeric(str)
-	local bitstring = ""
-	local int
-	_=string.gsub(str,"..?.?",function(a)
-		int = tonumber(a)
-		if #a == 3 then
-			bitstring = bitstring .. binary(int,10)
-		elseif #a == 2 then
-			bitstring = bitstring .. binary(int,7)
-		else
-			bitstring = bitstring .. binary(int,4)
-		end
-	end)
-	return bitstring
+	local encodebuffer = {}
+	for i = 1, #str, 3 do
+		local a = sub(str,i,i+2)
+		-- #a is 1, 2, or 3, so bits are 4, 7, or 10
+		encodebuffer[#encodebuffer+1]=binary(tonumber(a), #a * 3 + 1)
+	end
+	return table.concat(encodebuffer)
 end
 
 -- Return a binary representation of the alphanumeric string `str`. This must contain only
 -- digits 0-9, uppercase letters A-Z, space and the following chars: $%*./:+-.
 local function encode_string_ascii(str)
-	local bitstring = ""
+	local encodebuffer = {}
 	local int
 	local b1, b2
-	_=string.gsub(str,"..?",function(a)
+	for i = 1, #str, 2 do
+		local a = sub(str,i,i+1)
 		if #a == 2 then
-			b1 = asciitbl[string.byte(string.sub(a,1,1))]
-			b2 = asciitbl[string.byte(string.sub(a,2,2))]
+			b1 = asciitbl[byte(sub(a,1,1))]
+			b2 = asciitbl[byte(sub(a,2,2))]
 			int = b1 * 45 + b2
-			bitstring = bitstring .. binary(int,11)
+			encodebuffer[#encodebuffer+1] = binary(int,11)
 		else
-			int = asciitbl[string.byte(a)]
-			bitstring = bitstring .. binary(int,6)
+			int = asciitbl[byte(a)]
+			encodebuffer[#encodebuffer+1] = binary(int,6)
 		end
-	  end)
-	return bitstring
+	end
+	return table.concat(encodebuffer)
 end
 
 -- Return a bitstring representing string str in binary mode.
 -- We don't handle UTF-8 in any special way because we assume the
 -- scanner recognizes UTF-8 and displays it correctly.
 local function encode_string_binary(str)
-	local ret = {}
-	_=string.gsub(str,".",function(x)
-		ret[#ret + 1] = binary(string.byte(x),8)
-	end)
-	return table.concat(ret)
+	local encodebuffer = {}
+	for i = 1, #str do
+		encodebuffer[i] = binary(byte(str,i),8)
+	end
+	return table.concat(encodebuffer)
 end
 
 -- Return a bitstring representing string str in the given mode.
@@ -436,25 +487,25 @@ end
 -- Encoding the codeword is not enough. We need to make sure that
 -- the length of the binary string is equal to the number of codewords of the version.
 local function add_pad_data(version,ec_level,data)
-	local count_to_pad, missing_digits
 	local cpty = capacity[version][ec_level] * 8
-	count_to_pad = math.min(4,cpty - #data)
+	local buffer = {data}
+	local buffer_len = #data
+	local count_to_pad = min(4,cpty - buffer_len)
 	if count_to_pad > 0 then
-		data = data .. string.rep("0",count_to_pad)
+		buffer[#buffer + 1] = rep("0",count_to_pad)
+		buffer_len = buffer_len + count_to_pad
 	end
-	if math.fmod(#data,8) ~= 0 then
-		missing_digits = 8 - math.fmod(#data,8)
-		data = data .. string.rep("0",missing_digits)
+	if buffer_len % 8 ~= 0 then
+		local missing = 8 - buffer_len % 8
+		buffer[#buffer + 1] = rep("0",missing)
+		buffer_len = buffer_len + missing
 	end
-	assert(math.fmod(#data,8) == 0)
 	-- add "11101100" and "00010001" until enough data
-	while #data < cpty do
-		data = data .. "11101100"
-		if #data < cpty then
-			data = data .. "00010001"
-		end
+	local remaining_bytes = (cpty - buffer_len) / 8 -- decimal doesn't matter
+	for i=1,remaining_bytes do
+		buffer[#buffer + 1] = i % 2 == 1 and "11101100" or "00010001"
 	end
-	return data
+	return concat(buffer)
 end
 
 
@@ -532,15 +583,15 @@ local generator_polynomial = {
 -- Turn a binary string of length 8*x into a table size x of numbers.
 local function convert_bitstring_to_bytes(data)
 	local msg = {}
-	_=string.gsub(data,"(........)",function(x)
-		msg[#msg+1] = tonumber(x,2)
-	end)
+	for i=1, #data / 8 do
+		msg[i] = tonumber(sub(data,(i - 1) * 8 + 1,i * 8),2)
+	end
 	return msg
 end
 
 -- Return a table that has 0's in the first entries and then the alpha
 -- representation of the generator polynominal
-local function get_generator_polynominal_adjusted(num_ec_codewords,highest_exponent)
+local function get_generator_polynomial_adjusted(num_ec_codewords,highest_exponent)
 	local gp_alpha = {[0]=0}
 	for i=0,highest_exponent - num_ec_codewords - 1 do
 		gp_alpha[i] = 0
@@ -552,25 +603,7 @@ local function get_generator_polynominal_adjusted(num_ec_codewords,highest_expon
 	return gp_alpha
 end
 
---- These converter functions use the log/antilog table above.
---- We could have created the table programatically, but I like fixed tables.
--- Convert polynominal in int notation to alpha notation.
-local function convert_to_alpha( tab )
-	local new_tab = {}
-	for i=0,#tab do
-		new_tab[i] = int_alpha[tab[i]]
-	end
-	return new_tab
-end
 
--- Convert polynominal in alpha notation to int notation.
-local function convert_to_int(tab)
-	local new_tab = {}
-	for i=0,#tab do
-		new_tab[i] = alpha_int[tab[i]]
-	end
-	return new_tab
-end
 
 -- That's the heart of the error correction calculation.
 local function calculate_error_correction(data,num_ec_codewords)
@@ -580,14 +613,12 @@ local function calculate_error_correction(data,num_ec_codewords)
 	elseif type(data)=="table" then
 		mp = data
 	else
-		assert(false,string.format("Unknown type for data: %s",type(data)))
+		assert(false,format("Unknown type for data: %s",type(data)))
 	end
 	local len_message = #mp
 
 	local highest_exponent = len_message + num_ec_codewords - 1
-	local gp_alpha,tmp
-	local he
-	local gp_int, mp_alpha
+	local gp_alpha
 	local mp_int = {}
 	-- create message shifted to left (highest exponent)
 	for i=1,len_message do
@@ -598,23 +629,17 @@ local function calculate_error_correction(data,num_ec_codewords)
 	end
 	mp_int[0] = 0
 
-	mp_alpha = convert_to_alpha(mp_int)
-
 	while highest_exponent >= num_ec_codewords do
-		gp_alpha = get_generator_polynominal_adjusted(num_ec_codewords,highest_exponent)
+		gp_alpha = get_generator_polynomial_adjusted(num_ec_codewords,highest_exponent)
 
 		-- Multiply generator polynomial by first coefficient of the above polynomial
 
 		-- take the highest exponent from the message polynom (alpha) and add
 		-- it to the generator polynom
-		local exp = mp_alpha[highest_exponent]
+		local exp = int_alpha[mp_int[highest_exponent]]
 		for i=highest_exponent,highest_exponent - num_ec_codewords,-1 do
 			if exp ~= 256 then
-				if gp_alpha[i] + exp >= 255 then
-					gp_alpha[i] = math.fmod(gp_alpha[i] + exp,255)
-				else
-					gp_alpha[i] = gp_alpha[i] + exp
-				end
+				gp_alpha[i] = (gp_alpha[i] + exp) % 255
 			else
 				gp_alpha[i] = 256
 			end
@@ -623,33 +648,24 @@ local function calculate_error_correction(data,num_ec_codewords)
 			gp_alpha[i] = 256
 		end
 
-		gp_int = convert_to_int(gp_alpha)
-		mp_int = convert_to_int(mp_alpha)
-
-
-		tmp = {}
 		for i=highest_exponent,0,-1 do
-			tmp[i] = bit_xor(gp_int[i],mp_int[i])
+			mp_int[i] = xor_lookup[alpha_int[gp_alpha[i]]][mp_int[i]]
 		end
 		-- remove leading 0's
-		he = highest_exponent
-		for i=he,0,-1 do
-			-- We need to stop if the length of the codeword is matched
-			if i < num_ec_codewords then break end
-			if tmp[i] == 0 then
-				tmp[i] = nil
-				highest_exponent = highest_exponent - 1
+		for i=highest_exponent,num_ec_codewords,-1 do
+			if mp_int[i]==0 then
+				highest_exponent=i-1
 			else
 				break
 			end
 		end
-		mp_int = tmp
-		mp_alpha = convert_to_alpha(mp_int)
+
+		if highest_exponent<num_ec_codewords then break end
 	end
 	local ret = {}
 
 	-- reverse data
-	for i=#mp_int,0,-1 do
+	for i=highest_exponent,0,-1 do
 		ret[#ret + 1] = mp_int[i]
 	end
 	return ret
@@ -744,60 +760,57 @@ local remainder = {0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 4
 -- The given data can be a string of 0's and 1' (with #string mod 8 == 0).
 -- Alternatively the data can be a table of codewords. The number of codewords
 -- must match the capacity of the qr code.
-local function arrange_codewords_and_calculate_ec( version,ec_level,data )
+local function arrange_codewords_and_calculate_ec(version,ec_level,data)
 	if type(data)=="table" then
-		local tmp = ""
+		local tmp = {}
 		for i=1,#data do
-			tmp = tmp .. binary(data[i],8)
+			tmp[i] = binary(data[i],8)
 		end
-		data = tmp
+		data = concat(tmp)
 	end
 	-- If the size of the data is not enough for the codeword, we add 0's and two special bytes until finished.
 	local blocks = ecblocks[version][ec_level]
 	local size_datablock_bytes, size_ecblock_bytes
 	local datablocks = {}
 	local final_ecblocks = {}
-	local count = 1
 	local pos = 0
-	local cpty_ec_bits = 0
 	for i=1,#blocks/2 do
+		size_datablock_bytes = blocks[2*i][2]
+		size_ecblock_bytes   = blocks[2*i][1] - size_datablock_bytes
 		for _=1,blocks[2*i - 1] do
-			size_datablock_bytes = blocks[2*i][2]
-			size_ecblock_bytes   = blocks[2*i][1] - blocks[2*i][2]
-			cpty_ec_bits = cpty_ec_bits + size_ecblock_bytes * 8
-			datablocks[#datablocks + 1] = string.sub(data, pos * 8 + 1,( pos + size_datablock_bytes)*8)
+			datablocks[#datablocks + 1] = sub(data, pos * 8 + 1,( pos + size_datablock_bytes)*8)
 			local tmp_tab = calculate_error_correction(datablocks[#datablocks],size_ecblock_bytes)
-			local tmp_str = ""
+			local tmp_str = {}
 			for x=1,#tmp_tab do
-				tmp_str = tmp_str .. binary(tmp_tab[x],8)
+				tmp_str[#tmp_str + 1] = binary(tmp_tab[x],8)
 			end
-			final_ecblocks[#final_ecblocks + 1] = tmp_str
+			final_ecblocks[#final_ecblocks + 1] = concat(tmp_str)
 			pos = pos + size_datablock_bytes
-			count = count + 1
 		end
 	end
-	local arranged_data = ""
-	pos = 1
-	repeat
-		for i=1,#datablocks do
-			if pos < #datablocks[i] then
-				arranged_data = arranged_data .. string.sub(datablocks[i],pos, pos + 7)
-			end
+
+	-- Weave the data blocks. When there are multiple block sizes, the final data stream looks like:
+	-- b1's 1st byte, b2's 1st byte, (b3's 1st byte, ...)
+	-- b1's 2nd byte, b2's 2nd byte, (b3's 2nd byte, ...)
+	-- b1's 3rd byte, ...
+	local arranged_data = {}
+	local maxBlockLen = 0
+	for i = 1, #datablocks do maxBlockLen = max(maxBlockLen, #datablocks[i]) end
+	for p = 1, maxBlockLen, 8 do
+		for i = 1, #datablocks do
+			arranged_data[#arranged_data + 1] = sub(datablocks[i], p, p + 7)
 		end
-		pos = pos + 8
-	until #arranged_data == #data
-	-- ec
-	local arranged_ec = ""
-	pos = 1
-	repeat
-		for i=1,#final_ecblocks do
-			if pos < #final_ecblocks[i] then
-				arranged_ec = arranged_ec .. string.sub(final_ecblocks[i],pos, pos + 7)
-			end
+	end
+
+	-- Same for EC blocks
+	maxBlockLen = 0
+	for i = 1, #final_ecblocks do maxBlockLen = max(maxBlockLen, #final_ecblocks[i]) end
+	for p = 1, maxBlockLen, 8 do
+		for i = 1, #final_ecblocks do
+			arranged_data[#arranged_data + 1] = sub(final_ecblocks[i], p, p + 7)
 		end
-		pos = pos + 8
-	until #arranged_ec == cpty_ec_bits
-	return arranged_data .. arranged_ec
+	end
+	return concat(arranged_data)
 end
 
 --- Step 4: Generate 8 matrices with different masks and calculate the penalty
@@ -866,22 +879,10 @@ end
 --- ### Timing patterns ###
 -- The timing patterns (two) are the dashed lines between two adjacent positioning patterns on row/column 7.
 local function add_timing_pattern(tab_x)
-	local line,col
-	line = 7
-	col = 9
-	for i=col,#tab_x - 8 do
-		if math.fmod(i,2) == 1 then
-			tab_x[i][line] = 2
-		else
-			tab_x[i][line] = -2
-		end
-	end
-	for i=col,#tab_x - 8 do
-		if math.fmod(i,2) == 1 then
-			tab_x[line][i] = 2
-		else
-			tab_x[line][i] = -2
-		end
+	local line,col=7,9
+	for i=col,#tab_x-8 do
+		tab_x[i][line] = i%2==0 and -2 or 2
+		tab_x[line][i] = i%2==0 and -2 or 2
 	end
 end
 
@@ -907,7 +908,7 @@ local alignment_pattern = {
 ---     X X X
 ---     X   X
 ---     XXXXX
-local function add_alignment_pattern( tab_x )
+local function add_alignment_pattern(tab_x)
 	local version = (#tab_x - 17) / 4
 	local ap = alignment_pattern[version]
 	local pos_x, pos_y
@@ -915,38 +916,18 @@ local function add_alignment_pattern( tab_x )
 		for y=1,#ap do
 			-- we must not put an alignment pattern on top of the positioning pattern
 			if not (x == 1 and y == 1 or x == #ap and y == 1 or x == 1 and y == #ap ) then
-				pos_x = ap[x] + 1
-				pos_y = ap[y] + 1
-				tab_x[pos_x][pos_y] = 2
-				tab_x[pos_x+1][pos_y] = -2
-				tab_x[pos_x-1][pos_y] = -2
-				tab_x[pos_x+2][pos_y] =  2
-				tab_x[pos_x-2][pos_y] =  2
-				tab_x[pos_x  ][pos_y - 2] = 2
-				tab_x[pos_x+1][pos_y - 2] = 2
-				tab_x[pos_x-1][pos_y - 2] = 2
-				tab_x[pos_x+2][pos_y - 2] = 2
-				tab_x[pos_x-2][pos_y - 2] = 2
-				tab_x[pos_x  ][pos_y + 2] = 2
-				tab_x[pos_x+1][pos_y + 2] = 2
-				tab_x[pos_x-1][pos_y + 2] = 2
-				tab_x[pos_x+2][pos_y + 2] = 2
-				tab_x[pos_x-2][pos_y + 2] = 2
-
-				tab_x[pos_x  ][pos_y - 1] = -2
-				tab_x[pos_x+1][pos_y - 1] = -2
-				tab_x[pos_x-1][pos_y - 1] = -2
-				tab_x[pos_x+2][pos_y - 1] =  2
-				tab_x[pos_x-2][pos_y - 1] =  2
-				tab_x[pos_x  ][pos_y + 1] = -2
-				tab_x[pos_x+1][pos_y + 1] = -2
-				tab_x[pos_x-1][pos_y + 1] = -2
-				tab_x[pos_x+2][pos_y + 1] =  2
-				tab_x[pos_x-2][pos_y + 1] =  2
+				pos_x,pos_y=ap[x]+1,ap[y]+1
+				for dy=-2,2 do
+					for dx=-2,2 do
+						-- form the pattern with checking chebyshev distance instead of hardcoding
+						tab_x[pos_x+dx][pos_y+dy]=max(abs(dx),abs(dy))%2==0 and 2 or -2
+					end
+				end
 			end
 		end
 	end
 end
+
 
 --- ### Type information ###
 --- Let's not forget the type information that is in column 9 next to the left positioning patterns and on row 9 below
@@ -963,45 +944,47 @@ local typeinfo = {
 
 -- The typeinfo is a mixture of mask and ec level information and is
 -- added twice to the qr code, one horizontal, one vertical.
-local function add_typeinfo_to_matrix( matrix,ec_level,mask )
+local function add_typeinfo_to_matrix(matrix,ec_level,mask)
 	local ec_mask_type = typeinfo[ec_level][mask]
 
 	local bit
 	-- vertical from bottom to top
 	for i=1,7 do
-		bit = string.sub(ec_mask_type,i,i)
-		fill_matrix_position(matrix, bit, 9, #matrix - i + 1)
+		bit = sub(ec_mask_type,i,i)
+		fill_matrix_position(matrix,bit,9,#matrix - i + 1)
 	end
 	for i=8,9 do
-		bit = string.sub(ec_mask_type,i,i)
+		bit = sub(ec_mask_type,i,i)
 		fill_matrix_position(matrix,bit,9,17-i)
 	end
 	for i=10,15 do
-		bit = string.sub(ec_mask_type,i,i)
+		bit = sub(ec_mask_type,i,i)
 		fill_matrix_position(matrix,bit,9,16 - i)
 	end
 	-- horizontal, left to right
 	for i=1,6 do
-		bit = string.sub(ec_mask_type,i,i)
+		bit = sub(ec_mask_type,i,i)
 		fill_matrix_position(matrix,bit,i,9)
 	end
-	bit = string.sub(ec_mask_type,7,7)
+	bit = sub(ec_mask_type,7,7)
 	fill_matrix_position(matrix,bit,8,9)
 	for i=8,15 do
-		bit = string.sub(ec_mask_type,i,i)
+		bit = sub(ec_mask_type,i,i)
 		fill_matrix_position(matrix,bit,#matrix - 15 + i,9)
 	end
 end
 
 -- Bits for version information 7-40
 -- The reversed strings from https://www.thonky.com/qr-code-tutorial/format-version-tables
-local version_information = {"001010010011111000", "001111011010000100", "100110010101100100", "110010110010010100",
-  "011011111101110100", "010001101110001100", "111000100001101100", "101100000110011100", "000101001001111100",
-  "000111101101000010", "101110100010100010", "111010000101010010", "010011001010110010", "011001011001001010",
-  "110000010110101010", "100100110001011010", "001101111110111010", "001000110111000110", "100001111000100110",
-  "110101011111010110", "011100010000110110", "010110000011001110", "111111001100101110", "101011101011011110",
-  "000010100100111110", "101010111001000001", "000011110110100001", "010111010001010001", "111110011110110001",
-  "110100001101001001", "011101000010101001", "001001100101011001", "100000101010111001", "100101100011000101" }
+local version_information = {
+	"001010010011111000", "001111011010000100", "100110010101100100", "110010110010010100",
+	"011011111101110100", "010001101110001100", "111000100001101100", "101100000110011100", "000101001001111100",
+	"000111101101000010", "101110100010100010", "111010000101010010", "010011001010110010", "011001011001001010",
+	"110000010110101010", "100100110001011010", "001101111110111010", "001000110111000110", "100001111000100110",
+	"110101011111010110", "011100010000110110", "010110000011001110", "111111001100101110", "101011101011011110",
+	"000010100100111110", "101010111001000001", "000011110110100001", "010111010001010001", "111110011110110001",
+	"110100001101001001", "011101000010101001", "001001100101011001", "100000101010111001", "100101100011000101",
+}
 
 -- Versions 7 and above need two bitfields with version information added to the code
 local function add_version_information(matrix,version)
@@ -1014,9 +997,9 @@ local function add_version_information(matrix,version)
 	start_x = size - 10
 	start_y = 1
 	for i=1,#bitstring do
-		bit = string.sub(bitstring,i,i)
-		x = start_x + math.fmod(i - 1,3)
-		y = start_y + math.floor( (i - 1) / 3 )
+		bit = sub(bitstring,i,i)
+		x = start_x + (i - 1) % 3
+		y = start_y + floor((i - 1) / 3)
 		fill_matrix_position(matrix,bit,x,y)
 	end
 
@@ -1024,19 +1007,18 @@ local function add_version_information(matrix,version)
 	start_x = 1
 	start_y = size - 10
 	for i=1,#bitstring do
-		bit = string.sub(bitstring,i,i)
-		x = start_x + math.floor( (i - 1) / 3 )
-		y = start_y + math.fmod(i - 1,3)
+		bit = sub(bitstring,i,i)
+		x = start_x + floor((i - 1) / 3)
+		y = start_y + (i - 1) % 3
 		fill_matrix_position(matrix,bit,x,y)
 	end
 end
 
 --- Now it's time to use the methods above to create a prefilled matrix for the given mask
-local function prepare_matrix_with_mask( version,ec_level, mask )
-	local size
+local function prepare_matrix_with_mask(version,ec_level,mask)
+	local size = version * 4 + 17
 	local tab_x = {}
 
-	size = version * 4 + 17
 	for i=1,size do
 		tab_x[i]={}
 		for j=1,size do
@@ -1069,116 +1051,66 @@ end
 -- Return 1 (black) or -1 (blank) depending on the mask, value and position.
 -- Parameter mask is 0-7 (-1 for 'no mask'). x and y are 1-based coordinates,
 -- 1,1 = upper left. tonumber(value) must be 0 or 1.
-local function get_pixel_with_mask( mask, x,y,value )
-	x = x - 1
-	y = y - 1
-	local invert = false
-	-- test purpose only:
-	if mask == -1 then -- luacheck: ignore
-		-- ignore, no masking applied
-	elseif mask == 0 then
-		if math.fmod(x + y,2) == 0 then invert = true end
-	elseif mask == 1 then
-		if math.fmod(y,2) == 0 then invert = true end
-	elseif mask == 2 then
-		if math.fmod(x,3) == 0 then invert = true end
-	elseif mask == 3 then
-		if math.fmod(x + y,3) == 0 then invert = true end
-	elseif mask == 4 then
-		if math.fmod(math.floor(y / 2) + math.floor(x / 3),2) == 0 then invert = true end
-	elseif mask == 5 then
-		if math.fmod(x * y,2) + math.fmod(x * y,3) == 0 then invert = true end
-	elseif mask == 6 then
-		if math.fmod(math.fmod(x * y,2) + math.fmod(x * y,3),2) == 0 then invert = true end
-	elseif mask == 7 then
-		if math.fmod(math.fmod(x * y,3) + math.fmod(x + y,2),2) == 0 then invert = true end
-	else
-		assert(false,"This can't happen (mask must be <= 7)")
-	end
-	if invert then
-		-- value = 1? -> -1, value = 0? -> 1
-		return 1 - 2 * tonumber(value)
-	else
-		-- value = 1? -> 1, value = 0? -> -1
-		return -1 + 2*tonumber(value)
-	end
+local maskFunc={
+	[-1]=function(_,_) return false end, -- test purpose only, no mask applied
+	[0]=function(x,y) return (y+x)%2==0 end,
+	function(_,y) return y%2==0 end,
+	function(x,_) return x%3==0 end,
+	function(x,y) return (y+x)%3==0 end,
+	function(x,y) return (y%4-1.5)*(x%6-2.5)>0 end, -- optimized for not using math.floor (too slow) or // operation (new Lua only)
+	function(x,y) return (y*x)%2+(y*x)%3==0 end,
+	function(x,y) return ((y*x)%3+y*x)%2==0 end,
+	function(x,y) return ((y*x)%3+y+x)%2==0 end,
+}
+
+-- Receive 0 (blank) or 1 (black) from data,
+-- Return -1 (blank) or 1 (black) depending on the value, mask, and position.
+-- Parameter mask is 0-7 (-1 for 'no mask'). x and y are 1-based coordinates,
+-- 1,1 = upper left. value must be 0 or 1.
+local function get_pixel_with_mask(mask,x,y,dataBit)
+	local invert = maskFunc[mask](x-1,y-1)
+	return (dataBit==0)==invert and 1 or -1
+	--       This^ == is used as boolean XNOR:
+	--  data    F  T <- invert?
+	--   0   F -1  1
+	--   1   T  1 -1
 end
 
-
--- We need up to 8 positions in the matrix. Only the last few bits may be less then 8.
--- The function returns a table of (up to) 8 entries with subtables where
--- the x coordinate is the first and the y coordinate is the second entry.
-local function get_next_free_positions(matrix,x,y,dir,byte)
-	local ret = {}
-	local count = 1
-	local mode = "right"
-	while count <= #byte do
-		if mode == "right" and matrix[x][y] == 0 then
-			ret[#ret + 1] = {x,y}
-			mode = "left"
-			count = count + 1
-		elseif mode == "left" and matrix[x-1][y] == 0 then
-			ret[#ret + 1] = {x-1,y}
-			mode = "right"
-			count = count + 1
-			if dir == "up" then
-				y = y - 1
-			else
-				y = y + 1
-			end
-		elseif mode == "right" and matrix[x-1][y] == 0 then
-			ret[#ret + 1] = {x-1,y}
-			count = count + 1
-			if dir == "up" then
-				y = y - 1
-			else
-				y = y + 1
-			end
-		else
-			if dir == "up" then
-				y = y - 1
-			else
-				y = y + 1
-			end
-		end
-		if y < 1 or y > #matrix then
-			x = x - 2
-			-- don't overwrite the timing pattern
-			if x == 7 then x = 6 end
-			if dir == "up" then
-				dir = "down"
-				y = 1
-			else
-				dir = "up"
-				y = #matrix
-			end
-		end
-	end
-	return ret,x,y,dir
-end
 
 -- Add the data string (0's and 1's) to the matrix for the given mask.
 local function add_data_to_matrix(matrix,data,mask)
 	local size = #matrix
-	local x,y,positions
-	local _x,_y,m
-	local dir = "up"
-	local byte_number = 0
-	x,y = size,size
-	_=string.gsub(data,".?.?.?.?.?.?.?.?",function ( byte )
-		byte_number = byte_number + 1
-		positions,x,y,dir = get_next_free_positions(matrix,x,y,dir,byte)
-		for i=1,#byte do
-			_x = positions[i][1]
-			_y = positions[i][2]
-			m = get_pixel_with_mask(mask,_x,_y,string.sub(byte,i,i))
-			if debugging then
-				matrix[_x][_y] = m * (i + 10)
-			else
-				matrix[_x][_y] = m
+	-- Fill data into matrix
+	local ptr=1             -- data pointer
+	local x,y=size,size     -- writing position, starts from bottom right
+	local x_dir,y_dir=-1,-1 -- state of movement, notice that Y step once each two X steps
+	while true do
+		-- 0 means available data cell to write data
+		if matrix[x][y]==0 then
+			matrix[x][y] = get_pixel_with_mask(mask,x,y,byte(data,ptr)-48) -- '0' = 48, '1' = 49
+			ptr = ptr + 1
+			if ptr > #data or x < 0 then return matrix end -- all data written, finish
+		end
+
+		-- Move to next cell (won't write into unavailable cell so it's fine to move 1 step each time)
+		-- switch left/right
+		x = x + x_dir
+		-- if just stepped right, it means current 2 bits were finished
+		if x_dir == 1 then
+			-- so we step up/down for next 2 bits
+			y = y + y_dir
+
+			-- when we went outside the matrix, move 2 cells left and turn back
+			if not matrix[y] then -- square, so matrix[y] will be nil if y is out of range, no matter [x][y] or [y][x]
+				x = x - 2
+				if x == 7 then x = 6 end -- jump over timing pattern
+				y = y_dir == -1 and 1 or size
+				y_dir = -y_dir
 			end
 		end
-	end)
+		-- prepare next left/right
+		x_dir = -x_dir
+	end
 end
 
 
@@ -1255,9 +1187,10 @@ local function calculate_penalty(matrix)
 			-- 2: Block of modules in same color
 			-- -----------------------------------
 			-- Blocksize = m × n  -> 3 × (m-1) × (n-1)
-			if (y < size - 1) and ( x < size - 1) and ( (matrix[x][y] < 0 and matrix[x+1][y] < 0 and matrix[x][y+1] < 0 and matrix[x+1][y+1] < 0) or (matrix[x][y] > 0 and matrix[x+1][y] > 0 and matrix[x][y+1] > 0 and matrix[x+1][y+1] > 0) ) then
-				penalty2 = penalty2 + 3
-			end
+			if (y < size - 1) and (x < size - 1) and (
+				(matrix[x][y] < 0 and matrix[x+1][y] < 0 and matrix[x][y+1] < 0 and matrix[x+1][y+1] < 0) or
+				(matrix[x][y] > 0 and matrix[x+1][y] > 0 and matrix[x][y+1] > 0 and matrix[x+1][y+1] > 0)
+			) then penalty2 = penalty2 + 3 end
 
 			-- 3: 1:1:3:1:1 ratio (dark:light:dark:light:dark) pattern in row/column
 			-- ------------------------------------------------------------------
@@ -1306,8 +1239,8 @@ local function calculate_penalty(matrix)
 	-- 4: Proportion of dark modules in entire symbol
 	-- ----------------------------------------------
 	-- 50 ± (5 × k)% to 50 ± (5 × (k + 1))% -> 10 × k
-	local dark_ratio = number_of_dark_cells / ( size * size )
-	local penalty4 = math.floor(math.abs(dark_ratio * 100 - 50)) * 2
+	local dark_ratio = number_of_dark_cells / (size * size)
+	local penalty4 = floor(abs(dark_ratio * 100 - 50)) * 2
 	return penalty1 + penalty2 + penalty3 + penalty4
 end
 
@@ -1346,18 +1279,22 @@ end
 --- 1. Arrange data and calculate error correction code
 --- 1. Generate 8 matrices with different masks and calculate the penalty
 --- 1. Return qrcode with least penalty
--- If ec_level or mode is given, use the ones for generating the qrcode. (mode is not implemented yet)
-local function qrcode( str, ec_level, _mode ) -- luacheck: no unused args
+
+-- Return
+--     on success: true, number matrix (only has ±1&±2. positive means black, ±2 means mandatory, in case if you didn't read comments above)
+--     on failed: false, error message string
+-- If ec_level or mode is given, use the ones for generating the qrcode. (mode option is not implemented yet, but it will be determined automatically)
+local function qrcode(str,ec_level,mode_enc)
 	local arranged_data, version, data_raw, mode, len_bitstring
-	version, ec_level, data_raw, mode, len_bitstring = get_version_eclevel_mode_bistringlength(str,ec_level)
+	version, ec_level, data_raw, mode, len_bitstring = get_version_eclevel_mode_bistringlength(str,ec_level,mode_enc)
 	data_raw = data_raw .. len_bitstring
 	data_raw = data_raw .. encode_data(str,mode)
 	data_raw = add_pad_data(version,ec_level,data_raw)
 	arranged_data = arrange_codewords_and_calculate_ec(version,ec_level,data_raw)
-	if math.fmod(#arranged_data,8) ~= 0 then
-		return false, string.format("Arranged data %% 8 != 0: data length = %d, mod 8 = %d",#arranged_data, math.fmod(#arranged_data,8))
+	if #arranged_data % 8 ~= 0 then
+		return false, format("Arranged data %% 8 != 0: data length = %d, mod 8 = %d",#arranged_data, #arranged_data % 8)
 	end
-	arranged_data = arranged_data .. string.rep("0",remainder[version])
+	arranged_data = arranged_data .. rep("0",remainder[version])
 	local tab = get_matrix_with_lowest_penalty(version,ec_level,arranged_data)
 	return true, tab
 end
@@ -1401,7 +1338,6 @@ QRencode = {
 --[[
 
 WoW PATCH summary:
-- binary() now uses an octal fallback and will not fail on old string.format
 - The library always exports itself as a global variable "qrencode"
 - You no longer need require(), just list qrencode.lua before your main file in the .toc
 - All code is otherwise vanilla Lua 5.1, suitable for the WoW environment

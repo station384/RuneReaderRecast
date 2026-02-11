@@ -7,8 +7,8 @@
 -- frames_barcode.lua: Barcode window management
 
 RuneReader = RuneReader or {}
-
-RuneReader.lastC39EncodeResult = "/B0/W0001/K00/D0000"
+RuneReader.DefaultCode = "/B0/W0001/K00/D0000/G0000/T0000"
+RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
 RuneReader.lastDisplayedC39Encode = ""
 RuneReader.C39FrameDelayAccumulator = 0
 
@@ -17,11 +17,11 @@ RuneReader.C39FrameDelayAccumulator = 0
 
 function RuneReader:CreateBarcodeWindow()
 
-    RuneReader.lastC39EncodeResult = "/B0/W0001/K00/D0000"
+    RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
     if RuneReader.BarcodeFrame and RuneReader.BarcodeFrame:IsShown() then
         RuneReader.C39FrameDelayAccumulator = 0
-                   RuneReader.lastC39EncodeResult = "/B0/W0001/K00/D0000"
-           RuneReader.lastDisplayedC39Encode = ""
+        RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
+        RuneReader.lastDisplayedC39Encode = ""
         return
     elseif RuneReader.BarcodeFrame then
         RuneReader.C39FrameDelayAccumulator = 0
@@ -80,8 +80,6 @@ function RuneReader:CreateBarcodeWindow()
     scroll:SetAllPoints(f)
     scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -1)
 
-    
-
     -- Create container frame for the text
     local textHolder = CreateFrame("Frame", nil, scroll)
     scroll:SetScrollChild(textHolder)
@@ -97,29 +95,15 @@ function RuneReader:CreateBarcodeWindow()
     text:SetDrawLayer("BACKGROUND")
     text:SetText("*" .. RuneReader.lastC39EncodeResult .. "*")
     text:SetPoint("CENTER", textHolder, "CENTER", 0, -0)
-    --text:SetParent(f)
-
 
     local width = text:GetStringWidth()
     local height = text:GetStringHeight()
     f:SetSize(width, height)
 
-
-    -- text:SetAllPoints(textHolder)
-
-
-
     -- Optional padding
     local padX, padY = 30*2, 0
     f:Hide()
-   f:SetSize(width + padX, height /3)
-
-
-
-
-
-
-
+    f:SetSize(width + padX, height / 3)
     f.Text = text
     f:Hide()
     f:Show()
@@ -144,13 +128,6 @@ function RuneReader:CreateBarcodeWindow()
         RuneReader.BarcodeFrame.hasBeenInitialized = true
     end
 
-
-
-    -- if RuneReaderRecastDB and RuneReaderRecastDB.C39Position then
-    --     local pos = RuneReaderRecastDB.C39Position
-    --     f:ClearAllPoints()
-    --     f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
-    -- end
         RuneReader.C39FrameDelayAccumulator = 0
            RuneReader.lastC39EncodeResult = "/B0/W0001/K00/D0000"
            RuneReader.lastDisplayedC39Encode = ""
@@ -160,11 +137,6 @@ function RuneReader:CreateBarcodeWindow()
 end
 
 function RuneReader:DestroyBarcodeWindow()
---     if RuneReader.BarcodeFrame then 
-    
---         RuneReader.BarcodeFrame:Hide()
-
--- end
         if RuneReader.BarcodeFrame then
         RuneReader.BarcodeFrame:Hide()
         RuneReader.BarcodeFrame:SetParent(nil)

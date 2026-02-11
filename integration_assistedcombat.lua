@@ -116,6 +116,15 @@ local function GetGCDPercentRemaining()
   return 1000 - GetGCDPercentComplete()
 end
 
+local function NowMs10s()
+  return math.floor((GetTime() * 1000) % 10000)
+end
+
+
+
+
+
+
 
 --[[
 AssistedCombat_UpdateValues
@@ -285,12 +294,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- ======================
     local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
     spellInfo1 = RuneReader.GetSpellInfo(SpellID)  -- re-fetch in case overrides changed the target spell
-    local SpellCooldown = C_Spell.GetSpellCooldownDuration(SpellID) or 0
-    -- Notes:
-    -- This gives the correct duration, but if in combat it will it will return nil.
-    -- print will output the correct value in and out of combat, need to find a way around this.
-    -- may be able to make this a window in the game and have it displayed as a bar under the barcode in code 39, qr my be more difficult.
-    local duration = SpellCooldown:EvaluateRemainingPercent(RuneReader.myScale1000 )
+    -- local SpellCooldown = C_Spell.GetSpellCooldownDuration(SpellID) or 0
+    -- local duration = SpellCooldown:EvaluateRemainingPercent(RuneReader.myScale1000 )
 
 
 
@@ -367,14 +372,15 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 -- local GetSpellCooldownInfo = (C_Spell and C_Spell.GetSpellCooldown) or GetSpellCooldown
 -- local info = GetSpellCooldownInfo(GCD_SPELL_ID)
 
-   --print ( )
+   --print ( string.format("%04i",wait ) ,' ', string.format("%04i", GetGCDPercentRemaining()))
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = 
-         '/B' .. RuneReader:ToBase36(string.format("%02i",bitMask)) ..
-         '/W' .. RuneReader:ToBase36(string.format("%04i", wait + GetGCDPercentRemaining() )) ..
-         '/K' .. RuneReader:ToBase36(string.format("%02i", tonumber(keytranslate ))) ..
-         '/D' .. RuneReader:ToBase36(string.format("%04i", channelingPercent))         
-         .. '/G' .. string.format("%04i", GetGCDPercentRemaining())
+         '/B' .. string.format("%02i",bitMask) ..
+         '/W' .. string.format("%04i", wait ) ..
+         '/K' .. string.format("%02i", tonumber(keytranslate )) ..
+         '/D' .. string.format("%04i", channelingPercent)  ..        
+         '/G' .. string.format("%04i", GetGCDPercentRemaining()) ..
+         '/T' .. string.format("%04i", NowMs10s())
     --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
     --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")
     --.. '/S' .. source
