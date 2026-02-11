@@ -1,4 +1,4 @@
-## Interface: 120010
+## Interface: 120001
 ## Title: RuneReader Recast
 ## Notes: Hekili Companion - Barcode and QR helper
 ## Version: 2.9.43
