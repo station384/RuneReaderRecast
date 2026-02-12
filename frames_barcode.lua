@@ -1,5 +1,5 @@
 -- RuneReader Recast
--- Copyright (c) Michael Sutton 2025
+-- Copyright (c) Michael Sutton 2026
 -- Licensed under the GNU General Public License v3.0 (GPLv3)
 -- You may use, modify, and distribute this file under the terms of the GPLv3 license.
 -- See: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -85,12 +85,13 @@ function RuneReader:CreateBarcodeWindow()
     textHolder:SetAllPoints(f)
     
     local text = textHolder:CreateFontString(nil, "OVERLAY", "GameTooltipText")
-    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", RuneReaderRecastDB.Code39Size or 40, "MONOCHROME")
+    text:SetFont("Interface\\AddOns\\RuneReaderRecast\\Fonts\\LibreBarcode39-Regular.ttf", RuneReaderRecastDB.Code39Size or 40, "MONOCHROME,SLUG")
     text:SetTextColor(0, 0, 0)
     text:SetJustifyH("CENTER")
     text:SetJustifyV("MIDDLE")
     text:SetWordWrap(false)
-    text:SetShadowColor(255,255,255,0)
+    text:SetFixedColor(true);
+    --text:SetShadowColor(255,255,255,0)
     text:SetDrawLayer("BACKGROUND")
     text:SetText("*" .. RuneReader.lastC39EncodeResult .. "*")
     text:SetPoint("CENTER", textHolder, "CENTER", 0, -0)
@@ -100,7 +101,7 @@ function RuneReader:CreateBarcodeWindow()
     f:SetSize(width, height)
 
     -- Optional padding
-    local padX, padY = 30*2, 0
+    local padX, padY = 20*2, 0
     f:Hide()
     f:SetSize(width + padX, height / 3)
     f.Text = text
@@ -114,16 +115,22 @@ function RuneReader:CreateBarcodeWindow()
 
     if not RuneReader.BarcodeFrame.hasBeenInitialized then
         RuneReader.BarcodeFrame:SetScript("OnUpdate", function(self, elapsed)
+        
             if RuneReader then
-                RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
-                if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay  then
+                if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
                     RuneReader:UpdateC39Display()
                     RuneReader.C39FrameDelayAccumulator = 0
                 end
             else
                 RuneReader.BarcodeFrame:SetScript("OnUpdate", nil)
             end
+            RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
+        
+        
         end)
+
+
+
         RuneReader.BarcodeFrame.hasBeenInitialized = true
     end
 
@@ -155,7 +162,7 @@ function RuneReader:UpdateC39Display()
 
 
     if fullResult then
-            RuneReader:SetBarcodeText("*" .. RuneReader.lastC39EncodeResult .. "*")
+            RuneReader:SetBarcodeText("*" .. fullResult .. "*")
             RuneReader.lastDisplayedC39Encode= fullResult;
     end
 

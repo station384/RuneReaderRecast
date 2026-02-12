@@ -98,14 +98,14 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
     if not RuneReader.QRFrame.hasBeenInitialized then
         RuneReader.QRFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
-                RuneReader.QRFrameDelayAccumulator = RuneReader.QRFrameDelayAccumulator + elapsed
-                if RuneReader.QRFrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay  then
+                if RuneReader.QRFrameDelayAccumulator >=  RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
                     RuneReader:UpdateQRDisplay()
-                    RuneReader.QRFrameDelayAccumulator = 0
+                    RuneReader.QRFrameDelayAccumulator =  0
                 end
             else
                 RuneReader.QRFrame:SetScript("OnUpdate", nil)
             end
+            RuneReader.QRFrameDelayAccumulator = RuneReader.QRFrameDelayAccumulator + elapsed
         end)
         RuneReader.QRFrame.hasBeenInitialized = true
     end
