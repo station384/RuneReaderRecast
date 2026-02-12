@@ -365,6 +365,7 @@ function M:Create( height)
                 if RuneReader.Code39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
                     RuneReader:UpdateCode39Display()
                     RuneReader.Code39FrameDelayAccumulator = 0
+                    print (elapsed)
                 end
             else
                 RuneReader.BarcodeFrame:SetScript("OnUpdate", nil)
