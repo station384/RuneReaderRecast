@@ -8,15 +8,12 @@
 -- assistedcombat_integration.lua: Integration with Blizzard's AssistedCombat system
 -- Total beta.   No real info on the API has been released yet.  This is all Guesswork
 
-
-
 RuneReader = RuneReader or {}
 RuneReader.AssistedCombatSpellInfo = RuneReader.AssistedCombatSpellInfo or {}
-RuneReader.Assisted_LastEncodedResult = "/B0/W0001/K00/D0000"
+RuneReader.Assisted_LastEncodedResult = RuneReader.DefaultCode
 
 
-
-local spellQueueWindowDivisor = 1 
+local spellQueueWindowDivisor = 1;
 local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 local floor = math.floor
 
@@ -117,12 +114,14 @@ local function GetGCDPercentRemaining()
   return 1000 - GetGCDPercentComplete()
 end
 
-local function NowMs10s()
-  return floor((GetTime() * 1000) % 10000)
+local function NowMsXs()
+  return floor((GetTime() * 1000) % 999)
 end
 
 
-
+local function GetUnitHealthPct(target)
+  return UnitHealthPercent("player", false)
+end
 
 
 
@@ -289,30 +288,6 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     end
 
 
-
-    -- ======================
-    -- Cooldown & wait window
-    -- ======================
- --   local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
-    --spellInfo1 = RuneReader.GetSpellInfo(SpellID)  -- re-fetch in case overrides changed the target spell
-    -- local SpellCooldown = C_Spell.GetSpellCooldownDuration(SpellID) or 0
-    -- local duration = SpellCooldown:EvaluateRemainingPercent(RuneReader.myScale1000 )
-
-
-
-
-    -- Pull the client SpellQueueWindow (ms) and convert to seconds; default to 50ms if missing
-    local queueMS  = tonumber(GetCVar("SpellQueueWindow") / spellQueueWindowDivisor) or 50
-    local queueSec = queueMS / 1000
-
-    -- Adjust the effective "start time" by duration, PrePressDelay, and the client queue window.
-    -- This models when the key should be pressed so the spell fires ASAP as GCD/cooldown frees up.\
-    -- ToDo: see if we can figure out a start time.
-    -- sCurrentSpellCooldown.startTime =
-    --     (sCurrentSpellCooldown.startTime) + duration - ((RuneReaderRecastDB.PrePressDelay or 0) + queueSec)
-    
-    -- Compute wait relative to our current time now that startTime has been adjusted
-
     --wait = "  " .. tostring(duration)--0 --sCurrentSpellCooldown.startTime - curTime
     wait = GetCastingDuration1000("player")--tonumber(duration)
 
@@ -339,7 +314,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     --  bit 0 → player can attack target
     --  bit 1 → player is in combat
     --  bit 2 player is in multi target 
-    --  bit 3 Was Detecting if gcd was active. can't do that anymore.
+    --  bit 3 not used yet
     --  bit 4 not used yet
     --  bit 5 not used yet
 
@@ -365,13 +340,12 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
 
 
 
+
     local channelingPercent = GetChannelDrain1000("player")
     --print(GetChannelDrain1000("player"))
     suggestionIndex = (suggestionIndex + 1) % 9
 
--- local GCD_SPELL_ID = 61304
--- local GetSpellCooldownInfo = (C_Spell and C_Spell.GetSpellCooldown) or GetSpellCooldown
--- local info = GetSpellCooldownInfo(GCD_SPELL_ID)
+
 
    --print ( string.format("%04i",wait ) ,' ', string.format("%04i", GetGCDPercentRemaining()))
     -- Assemble the compact payload. Keep your commented fields for future expansion.
@@ -381,9 +355,10 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
          '/K' .. string.format("%02i", tonumber(keytranslate )) ..
          '/D' .. string.format("%04i", channelingPercent)  ..        
          '/G' .. string.format("%04i", GetGCDPercentRemaining()) ..
-         '/T' .. string.format("%04i", NowMs10s())
-    --.. '/L' .. string.format("%04.3f", latencyWorld/1000):gsub("[.]", "")
-    --.. '/A' .. string.format("%08i", spellID or 0):gsub("[.]", "")
+         '/T' .. string.format("%04i", NowMsXs())
+     --  '/H' .. string.format("%03i", GetUnitHealthPct("player"))
+    --.. '/L' .. string.format("%04i", latencyWorld/1000) ..
+    --.. '/A' .. string.format("%04i", spellID or 0) ..
     --.. '/S' .. source
           
 

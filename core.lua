@@ -124,6 +124,18 @@ function RuneReader:InitializeAddon()
         end
     end
 
+
+    if RuneReaderRecastDB.BarCodeMode == 2 then
+            RuneReader:CreateCode39Window( 10)
+            RuneReader:SetBarcodeText(RuneReader.DefaultCode)
+            RuneReader.lastDisplayedCode39 = RuneReader.lastDisplayedCode39
+            RuneReader:DisposeCode39Window()
+            RuneReader:CreateCode39Window( 10)
+    end
+
+
+
+
     if C_AssistedCombat and (RuneReaderRecastDBPerChar.HelperSource == 1) then
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()

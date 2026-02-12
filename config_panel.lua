@@ -40,7 +40,7 @@ function RuneReader:ApplyConfig()
     
 
 
-      if cfg.BarCodeMode == 0 then
+    if cfg.BarCodeMode == 0 then
         -- Note to future self:  This is a hack to force the barcode window to be recreated WITH the proper scale on inital load of the game.
         -- DO NOT REMOVE THIS.
         -- IT IS NOT A BUG, IT IS A FEATURE.
@@ -54,7 +54,9 @@ function RuneReader:ApplyConfig()
             RuneReader:CreateQRWindow(matrix, cfg.QRModuleSize, cfg.QRQuietZone)
         end
     end
-
+    if cfg.BarCodeMode == 2 then
+        RuneReader:CreateCode39Window(10)
+    end
 
 
     -- Apply UI scale to any visible frames
@@ -151,14 +153,17 @@ function RuneReader:CreateConfigPanel()
     if C_AssistedCombat then table.insert(Data,"WoW Assisted Combat") else table.insert(Data,"WoW Assisted Combat N/A") end
     if ConRO then table.insert(Data,"ConRO") else table.insert(Data,"ConRO N/A") end
     if MaxDps then table.insert(Data,"MaxDps") else table.insert(Data,"MaxDps N/A") end
+
+
+
     --Data = {"Hekili", "Assisted Combat"}
-    AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 1)
+    AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 0)
 
     AddSlider("ScaleCode39",      "Code39 Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f",0)
     AddSlider("ScaleQR",          "QRCode Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f",0)
 
-    AddSlider("UpdateValuesDelay", "Update Delay",    "Delay repoll interval",     0.10, 0.01, 1.0, 0.01,"%.2f ms")
-    AddDropdown("BarCodeMode",  "Barcode Style", "Code39 Low CPU, QR More CPU but small",      0, {"Code39", "QRCode"},0)
+    AddSlider("UpdateValuesDelay", "Update Delay",    "Delay repoll interval",     0.10, 0.01, 1.0, 0.01,"%.2f ms",0)
+    AddDropdown("BarCodeMode",  "Barcode Style", "Code39 Low CPU, QR More CPU but small, Code39Fast more CPU fast updates",      0, {"Code39", "QRCode", "Code39Fast"},0)
     --  Settings.CreateCategory(category, "QR Code Settings")
     
     --AddSlider("Code39Size",    "Code39 size",    "Size of the Code39 Barcode",      40,   6,   60,   1, "%i")

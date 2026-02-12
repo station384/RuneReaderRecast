@@ -1,5 +1,5 @@
 -- RuneReader Recast
--- Copyright (c) Michael Sutton 2025
+-- Copyright (c) Michael Sutton 2026
 -- Licensed under the GNU General Public License v3.0 (GPLv3)
 -- You may use, modify, and distribute this file under the terms of the GPLv3 license.
 -- See: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,6 +13,7 @@ RuneReader.defaultConfig = {
     PrePressDelay = 0.100,
     UseCode39 = true,
     UseQRCode = false,
+    BarCodeMode = "Code39", -- Code39=Code39 Slow and Safe, Code39Fast=Code39 Fast High CPU, Code39Fast= Fast High CPU
     Ec_level = 0,
     QRModuleSize = 1,
     QRQuietZone = 3,
@@ -26,7 +27,7 @@ RuneReader.defaultConfig = {
 
 }
 RuneReader.defaultConfigPerChar = {
-    HelperSource = 0, -- 0 =  Hekili, 1 = Commbat Assist, 2 = ConRO, 3 = MaxDps
+    HelperSource = 1, -- 0 =  Hekili, 1 = Commbat Assist, 2 = ConRO, 3 = MaxDps
     UseFormCheck = true, -- Check if the player is in the correct form for the spell
     UseGlobalCooldowns = true, -- NEW: allow major cooldowns by default
 

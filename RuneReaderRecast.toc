@@ -24,6 +24,7 @@ integration_ConRO.lua
 integration_MaxDps.lua
 frames_barcode.lua
 frames_qr.lua
+frames_code39.lua
 config_panel.lua
 frames_devtools_actionbars.lua
 bindings.lua
