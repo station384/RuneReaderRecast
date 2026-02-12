@@ -19,20 +19,17 @@ function RuneReader:ApplyConfig()
     -- Re-create visuals based on toggles
     RuneReader:DestroyQRWindow()
     RuneReader:DestroyBarcodeWindow()
+    RuneReader:DisposeCode39Window()
     if RuneReader.SpellIconFrame then
        RuneReader:DestroySpellIconFrame()
     end
      
 
-    if C_AssistedCombat and cfgPerChar.HelperSource == 1 then
-            RuneReader:CreateSpellIconFrame()
-    elseif ConRO and cfgPerChar.HelperSource == 2 then
-            RuneReader:CreateSpellIconFrame()
-    elseif MaxDps and cfgPerChar.HelperSource == 3 then
-            RuneReader:CreateSpellIconFrame()
-    elseif Hekili and cfgPerChar.HelperSource == 0 then
-            RuneReader:CreateSpellIconFrame()
-    end
+
+    RuneReader:CreateSpellIconFrame()
+
+
+
     
     if RuneReader.RefreshCooldownButton then
             RuneReader:RefreshCooldownButton()
@@ -55,7 +52,7 @@ function RuneReader:ApplyConfig()
         end
     end
     if cfg.BarCodeMode == 2 then
-        RuneReader:CreateCode39Window(10)
+        RuneReader:CreateCode39Window(5)
     end
 
 

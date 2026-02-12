@@ -50,7 +50,11 @@
         "ConROEmpoweredFrame",
         "Add",
         "TooltipUtil",
-        "EditModeManagerFrame"
+        "EditModeManagerFrame",
+        "AuraUtil",
+        "UIParent",
+        "GameTooltip",
+        "GetCVar"
     ],
     "Lua.type.weakUnionCheck": true
 }

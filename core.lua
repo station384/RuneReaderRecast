@@ -126,11 +126,11 @@ function RuneReader:InitializeAddon()
 
 
     if RuneReaderRecastDB.BarCodeMode == 2 then
-            RuneReader:CreateCode39Window( 10)
+            RuneReader:CreateCode39Window( 5)
             RuneReader:SetBarcodeText(RuneReader.DefaultCode)
             RuneReader.lastDisplayedCode39 = RuneReader.lastDisplayedCode39
             RuneReader:DisposeCode39Window()
-            RuneReader:CreateCode39Window( 10)
+            RuneReader:CreateCode39Window( 5)
     end
 
 
