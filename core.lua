@@ -44,6 +44,55 @@ function RuneReader:PrecacheAssests()
     f:Show()
     f:Hide()
 end
+function RuneReader:SetScaleKeepCenter(frame, newScale)
+  local cx, cy = frame:GetCenter()
+  if not cx or not cy then
+    frame:SetScale(newScale)
+    return
+  end
+
+  -- Convert center to UIParent pixel coords
+  local parentScale = UIParent:GetEffectiveScale()
+  cx, cy = cx * parentScale, cy * parentScale
+
+  frame:SetScale(newScale)
+
+  -- Restore center
+  frame:ClearAllPoints()
+  frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", cx / parentScale, cy / parentScale)
+end
+
+ function RuneReader:SavePos(frame)
+  RuneReaderRecastDB = RuneReaderRecastDB or {}
+  RuneReaderRecastDB.QRposition = RuneReaderRecastDB.QRposition or {}
+
+  local cx, cy = frame:GetCenter()
+  if not cx or not cy then return end
+
+  -- convert to screen pixels using the frame's effective scale (important!)
+  local eff = frame:GetEffectiveScale()
+  RuneReaderRecastDB.QRposition.screenX = cx * eff
+  RuneReaderRecastDB.QRposition.screenY = cy * eff
+end
+
+ function RuneReader:RestorePos(frame)
+  local pos = RuneReaderRecastDB and RuneReaderRecastDB.QRposition
+  if not (pos and pos.screenX and pos.screenY) then
+    frame:SetPoint("CENTER")
+    return
+  end
+
+  local parentEff = UIParent:GetEffectiveScale()
+  frame:ClearAllPoints()
+  frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", pos.screenX / parentEff, pos.screenY / parentEff)
+end
+
+function RuneReader:SetScaleKeepCenter_ClampSafe(frame, newScale)
+  local wasClamped = frame:IsClampedToScreen()
+  frame:SetClampedToScreen(false)
+  RuneReader:SetScaleKeepCenter(frame, newScale)
+  frame:SetClampedToScreen(wasClamped)
+end
 
 local addonInitalized = false
 function RuneReader:InitializeAddon()

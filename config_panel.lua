@@ -59,9 +59,12 @@ function RuneReader:ApplyConfig()
 
     -- Apply UI scale to any visible frames
     if RuneReader.QRFrame then
+        --RuneReader:SetScaleKeepCenter_ClampSafe(RuneReader.QRFrame, cfg.ScaleQR or 1.0)
+    
         RuneReader.QRFrame:SetScale(cfg.ScaleQR or 1.0)
     end
     if RuneReader.BarcodeFrame then
+        --RuneReader:SetScaleKeepCenter_ClampSafe(RuneReader.BarcodeFrame, cfg.ScaleQR or 1.0)
         RuneReader.BarcodeFrame:SetScale(cfg.ScaleCode39 or 1.0)
     end
 
@@ -76,10 +79,16 @@ function RuneReader:CreateConfigPanel()
     RuneReaderRecastDB = RuneReaderRecastDB or {}
     local category = Settings.RegisterVerticalLayoutCategory("RuneReader Recast")
 
-    local function Config_OnChanged(setting, value)
+    local function Config_OnChangedDB(setting, value)
         --print("RuneReader Recast setting changed: " .. setting:GetName() .. " = " .. tostring(value))
         local var = setting:GetVariable()
         RuneReaderRecastDB[var] = value 
+        RuneReader:ApplyConfig()
+    end
+    local function Config_OnChangedPerCharDB(setting, value)
+        --print("RuneReader Recast setting changed: " .. setting:GetName() .. " = " .. tostring(value))
+        local var = setting:GetVariable()
+        RuneReaderRecastDBPerChar[var] = value 
         RuneReader:ApplyConfig()
     end
 
@@ -87,11 +96,13 @@ function RuneReader:CreateConfigPanel()
         local setting = {}
         if (Perchar == 1 or not Perchar) then
          setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
-        
+          setting:SetValueChangedCallback(Config_OnChangedPerCharDB)
        else
              setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
-       end
-       setting:SetValueChangedCallback(Config_OnChanged)
+          setting:SetValueChangedCallback(Config_OnChangedDB)
+
+            end
+     
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -99,10 +110,11 @@ function RuneReader:CreateConfigPanel()
          local setting = {}
          if (Perchar == 1 or not Perchar) then
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
+                     setting:SetValueChangedCallback(Config_OnChangedPerCharDB)
          else
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
-         end
-        setting:SetValueChangedCallback(Config_OnChanged)
+           setting:SetValueChangedCallback(Config_OnChangedDB)
+        end
         local opts = Settings.CreateSliderOptions(min, max, step)
         opts:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right,
             function(value)
@@ -116,11 +128,13 @@ function RuneReader:CreateConfigPanel()
        local setting = {}
         if (Perchar == 1 or not Perchar) then
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDBPerChar, type(default), label, default)
+          setting:SetValueChangedCallback(Config_OnChangedPerCharDB)
+
         else
            setting = Settings.RegisterAddOnSetting(category, label, key, RuneReaderRecastDB, type(default), label, default)
-        end
+          setting:SetValueChangedCallback(Config_OnChangedDB)
 
-        setting:SetValueChangedCallback(Config_OnChanged)
+        end
         Settings.CreateDropdown(category, setting, function()
             local container = Settings.CreateControlTextContainer()
             for idx, txt in ipairs(optionLabels) do
@@ -140,8 +154,8 @@ function RuneReader:CreateConfigPanel()
     --Data = {"Hekili", "Assisted Combat"}
     AddDropdown("HelperSource",  "Combat Assist Source",     "Combat helper engine",      0, Data, 1)
 
-    AddSlider("ScaleCode39",      "Code39 Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f")
-    AddSlider("ScaleQR",          "QRCode Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f")
+    AddSlider("ScaleCode39",      "Code39 Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f",0)
+    AddSlider("ScaleQR",          "QRCode Scale (Size)",     "This effects the rendered size",           1.0, 0.3, 1.3, 0.005,"%.3f",0)
 
     AddSlider("UpdateValuesDelay", "Update Delay",    "Delay repoll interval",     0.10, 0.01, 1.0, 0.01,"%.2f ms")
     AddDropdown("BarCodeMode",  "Barcode Style", "Code39 Low CPU, QR More CPU but small",      0, {"Code39", "QRCode"},0)

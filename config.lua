@@ -31,7 +31,7 @@ RuneReader.defaultConfigPerChar = {
     UseGlobalCooldowns = true, -- NEW: allow major cooldowns by default
 
 }
-
+RuneReader.DefaultCode = "/B0/W0001/K00/D0000/G0000/T0000"
 
 function RuneReader:InitConfig()
     for k,v in pairs(RuneReader.defaultConfig) do

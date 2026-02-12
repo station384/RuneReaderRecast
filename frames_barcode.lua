@@ -7,7 +7,6 @@
 -- frames_barcode.lua: Barcode window management
 
 RuneReader = RuneReader or {}
-RuneReader.DefaultCode = "/B0/W0001/K00/D0000/G0000/T0000"
 RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
 RuneReader.lastDisplayedC39Encode = ""
 RuneReader.C39FrameDelayAccumulator = 0
@@ -32,12 +31,12 @@ function RuneReader:CreateBarcodeWindow()
     end
 
     local f = CreateFrame("Frame", "RuneReaderBarcodeFrame", UIParent, "BackdropTemplate")
-    f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
 
     if RuneReaderRecastDB and RuneReaderRecastDB.C39Position then
         local pos = RuneReaderRecastDB.C39Position
         f:ClearAllPoints()
-        f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
+        f:SetPoint(pos.point or "TOPLEFT", UIParent, pos.relativePoint or "TOPLEFT", pos.x or 0, pos.y or 0)
     end
     f:SetIgnoreParentScale(true)
     f:SetScale(RuneReaderRecastDB.ScaleCode39 or 1.0)
@@ -118,8 +117,8 @@ function RuneReader:CreateBarcodeWindow()
             if RuneReader then
                 RuneReader.C39FrameDelayAccumulator = RuneReader.C39FrameDelayAccumulator + elapsed
                 if RuneReader.C39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay  then
-                    RuneReader.C39FrameDelayAccumulator = 0
                     RuneReader:UpdateC39Display()
+                    RuneReader.C39FrameDelayAccumulator = 0
                 end
             else
                 RuneReader.BarcodeFrame:SetScript("OnUpdate", nil)
@@ -129,7 +128,7 @@ function RuneReader:CreateBarcodeWindow()
     end
 
         RuneReader.C39FrameDelayAccumulator = 0
-           RuneReader.lastC39EncodeResult = "/B0/W0001/K00/D0000"
+           RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
            RuneReader.lastDisplayedC39Encode = ""
  --   RuneReader:AddToInspector(220*50, "Value encoded Code39")
 

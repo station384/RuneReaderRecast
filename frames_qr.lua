@@ -7,7 +7,7 @@
 -- frames_qr.lua: QR code window management
 
 RuneReader = RuneReader or {}
-RuneReader.lastQREncodeResult = "1,B0,W0001,K00"
+RuneReader.lastQREncodeResult = RuneReader.DefaultCode
 RuneReader.QRFrameDelayAccumulator = 0
 
 
@@ -19,7 +19,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:Show()
         return
     end
-    RuneReader.lastQREncodeResult = "1,B0,W0001,K00"
+    RuneReader.lastQREncodeResult = RuneReader.DefaultCode
     moduleSize = moduleSize or 6
     quietZone = quietZone or 4
     RuneReader:AddToInspector(moduleSize, "moduleSize Create")
@@ -34,17 +34,20 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
 
 
     local f = CreateFrame("Frame", "RuneReaderQRFrame", UIParent, "BackdropTemplate")
-    f:SetPoint("CENTER")
+    f:SetPoint("TOPLEFT")
     if RuneReaderRecastDB and RuneReaderRecastDB.QRposition then
         local pos = RuneReaderRecastDB.QRposition
         f:ClearAllPoints()
-        f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
+        f:SetPoint(pos.point or "TOPLEFT", UIParent, pos.relativePoint or "TOPLEFT", pos.x or 0, pos.y or 0)
+
+        --f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", pos.x or 0, pos.y or 0)
     end
+    f:SetIgnoreParentScale(true)
     f:SetScale(RuneReaderRecastDB.ScaleQR or 1.0)
     f:SetMovable(true)
     f:EnableMouse(true)
-    f:SetResizable(true)
-    f:SetIgnoreParentScale(true)
+    f:SetResizable(false)
+ 
     f:SetClampedToScreen(true)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", tile=true})

@@ -18,6 +18,7 @@ RuneReader.Assisted_LastEncodedResult = "/B0/W0001/K00/D0000"
 
 local spellQueueWindowDivisor = 1 
 local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
+local floor = math.floor
 
 
 
@@ -61,7 +62,7 @@ local function GetChannelDrain1000(unit)
   if remainingMs > durMs then remainingMs = durMs end
 
   -- Scale remaining fraction to 0..1000
-  return math.floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
+  return floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
 end
 
 local function GetCastingDuration1000(unit)
@@ -81,7 +82,7 @@ local function GetCastingDuration1000(unit)
   if remainingMs > durMs then remainingMs = durMs end
 
   -- Scale remaining fraction to 0..1000
-  return math.floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
+  return floor((remainingMs / durMs) * 1000 + 0.5) -- rounded
 end
 
 local GCD_SPELL_ID = 61304
@@ -117,7 +118,7 @@ local function GetGCDPercentRemaining()
 end
 
 local function NowMs10s()
-  return math.floor((GetTime() * 1000) % 10000)
+  return floor((GetTime() * 1000) % 10000)
 end
 
 
@@ -292,8 +293,8 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     -- ======================
     -- Cooldown & wait window
     -- ======================
-    local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
-    spellInfo1 = RuneReader.GetSpellInfo(SpellID)  -- re-fetch in case overrides changed the target spell
+ --   local sCurrentSpellCooldown = RuneReader.GetSpellCooldown(SpellID)
+    --spellInfo1 = RuneReader.GetSpellInfo(SpellID)  -- re-fetch in case overrides changed the target spell
     -- local SpellCooldown = C_Spell.GetSpellCooldownDuration(SpellID) or 0
     -- local duration = SpellCooldown:EvaluateRemainingPercent(RuneReader.myScale1000 )
 
