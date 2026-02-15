@@ -6,6 +6,17 @@
 ## SavedVariables: RuneReaderRecastDB
 ## SavedVariablesPerCharacter: RuneReaderRecastDBPerChar
 ## License: GNU GPLv3 - See LICENSE.txt
+## Category: Assistance
+## Category-deDE: Unterstützung
+## Category-esES: Asistencia
+## Category-esMX: Asistencia
+## Category-frFR: Assistance
+## Category-itIT: Assistenza
+## Category-koKR: 지원
+## Category-ptBR: Assistência
+## Category-ruRU: Помощь
+## Category-zhCN: 辅助
+## Category-zhTW: 輔助
 
 QRcodeEncoder.lua
 config.lua
