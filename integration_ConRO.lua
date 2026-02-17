@@ -34,7 +34,7 @@ local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 function RuneReader:ConRO_UpdateValues(mode)
     if not ConRO or not ConRO.Version then return nil end --ConRO Doesn't exists just exit
 
-    if RuneReaderRecastDBPerChar.HelperSource ~= 2 then return nil end
+    if RuneReaderRecastDB.HelperSource ~= 2 then return nil end
     local mode = mode or 1
 
     -- RuneReader.ConRO_GenerationDelayAccumulator = RuneReader.ConRO_GenerationDelayAccumulator +

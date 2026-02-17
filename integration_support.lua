@@ -490,7 +490,7 @@ local RR_PROVIDERS = {
 -- 1) try the user-selected HelperSource if available
 -- 2) else fall back in priority order: AssistedCombat -> Hekili -> ConRO -> MaxDps
 function RuneReader:PickProvider()
-  local sel = (RuneReaderRecastDBPerChar and RuneReaderRecastDBPerChar.HelperSource) or 1
+  local sel = (RuneReaderRecastDBPerChar and RuneReaderRecastDB.HelperSource) or 1
   local order = { sel, 1, 0, 2, 3 }  -- ensure we try the selected first, then our fallback order
   local seen = {}
 

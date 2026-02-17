@@ -110,6 +110,7 @@ function RuneReader:InitializeAddon()
         RuneReader:CreateBarcodeWindow()
     end
 
+
     if RuneReaderRecastDB.BarCodeMode == 1 then
         local success, matrix = QRencode.qrcode(RuneReader.lastC39EncodeResult, RuneReaderRecastDB.Ec_level or 7)
         if success then
@@ -136,19 +137,19 @@ function RuneReader:InitializeAddon()
 
 
 
-    if C_AssistedCombat and (RuneReaderRecastDBPerChar.HelperSource == 1) then
+    if C_AssistedCombat and (RuneReaderRecastDB.HelperSource == 1) then
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
-    -- elseif ConRO and (RuneReaderRecastDBPerChar.HelperSource == 2) then
+    -- elseif ConRO and (RuneReaderRecastDB.HelperSource == 2) then
     --      RuneReader:CreateSpellIconFrame()
     --      RuneReader:DestroySpellIconFrame()
     --      RuneReader:CreateSpellIconFrame()
-    elseif MaxDps and (RuneReaderRecastDBPerChar.HelperSource == 3) then
+    elseif MaxDps and (RuneReaderRecastDB.HelperSource == 3) then
          RuneReader:CreateSpellIconFrame()
          RuneReader:DestroySpellIconFrame()
          RuneReader:CreateSpellIconFrame()
-    -- elseif Hekili and (RuneReaderRecastDBPerChar.HelperSource == 0) then
+    -- elseif Hekili and (RuneReaderRecastDB.HelperSource == 0) then
     --      RuneReader:CreateSpellIconFrame()
     --      RuneReader:DestroySpellIconFrame()
     --      RuneReader:CreateSpellIconFrame()

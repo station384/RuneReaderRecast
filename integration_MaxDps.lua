@@ -103,7 +103,7 @@ local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 function RuneReader:MaxDps_UpdateValues(mode)
     if not MaxDps or not MaxDps.db then return nil end --MaxDps Doesn't exists just exit
-    if RuneReaderRecastDBPerChar.HelperSource ~= 3 then return nil end
+    if RuneReaderRecastDB.HelperSource ~= 3 then return nil end
     mode = mode or 1
 
    local spellInfo1 = nil

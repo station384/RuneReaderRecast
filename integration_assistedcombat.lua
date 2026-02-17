@@ -158,7 +158,7 @@ Side effects / Global dependencies:
       * RuneReader.Assisted_GenerationDelayAccumulator
       * RuneReader.Assisted_GenerationDelayTimeStamp
       * RuneReader.Assisted_LastEncodedResult
-      * RuneReaderRecastDBPerChar.HelperSource
+      * RuneReaderRecastDB.HelperSource
       * RuneReaderRecastDB.UpdateValuesDelay
       * RuneReaderRecastDB.PrePressDelay
   - Relies on several RuneReader helpers:
@@ -225,7 +225,7 @@ Usage:
 
 function RuneReader:AssistedCombat_UpdateValues(mode)
     -- Guard: only run if Assisted Combat is the active helper source (1)
-    if RuneReaderRecastDBPerChar.HelperSource ~= 1 then return end
+    if RuneReaderRecastDB.HelperSource ~= 1 then return end
 
     -- Default mode to 1 if nil was passed
     local mode = mode or 1
@@ -360,7 +360,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     --.. '/L' .. string.format("%04i", latencyWorld/1000) ..
     --.. '/A' .. string.format("%04i", spellID or 0) ..
     --.. '/S' .. source
-          
+
 
     local full = combinedValues
 

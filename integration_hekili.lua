@@ -110,7 +110,7 @@ end
 
 -- function RuneReader:Hekili_UpdateValues(mode)
 --     if not Hekili or not Hekili.baseName then return nil end
---     if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
+--     if RuneReaderRecastDB.HelperSource ~= 0 then return nil end
 
 --    local mode = mode or 0
 
@@ -269,7 +269,7 @@ local suggestionIndex = 0 -- 1..9 this is just to indicate the suggestionChanged
 
 function RuneReader:Hekili_UpdateValues(mode)
   if not Hekili or not Hekili.baseName then return nil end
-  if RuneReaderRecastDBPerChar.HelperSource ~= 0 then return nil end
+  if RuneReaderRecastDB.HelperSource ~= 0 then return nil end
 
   local mode = mode or 0
   local curTime = GetTime()
