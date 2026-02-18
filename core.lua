@@ -169,6 +169,8 @@ RuneReaderInit:RegisterEvent("PET_BATTLE_CLOSE")
 RuneReaderInit:RegisterEvent("ADDON_LOADED")
 RuneReaderInit:RegisterEvent("PLAYER_ENTERING_WORLD")
 RuneReaderInit:RegisterEvent("FIRST_FRAME_RENDERED")
+RuneReaderInit:RegisterEvent("UNIT_ENTERING_VEHICLE")
+RuneReaderInit:RegisterEvent("UNIT_EXITING_VEHICLE")
 
 -- used to detect player bar changes
 -- RuneReaderInit:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
@@ -180,7 +182,7 @@ RuneReaderInit:RegisterEvent("FIRST_FRAME_RENDERED")
 -- RuneReaderInit:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
 -- RuneReaderInit:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
 RuneReaderInit:SetScript("OnEvent",
-function(self, event, addonName) 
+function(self, event, addonName, param3, param4, param5, param6, param7) 
     if event == "ADDON_LOADED" then
         if addonName == "RuneReaderRecast" then
             --print("RuneReaderRecast: Addon loaded.")
@@ -208,6 +210,9 @@ function(self, event, addonName)
             if RuneReader.QRFrame then
                 RuneReader.QRFrame:Hide()
             end
+            if RuneReader.C39BarcodeFrame then
+                RuneReader.C39BarcodeFrame:Hide()
+            end
     elseif event == "PET_BATTLE_CLOSE" then
             if RuneReader.BarcodeFrame then
                 RuneReader.BarcodeFrame:Show()
@@ -215,7 +220,38 @@ function(self, event, addonName)
             if RuneReader.QRFrame then
                 RuneReader.QRFrame:Show()
             end
+            if RuneReader.C39BarcodeFrame then
+                RuneReader.C39BarcodeFrame:Show()
+            end
+
+       
+    elseif event == "UNIT_ENTERING_VEHICLE" then
+        
+        if addonName == "player" then
+            if RuneReader.BarcodeFrame then
+                RuneReader.BarcodeFrame:Hide()
+            end
+            if RuneReader.QRFrame then
+                RuneReader.QRFrame:Hide()
+            end
+            if RuneReader.C39BarcodeFrame then
+                RuneReader.C39BarcodeFrame:Hide()
+            end
         end
+    
+elseif event == "UNIT_EXITING_VEHICLE" then
+    if addonName == "player" then
+            if RuneReader.BarcodeFrame then
+                RuneReader.BarcodeFrame:Show()
+            end
+            if RuneReader.QRFrame then
+                RuneReader.QRFrame:Show()
+            end
+            if RuneReader.C39BarcodeFrame then
+                RuneReader.C39BarcodeFrame:Show()
+            end
+        end
+end
     -- elseif event == "ACTIONBAR_PAGE_CHANGED" or
     -- event == "UPDATE_BONUS_ACTIONBAR" or
     -- event == "UPDATE_OVERRIDE_ACTIONBAR" or

@@ -303,6 +303,20 @@ end
 -- ------------------------------------------------------------
 
 function M:Create( height)
+    RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
+    if RuneReader.C39BarcodeFrame and RuneReader.C39BarcodeFrame:IsShown() then
+        RuneReader.C39FrameDelayAccumulator = 0
+        RuneReader.lastC39EncodeResult = RuneReader.DefaultCode
+        RuneReader.lastDisplayedC39Encode = ""
+        return
+    elseif RuneReader.C39BarcodeFrame then
+        RuneReader.C39FrameDelayAccumulator = 0
+           RuneReader.lastC39EncodeResult = ""
+           RuneReader.lastDisplayedC39Encode = ""
+        RuneReader.C39BarcodeFrame:Show()
+        return
+    end
+
   if self.Frame then
     -- like QR: if already exists, just show it
     if self.Frame:IsShown() then return self.Frame end
@@ -349,6 +363,7 @@ function M:Create( height)
     savePosition(self)
   end)
 
+
   f._bars = {}
   f._lastText = nil
 
@@ -375,14 +390,14 @@ function M:Create( height)
         end)
     f.hasBeenInitialized = true
   end
-
+  RuneReader.C39BarcodeFrame = f;
   return f
 end
 
 function M:Dispose()
   local f = self.Frame
   if not f then return end
-
+RuneReader.C39BarcodeFrame = nil;
   f:SetScript("OnUpdate", nil)
   f:SetScript("OnDragStart", nil)
   f:SetScript("OnDragStop", nil)
