@@ -1,1 +1,9 @@
-* text eol=crlf
+*.md text eol=crlf
+*.lua text eol=crlf
+*.ttf binary 
+*.txt text eol=crlf
+*.json text eol=crlf
+*.toc text eol=crlf
+*.code-workspace text eol=crlf
+*.xml text eol=crlf
+
