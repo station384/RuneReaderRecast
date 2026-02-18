@@ -38,7 +38,7 @@ M.defaults = {
 
   -- Dragging / positioning
   clampToScreen = true,
-  strata = "FULLSCREEN_DIALOG",
+  strata = "TOOLTIP",
   minNarrowPx = 1,
   minWidth    = 200,
   maxWidth    = 1600
