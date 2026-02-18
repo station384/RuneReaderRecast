@@ -115,7 +115,7 @@ local function GetGCDPercentRemaining()
 end
 
 local function NowMsXs()
-  return floor((GetTime() * 1000) % 999)
+  return floor((GetTime() * 1000) % 5000)
 end
 
 
