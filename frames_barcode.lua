@@ -162,8 +162,8 @@ function RuneReader:UpdateC39Display()
 
 
     if fullResult then
-            RuneReader:SetBarcodeText("*" .. fullResult .. "*")
             RuneReader.lastDisplayedC39Encode= fullResult;
+            RuneReader:SetBarcodeText("*" .. fullResult .. "*")
     end
 
   

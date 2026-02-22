@@ -115,7 +115,11 @@ local function GetGCDPercentRemaining()
 end
 
 local function NowMsXs()
-  return floor((GetTime() * 1000) % 5000)
+  --return floor((GetTimePreciseSec() * 1000) % 5000)
+  --local startTime = GetTime()   -- will be 0 at first call after client start
+  --print("GetTime now:", startTime)   -- prints the number of seconds since the client started
+  -- print("os.time():", os.time())
+  return floor((GetTimePreciseSec() * 1000) % 1000)
 end
 
 
@@ -346,7 +350,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
     suggestionIndex = (suggestionIndex + 1) % 9
 
 
-
+   --print("GetTimePreciseSec():", string.format("%04i", NowMsXs() % 1000) )
    --print ( string.format("%04i",wait ) ,' ', string.format("%04i", GetGCDPercentRemaining()))
     -- Assemble the compact payload. Keep your commented fields for future expansion.
     local combinedValues = 
