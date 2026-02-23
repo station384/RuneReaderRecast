@@ -99,7 +99,7 @@ function RuneReader:CreateQRWindow(qrMatrix, moduleSize, quietZone)
         RuneReader.QRFrame:SetScript("OnUpdate", function(self, elapsed)
             if RuneReader then
                 if RuneReader.QRFrameDelayAccumulator >=  RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
-                    RuneReader:UpdateQRDisplay()
+                    RuneReader:UpdateQRDisplay(elapsed)
                     RuneReader.QRFrameDelayAccumulator =  0
                 end
             else
@@ -197,7 +197,7 @@ function RuneReader:UpdateQRCodeTextures(qrMatrix)
   end
 end
 
-function RuneReader:UpdateQRDisplay()
+function RuneReader:UpdateQRDisplay(elapsed)
   -- Cache local references to avoid repeated table lookups
   local self = RuneReader
   local db   = RuneReaderRecastDB
@@ -206,7 +206,7 @@ function RuneReader:UpdateQRDisplay()
   local lastDisplayed = self.lastDisplayedQREncode
   local dataLen      = self.DataLength
 
-  local fullResult = self:GetUpdatedValues()
+  local fullResult = self:GetUpdatedValues(elapsed)
 
  -- if lastResult ~= fullResult or lastDisplayed ~= fullResult then
     local success, matrix = qr.qrcode(fullResult, db.Ec_level or 7)

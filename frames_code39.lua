@@ -378,7 +378,7 @@ function M:Create( height)
         
             if RuneReader then
                 if RuneReader.Code39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
-                    RuneReader:UpdateCode39Display()
+                    RuneReader:UpdateCode39Display(elapsed)
                     RuneReader.Code39FrameDelayAccumulator = 0
                 end
             else
@@ -470,14 +470,14 @@ function RuneReader:UpdateCode39(text) return M:UpdateCode39(text) end
 --   - uses RuneReader:GetUpdatedValues() if present
 --   - renders that string as Code39
 --
-function RuneReader:UpdateCode39Display()
+function RuneReader:UpdateCode39Display(elapsed)
   local d = RuneReaderRecastDB
   if not d then return end
 
   -- You can swap this to RuneReader:GetUpdatedValues() or another function.
   local text
   if RuneReader.GetUpdatedValues then
-    text = RuneReader:GetUpdatedValues()
+    text = RuneReader:GetUpdatedValues(elapsed)
   else
     -- fallback: if you store a value somewhere else, set it here
     text = d.Code39Value or ""

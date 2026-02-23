@@ -114,12 +114,12 @@ local function GetGCDPercentRemaining()
   return 1000 - GetGCDPercentComplete()
 end
 
-local function NowMsXs()
+local function NowMsXs(elapsed)
   --return floor((GetTimePreciseSec() * 1000) % 5000)
   --local startTime = GetTime()   -- will be 0 at first call after client start
   --print("GetTime now:", startTime)   -- prints the number of seconds since the client started
   -- print("os.time():", os.time())
-  return floor((GetTimePreciseSec() * 1000) % 1000)
+  return floor(((GetTime() * 1000)+(elapsed * 1000))   % 500)
 end
 
 
@@ -227,12 +227,12 @@ Usage:
 
 ]]
 
-function RuneReader:AssistedCombat_UpdateValues(mode)
+function RuneReader:AssistedCombat_UpdateValues(elapsed)
     -- Guard: only run if Assisted Combat is the active helper source (1)
     if RuneReaderRecastDB.HelperSource ~= 1 then return end
 
-    -- Default mode to 1 if nil was passed
-    local mode = mode or 1
+
+
     -- Wait time until cooldown ends
     local wait = 0
     -- ======================
@@ -359,7 +359,7 @@ function RuneReader:AssistedCombat_UpdateValues(mode)
          '/K' .. string.format("%02i", tonumber(keytranslate )) ..
          '/D' .. string.format("%04i", channelingPercent)  ..        
          '/G' .. string.format("%04i", GetGCDPercentRemaining()) ..
-         '/T' .. string.format("%04i", NowMsXs())
+         '/T' .. string.format("%04i", NowMsXs(elapsed))
      --  '/H' .. string.format("%03i", GetUnitHealthPct("player"))
     --.. '/L' .. string.format("%04i", latencyWorld/1000) ..
     --.. '/A' .. string.format("%04i", spellID or 0) ..

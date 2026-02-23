@@ -533,7 +533,7 @@ end
 -- end
 
 -- TODO: remove hekili and conro
-function RuneReader:GetUpdatedValues()
+function RuneReader:GetUpdatedValues(elapsed)
     local fullResult = ""
     local SpellID = 0
     local hotkey = ""
@@ -549,7 +549,7 @@ function RuneReader:GetUpdatedValues()
     -- end
     
     -- Only support AssistedCombat now...  thx midnight...   
-    fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(1)
+    fullResult, SpellID, hotkey = RuneReader:AssistedCombat_UpdateValues(elapsed)
 
     if RuneReader.SpellIconFrame then
         RuneReader:SetSpellIconFrame(SpellID, hotkey)
