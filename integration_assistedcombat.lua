@@ -306,13 +306,13 @@ function RuneReader:AssistedCombat_UpdateValues(elapsed)
     --local cooldownEnc  = string.format("%04d", math.min(9999, math.floor((info.cooldown or 0) * 10))) -- 4 digits
     --local castTimeEnc  = string.format("%04d", math.min(9999, math.floor((info.castTime or 0) * 10))) -- 4 digits
     if EditModeManagerFrame and not EditModeManagerFrame:IsShown() then
-    if AuraUtil and AuraUtil.FindAuraByName then
-      local find = AuraUtil.FindAuraByName
-      if find("G-99 Breakneck", "player", "HELPFUL") or
-        find("Unstable Rocketpack", "player", "HELPFUL") then
-        keytranslate = "00"
-      end
-    end
+    -- if AuraUtil and AuraUtil.FindAuraByName then
+    --   local find = AuraUtil.FindAuraByName
+    --   if find("G-99 Breakneck", "player", "HELPFUL") or
+    --     find("Unstable Rocketpack", "player", "HELPFUL") then
+    --     keytranslate = "00"
+    --   end
+    -- end
   end
 
     -- Bitfield flags:
