@@ -375,7 +375,6 @@ function M:Create( height)
   if not f.hasBeenInitialized then
 
         f:SetScript("OnUpdate", function(self, elapsed)
-        
             if RuneReader then
                 if RuneReader.Code39FrameDelayAccumulator >= RuneReaderRecastDB.UpdateValuesDelay + elapsed  then
                     RuneReader:UpdateCode39Display(elapsed)

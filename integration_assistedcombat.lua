@@ -119,7 +119,8 @@ local function NowMsXs(elapsed)
   --local startTime = GetTime()   -- will be 0 at first call after client start
   --print("GetTime now:", startTime)   -- prints the number of seconds since the client started
   -- print("os.time():", os.time())
-  return floor(((GetTime()-elapsed * 1000))   % 500)
+
+  return floor(floor((GetTimePreciseSec()+elapsed) * 1000)   % 500)
 end
 
 
